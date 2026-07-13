@@ -1,0 +1,44 @@
+<div
+        class="card-selector"
+        [ngClass]="{ responsive: responsive }"
+        [style.gridTemplateColumns]="'repeat(' + columns + ', minmax(200px, 1fr))'"
+        role="radiogroup"
+        [attr.aria-label]="label"
+>
+    <label *ngIf="label" class="form-label fw-semibold mb-2">{{ label }}</label>
+
+    <div
+            *ngFor="let opt of options; let i = index; trackBy: trackByValue"
+            class="option-card"
+            [class.selected]="value === opt.value"
+            [class.focused]="i === focusedIndex"
+            [class.disabled]="opt.disabled"
+            tabindex="0"
+            (click)="onSelect(opt.value)"
+            role="radio"
+            [attr.aria-checked]="value === opt.value"
+            [attr.aria-disabled]="opt.disabled"
+            [@selectAnim]
+    >
+        <div class="card-icon" *ngIf="opt.icon">
+            <i [class]="opt.icon"></i>
+        </div>
+
+        <div class="card-content">
+            <div class="card-label">{{ opt.label }}</div>
+            <small class="card-description text-muted" *ngIf="opt.description">
+                {{ opt.description }}
+            </small>
+        </div>
+
+        <span
+                class="badge bg-primary position-absolute top-0 end-0 m-2"
+                *ngIf="opt.badge"
+        >
+      {{ opt.badge }}
+    </span>
+    </div>
+</div>
+
+<small *ngIf="helpText && !errorMessage" class="text-muted">{{ helpText }}</small>
+<div *ngIf="errorMessage" class="invalid-feedback d-block mt-1">{{ errorMessage }}</div>

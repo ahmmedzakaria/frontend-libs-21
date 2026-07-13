@@ -1,0 +1,67 @@
+<div class="dropdown-wrapper" [class.disabled]="disabled">
+    <label *ngIf="label" class="form-label fw-semibold mb-2">
+        {{ label }}
+        <span *ngIf="required" class="text-danger">*</span>
+    </label>
+
+    <div
+            class="dropdown-control"
+            [class.open]="showDropdown"
+            (click)="toggleDropdown()"
+            tabindex="0"
+    >
+    <span class="selected-text" *ngIf="selectedLabel; else placeholderBlock">
+      {{ selectedLabel }}
+    </span>
+        <ng-template #placeholderBlock>
+            <span class="placeholder text-muted">{{ placeholder }}</span>
+        </ng-template>
+
+        <i
+                class="fa-solid"
+                [ngClass]="{
+        'fa-chevron-up': showDropdown,
+        'fa-chevron-down': !showDropdown
+      }"
+        ></i>
+    </div>
+
+    <div class="dropdown-menu shadow-sm" *ngIf="showDropdown">
+        <div class="search-box" *ngIf="searchable">
+            <input
+                #searchInput
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="Search..."
+                (input)="filter($event.target)"
+            />
+        </div>
+
+        <div
+                class="options-list"
+                #scrollContainer
+                (scroll)="onScroll()"
+        >
+            <div
+                    *ngFor="let opt of filteredOptions; let i = index"
+                    class="dropdown-item"
+                    [class.focused]="i === focusedIndex"
+                    [class.selected]="opt.value === value"
+                    (click)="selectOption(opt)"
+            >
+                {{ opt.label }}
+            </div>
+            <div *ngIf="loading" class="text-center py-2">
+                <i class="fa fa-spinner fa-spin"></i> Loading...
+            </div>
+            <div *ngIf="filteredOptions.length === 0" class="no-results text-muted">
+                No results found
+            </div>
+        </div>
+    </div>
+
+    <small *ngIf="helpText && !errorMessage" class="text-muted">{{ helpText }}</small>
+    <div *ngIf="errorMessage" class="invalid-feedback d-block mt-1">
+        {{ errorMessage }}
+    </div>
+</div>

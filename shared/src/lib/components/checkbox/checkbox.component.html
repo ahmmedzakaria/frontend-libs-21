@@ -1,0 +1,31 @@
+<div
+        class="checkbox-container"
+        [class]="variant"
+        [ngClass]="{
+    disabled: disabled,
+    checked: value,
+    indeterminate: indeterminate
+  }"
+        role="checkbox"
+        [attr.aria-checked]="value"
+        [attr.aria-disabled]="disabled"
+        tabindex="0"
+        (click)="toggle()"
+        (keyup.enter)="toggle()"
+>
+    <div class="checkbox-box" *ngIf="variant !== 'switch'">
+        <div class="checkmark"></div>
+    </div>
+
+    <div class="switch-toggle" *ngIf="variant === 'switch'">
+        <div class="knob"></div>
+    </div>
+
+    <div class="checkbox-label">
+        <span class="label-text">{{ label }}</span>
+        <small *ngIf="description" class="text-muted">{{ description }}</small>
+    </div>
+</div>
+
+<small *ngIf="helpText && !errorMessage" class="text-muted">{{ helpText }}</small>
+<div *ngIf="errorMessage" class="invalid-feedback d-block mt-1">{{ errorMessage }}</div>

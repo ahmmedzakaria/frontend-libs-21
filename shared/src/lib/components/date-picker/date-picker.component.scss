@@ -1,0 +1,109 @@
+.date-picker {
+  position: relative;
+  display: block;
+
+  .calendar-icon {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #6c757d;
+  }
+
+  .calendar-popover {
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 0;
+    z-index: 1050;
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.75rem 1rem rgba(0, 0, 0, 0.15);
+    padding: 0.75rem;
+    width: 100%;
+    max-width: 700px;
+    animation: fadeIn 0.2s ease;
+
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+      font-weight: 500;
+    }
+
+    .calendar-body {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+
+      .month-container {
+        flex: 1;
+        min-width: 300px;
+
+        .month-label {
+          text-align: center;
+          font-weight: 600;
+          margin-bottom: 0.3rem;
+        }
+
+        .calendar-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 4px;
+          justify-content: center;
+
+          .calendar-day {
+            width: 2.2rem;
+            height: 2.2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+
+            &:hover {
+              background-color: #e9ecef;
+            }
+
+            &.selected {
+              background-color: #0d6efd;
+              color: #fff;
+            }
+
+            &.in-range {
+              background-color: #cfe2ff;
+            }
+
+            &.range-start,
+            &.range-end {
+              background-color: #0d6efd;
+              color: #fff;
+              font-weight: 600;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    .calendar-body {
+      flex-direction: column;
+    }
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-5px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}

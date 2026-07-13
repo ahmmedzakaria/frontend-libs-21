@@ -1,0 +1,129 @@
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+  border-radius: 8px;
+
+  &.disabled {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  .checkbox-box {
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--bs-border-color, #dee2e6);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    position: relative;
+    background: #fff;
+
+    .checkmark {
+      width: 10px;
+      height: 6px;
+      border-left: 2px solid #fff;
+      border-bottom: 2px solid #fff;
+      transform: rotate(-45deg) scale(0);
+      transition: all 0.2s ease;
+    }
+  }
+
+  &.checked .checkbox-box {
+    background: var(--bs-primary);
+    border-color: var(--bs-primary);
+
+    .checkmark {
+      transform: rotate(-45deg) scale(1);
+    }
+  }
+
+  &.indeterminate .checkbox-box {
+    background: var(--bs-primary);
+    border-color: var(--bs-primary);
+
+    &::after {
+      content: '';
+      width: 10px;
+      height: 2px;
+      background: #fff;
+      border-radius: 1px;
+      position: absolute;
+    }
+  }
+
+  .checkbox-label {
+    display: flex;
+    flex-direction: column;
+
+    .label-text {
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+
+    small {
+      font-size: 0.8rem;
+    }
+  }
+
+  // --- Switch Style ---
+  &.switch {
+    .switch-toggle {
+      position: relative;
+      width: 42px;
+      height: 24px;
+      border-radius: 12px;
+      background: #ccc;
+      transition: all 0.3s ease;
+
+      .knob {
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        top: 3px;
+        left: 3px;
+        background: #fff;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+      }
+    }
+
+    &.checked .switch-toggle {
+      background: var(--bs-primary);
+
+      .knob {
+        left: 21px;
+      }
+    }
+  }
+
+  // --- Card Style ---
+  &.card {
+    border: 2px solid var(--bs-border-color, #dee2e6);
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    background: #fff;
+    transition: all 0.2s ease;
+
+    &:hover {
+      border-color: var(--bs-primary);
+      background-color: rgba(var(--bs-primary-rgb), 0.03);
+    }
+
+    &.checked {
+      border-color: var(--bs-primary);
+      box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), 0.15);
+      background-color: rgba(var(--bs-primary-rgb), 0.05);
+    }
+
+    .checkbox-box {
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+  }
+}

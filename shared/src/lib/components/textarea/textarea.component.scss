@@ -1,0 +1,48 @@
+.textarea-wrapper {
+  width: 100%;
+  position: relative;
+
+  .form-floating {
+    width: 100%;
+
+    textarea.form-control {
+      resize: none;
+      min-height: 3rem;
+      line-height: 1.5;
+      font-size: 0.95rem;
+      border-radius: 0.5rem;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+      &:focus {
+        border-color: var(--bs-primary);
+        box-shadow: 0 0 0 0.15rem rgba(var(--bs-primary-rgb), 0.25);
+      }
+
+      &.is-invalid {
+        border-color: var(--bs-danger);
+      }
+    }
+
+    label {
+      font-size: 0.9rem;
+      color: #6c757d;
+    }
+
+    .char-count {
+      position: absolute;
+      bottom: 6px;
+      right: 12px;
+      font-size: 0.75rem;
+      opacity: 0.75;
+    }
+  }
+
+  small.text-muted {
+    display: block;
+    margin-top: 0.3rem;
+  }
+
+  .invalid-feedback {
+    font-size: 0.85rem;
+  }
+}

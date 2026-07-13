@@ -1,0 +1,111 @@
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  .radio-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+
+    &.grid {
+      display: grid;
+      gap: 1rem;
+    }
+  }
+
+  .radio-option {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: #fff;
+    border: 2px solid var(--bs-border-color, #dee2e6);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    min-width: 140px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      border-color: var(--bs-primary);
+      background-color: rgba(var(--bs-primary-rgb), 0.05);
+    }
+
+    &.selected {
+      border-color: var(--bs-primary);
+      background-color: rgba(var(--bs-primary-rgb), 0.08);
+      box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), 0.15);
+
+      .label {
+        color: var(--bs-primary);
+        font-weight: 600;
+      }
+
+      .marker::after {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    &.disabled {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .icon {
+      font-size: 1.4rem;
+      color: var(--bs-primary);
+      flex-shrink: 0;
+    }
+
+    .info {
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+
+      .label {
+        font-size: 0.95rem;
+      }
+
+      .desc {
+        font-size: 0.8rem;
+        color: #6c757d;
+      }
+    }
+
+    .marker {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--bs-primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &::after {
+        content: '';
+        width: 8px;
+        height: 8px;
+        background-color: var(--bs-primary);
+        border-radius: 50%;
+        transform: scale(0);
+        opacity: 0;
+        transition: all 0.2s ease;
+      }
+    }
+  }
+
+  &.vertical .radio-options {
+    flex-direction: column;
+  }
+
+  @media (max-width: 768px) {
+    .radio-options {
+      flex-direction: column;
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "es2022",
+    "moduleResolution": "node",
+    "experimentalDecorators": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "@nexacore/api-common": ["api-common/src/public-api.ts"],
+      "@nexacore/api-common/*": ["api-common/src/lib/*"],
+      "@nexacore/auth": ["auth/src/public-api.ts"],
+      "@nexacore/auth/*": ["auth/src/lib/*"],
+      "@nexacore/layout": ["layout/src/public-api.ts"],
+      "@nexacore/layout/*": ["layout/src/lib/*"],
+      "@nexacore/shared": ["shared/src/public-api.ts"],
+      "@nexacore/shared/*": ["shared/src/lib/*"],
+      "@app-core/*": ["../frontend/src/app/core/*"]
+    }
+  }
+}

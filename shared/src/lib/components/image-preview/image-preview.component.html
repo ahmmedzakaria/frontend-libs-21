@@ -1,0 +1,48 @@
+<div>
+    <button
+            type="button"
+            class="btn p-0 border-0 bg-transparent"
+            [class.rounded-circle]="thumbnailClass.includes('rounded-circle')"
+            [disabled]="disabled"
+            (click)="openViewer()"
+            [attr.aria-label]="title">
+        <img
+                [src]="currentSrc"
+                [alt]="alt"
+                [class]="thumbnailClass"
+                [attr.width]="width"
+                [attr.height]="height"
+                (error)="onImageError($event)" />
+    </button>
+
+    <div *ngIf="previewOnClick && hint" class="small text-muted mt-2">{{ hint }}</div>
+
+    <div
+            *ngIf="isViewerOpen"
+            class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center p-3"
+            style="background: rgba(15, 23, 42, 0.82); z-index: 1055;"
+            (click)="closeViewer()">
+        <div
+                class="bg-white rounded-4 shadow-lg overflow-hidden"
+                style="max-width: 920px; width: 100%;"
+                (click)="$event.stopPropagation()">
+            <div class="d-flex align-items-center justify-content-between px-4 py-3 border-bottom">
+                <div>
+                    <div class="fw-semibold">{{ title }}</div>
+                    <div *ngIf="subtitle" class="small text-muted">{{ subtitle }}</div>
+                </div>
+                <button type="button" class="btn btn-outline-secondary btn-sm" (click)="closeViewer()">
+                    <i class="fa fa-times me-1"></i>Close
+                </button>
+            </div>
+            <div class="p-3 p-md-4 bg-light d-flex align-items-center justify-content-center">
+                <img
+                        [src]="currentSrc"
+                        [alt]="alt"
+                        [class]="imageClass || 'img-fluid rounded-4 shadow-sm'"
+                        style="max-height: 78vh; width: auto;"
+                        (error)="onImageError()" />
+            </div>
+        </div>
+    </div>
+</div>

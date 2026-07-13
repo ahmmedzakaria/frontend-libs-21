@@ -1,0 +1,57 @@
+<div class="form-group mb-3 textbox-component">
+    <div *ngIf="floating; else normalInput" class="form-floating position-relative">
+        <input
+                [type]="displayType"
+                [formControl]="control"
+                [id]="label"
+                class="form-control"
+                [placeholder]="placeholder || label"
+                [disabled]="disabled"
+                [readOnly]="readonly"
+                (blur)="onTouched()"
+                [ngClass]="{'is-invalid': hasError}"
+        />
+        <label [for]="label">{{ label }}</label>
+
+        <!-- 👁️ Show/Hide icon -->
+        <button *ngIf="type === 'password' && toggleVisibility"
+                type="button"
+                class="btn-eye"
+                (click)="togglePassword()"
+                tabindex="-1">
+            <i [class]="showPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'"></i>
+        </button>
+
+        <div *ngIf="hasError" class="invalid-feedback d-block">
+            <div *ngFor="let msg of errorMessages">{{ msg }}</div>
+        </div>
+    </div>
+
+    <ng-template #normalInput>
+        <label *ngIf="label" class="form-label">{{ label }}</label>
+        <div class="input-group position-relative">
+            <span *ngIf="icon" class="input-group-text"><i [class]="icon"></i></span>
+            <input
+                    [type]="displayType"
+                    [formControl]="control"
+                    class="form-control"
+                    [placeholder]="placeholder"
+                    [disabled]="disabled"
+                    [readOnly]="readonly"
+                    (blur)="onTouched()"
+                    [ngClass]="{'is-invalid': hasError}"
+            />
+            <button *ngIf="type === 'password' && toggleVisibility"
+                    type="button"
+                    class="btn-eye"
+                    (click)="togglePassword()"
+                    tabindex="-1">
+                <i [class]="showPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'"></i>
+            </button>
+        </div>
+
+        <div *ngIf="hasError" class="invalid-feedback d-block">
+            <div *ngFor="let msg of errorMessages">{{ msg }}</div>
+        </div>
+    </ng-template>
+</div>

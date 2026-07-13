@@ -1,0 +1,45 @@
+<div class="date-picker mb-3">
+    <div class="form-floating position-relative">
+        <input
+                class="form-control"
+                readonly
+                [value]="rangeMode
+        ? (range.start && range.end ? range.start + ' → ' + range.end : '')
+        : control.value || ''"
+                (click)="toggleCalendar()"
+        />
+        <label>{{ label }}</label>
+        <i *ngIf="showIcon" class="fa-solid fa-calendar-days calendar-icon" (click)="toggleCalendar()"></i>
+    </div>
+
+    <div class="calendar-popover" *ngIf="isOpen">
+        <div class="calendar-header">
+            <button class="btn btn-sm" (click)="prevMonth()"><i class="fa-solid fa-chevron-left"></i></button>
+            <span>{{ baseMonth | date: 'MMMM yyyy' }}</span>
+            <button class="btn btn-sm" (click)="nextMonth()"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+
+        <div class="calendar-body">
+            <div class="month-container" *ngFor="let month of monthMatrix">
+                <div class="month-label">{{ month.label }}</div>
+                <div class="calendar-row">
+                    <div
+                            *ngFor="let day of month.days"
+                            class="calendar-day"
+                            [ngClass]="{
+              'selected': isSelected(day),
+              'in-range': isInRange(day),
+              'range-start': isStart(day),
+              'range-end': isEnd(day)
+            }"
+                            (mouseenter)="onHover(day)"
+                            (mouseleave)="onHover(null)"
+                            (click)="selectDate(day)"
+                    >
+                        {{ day.getDate() }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

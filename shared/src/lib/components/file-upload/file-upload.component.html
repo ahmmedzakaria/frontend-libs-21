@@ -1,0 +1,84 @@
+<div class="file-upload">
+    <label class="form-label fw-semibold">{{ label }}</label>
+
+    <div
+            class="upload-area"
+            [class.dragging]="isDragging"
+            (drop)="onDrop($event)"
+            (dragover)="onDragOver($event)"
+            (dragleave)="onDragLeave()"
+    >
+        <i class="fa-solid fa-cloud-arrow-up fa-2x text-primary mb-2"></i>
+        <p class="text-muted">{{ hint }}</p>
+
+        <input
+                type="file"
+                [attr.accept]="accept"
+                [attr.multiple]="multiple ? true : null"
+                (change)="onFileSelected($event)"
+        />
+    </div>
+
+    <div class="text-danger mt-2" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+    <div *ngIf="shouldShowExistingPreview" class="existing-preview mt-3">
+        <div class="small text-muted mb-2">{{ existingPreviewTitle }}</div>
+        <app-image-preview
+                [src]="existingPreviewUrl"
+                alt="Current uploaded file"
+                title="Person Photo"
+                [subtitle]="existingPreviewTitle"
+                [width]="120"
+                [height]="120"
+                thumbnailClass="rounded-3 shadow-sm object-fit-cover border"
+                imageClass="img-fluid rounded-4 shadow-sm">
+        </app-image-preview>
+    </div>
+
+    <!-- Preview List -->
+    <div *ngIf="files.length > 0" class="preview-list mt-3">
+        <div *ngFor="let file of files; let i = index" class="preview-item">
+            <app-image-preview
+                    *ngIf="file.type.startsWith('image/')"
+                    [src]="previews[i]"
+                    alt="Selected file preview"
+                    title="Selected Photo"
+                    subtitle="Unsaved local preview"
+                    [width]="48"
+                    [height]="48"
+                    thumbnailClass="rounded-2 object-fit-cover"
+                    imageClass="img-fluid rounded-4 shadow-sm">
+            </app-image-preview>
+            <i *ngIf="!file.type.startsWith('image/')" class="fa-solid fa-file fa-2x text-muted"></i>
+
+            <div class="file-info">
+                <div class="fw-semibold text-truncate">{{ file.name }}</div>
+                <small>{{ (file.size / 1024 / 1024).toFixed(2) }} MB</small>
+            </div>
+
+            <div class="progress flex-grow-1 mx-2" *ngIf="uploadUrl">
+                <div
+                        class="progress-bar bg-success"
+                        role="progressbar"
+                        [style.width.%]="progress[i]"
+                ></div>
+            </div>
+
+            <button
+                    type="button"
+                    class="btn btn-sm btn-outline-danger"
+                    (click)="removeFile(i)"
+            >
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+
+        <button
+                *ngIf="uploadUrl"
+                class="btn btn-primary mt-3 w-100"
+                (click)="uploadAll()"
+        >
+            <i class="fa-solid fa-upload me-1"></i> Upload All
+        </button>
+    </div>
+</div>

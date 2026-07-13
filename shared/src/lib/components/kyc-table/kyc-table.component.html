@@ -1,0 +1,36 @@
+<div class="table-responsive">
+    <table class="table table-hover align-middle shadow-sm rounded bg-white">
+        <thead class="table-light">
+        <tr>
+            <th scope="col">Photo</th>
+            <th scope="col">Name</th>
+            <th scope="col">Email</th>
+            <th scope="col">Phone</th>
+            <th scope="col" class="text-center">Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let kyc of kycList">
+            <td>
+                <img
+                        *ngIf="kyc.photoString"
+                        [src]="getPhotoUrl(kyc)"
+                        alt="Photo"
+                        class="rounded-circle border"
+                        width="45" height="45">
+            </td>
+            <td class="fw-semibold">{{ kyc.name }}</td>
+            <td>{{ kyc.email }}</td>
+            <td>{{ kyc.phone }}</td>
+            <td class="text-center">
+                <button class="btn btn-sm btn-outline-primary me-2" (click)="edit.emit(kyc)">
+                    <i class="fa-solid fa-pen"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger" (click)="delete.emit(kyc)">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
