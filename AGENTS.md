@@ -1,76 +1,93 @@
-# Frontend Libraries Agent Guide
+# Frontend Libraries 21 Agent Guide
 
 ## Scope
 
-This guide applies to shared Angular libraries under `frontend-libs/`.
+This guide applies to shared Angular source libraries under
+`frontendApplications/frontend-libs-21/`.
 
 ## Project Shape
 
-- Local TypeScript/Angular shared-library source consumed directly by sibling Angular apps
-- Path aliases are defined by the consuming apps and this folder's `tsconfig.json`
-- Published-style entry points are exposed through each library's `src/public-api.ts`
+- Angular 21-compatible source libraries consumed directly by sibling Angular
+  applications through TypeScript path aliases.
+- No root build package is required yet; consuming apps provide Angular
+  dependencies.
+- Published-style entry points are exposed through each library's
+  `src/public-api.ts`.
 - Current libraries:
-  - `api-common`: shared API service, interceptors, response models, auth config models
+  - `api-common`: API service, interceptors, response models, notification
+    abstraction
   - `auth`: login component, auth service, route guards, SSO callback routes
-  - `layout`: layout shell, sidebar, topbar, layout state, sidebar menu context
-  - `shared`: i18n service, translate pipe, validation message service, shared UI concerns
-  - `assets-common`: shared static assets copied by the Angular apps
+  - `layout`: Angular 21 shell, header, rail navigation, status bar, theme and
+    direction state
+  - `shared`: reusable form controls, image preview, validation UI, legacy i18n
+    helpers during migration
+  - `assets-common`: app-neutral static assets
 
 ## Repository Boundary
 
-- `frontend-libs/` contains its own `.git` directory. Do not edit nested repository metadata.
-- Treat this folder as shared product infrastructure: changes can affect both `frontend/` and `privilege-frontend/`.
-- Do not add app-specific business flows, pages, or endpoint catalogs here.
-- Do not modify `../v3` snapshots unless the task explicitly targets `v3`.
+- `frontend-libs-21/` contains its own `.git` directory. Do not edit nested
+  repository metadata.
+- Treat this folder as shared product infrastructure.
+- Do not add app-specific business flows, pages, endpoint catalogs, or backend
+  credentials here.
+- Do not modify `../../v3` snapshots unless the task explicitly targets `v3`.
 
 ## Dependency Direction
 
-- Angular apps may depend on `@nexacore/api-common`, `@nexacore/auth`, `@nexacore/layout`, and `@nexacore/shared`.
-- Shared libraries should not import app-only modules from `frontend/src/app/pages` or `privilege-frontend/src/app/pages`.
-- Avoid using `@app-core/*` in shared libraries unless there is no shared alternative; app-specific core dependencies make the library harder to reuse.
-- Keep auth, layout, i18n, and API abstractions generic enough for both frontend applications.
+- Angular apps may depend on `@nexacore/api-common`, `@nexacore/auth`,
+  `@nexacore/layout`, and `@nexacore/shared`.
+- Shared libraries must not import app-only modules from `kyc-frontend-21/src`.
+- Avoid `@app-core/*` in shared libraries.
+- Keep auth, layout, i18n, and API abstractions generic enough for future
+  Angular 21 apps.
 
-## Public API Rules
+## Layout Rules
 
-- Export new shared services, models, components, guards, pipes, and routes from the relevant `src/public-api.ts`.
-- Keep public names stable. If a rename is necessary, update both consuming apps in the same change.
-- Prefer typed models and narrow service contracts over untyped objects or duplicated literals.
-- Keep shared assets in `assets-common` only when they are app-neutral.
+- New shell behavior belongs in `layout`.
+- Follow the reference implementation in `frontendApplications/layout`:
+  standalone components, Signals for local UI state, CDK overlays, custom SCSS
+  tokens, custom SVG icons, Transloco, and RTL direction support.
+- Keep business routes and feature pages in consuming apps.
+- Do not add Angular Material, Bootstrap, or Font Awesome to the shared layout
+  shell.
 
 ## API, Auth, And Security
 
-- Keep JWT attachment, language propagation, response unwrapping, and API error normalization in `api-common`.
-- Keep login, logout, token storage, SSO callback, and route guard behavior in `auth`.
-- Do not log raw tokens, OTPs, passwords, authorization headers, Firebase credentials, or full PII payloads.
-- Do not store secrets or environment-specific credentials in library code.
-- Route guards improve UX only; backend authorization remains the source of truth.
-
-## Layout And UI
-
-- Keep reusable shell behavior in `layout`: authenticated layout state, sidebar menu state, topbar behavior, and shared navigation structure.
-- Keep generic UI helpers, translation, and validation-message behavior in `shared`.
-- Avoid app-specific wording, menu entries, and business-page assumptions in shared components.
-- Match existing Angular standalone component and SCSS patterns.
+- Keep JWT attachment, language propagation, response unwrapping, and API error
+  normalization in `api-common`.
+- Keep UI-specific notification rendering behind an abstraction; do not inject
+  Angular Material snackbar directly in `api-common`.
+- Keep login, logout, token storage, SSO callback, and route guard behavior in
+  `auth`.
+- Do not log raw tokens, OTPs, passwords, authorization headers, Firebase
+  credentials, or full PII payloads.
 
 ## Internationalization
 
-- Keep shared translation infrastructure in `shared`.
-- Put shared translation bundles under `shared/src/lib/i18n/translations`.
-- Use stable message keys. Do not introduce hard-coded reusable user-facing text when a translation key is appropriate.
-- Coordinate translation key changes with both consuming apps.
+- Use Transloco for the Angular 21 layout shell.
+- Existing custom `I18nService` and `TranslatePipe` may remain temporarily for
+  legacy shared components until those components are migrated.
+- Keep translation keys stable and coordinate key changes with consuming apps.
+
+## Public API Rules
+
+- Export new shared services, models, components, guards, pipes, and routes from
+  the relevant `src/public-api.ts`.
+- Preserve public names where possible. If a rename is necessary, update
+  consuming apps in the same change.
+- Prefer typed models and narrow service contracts over untyped objects or
+  duplicated literals.
 
 ## Testing And Verification
 
-- Add focused tests for new shared services, guards, pipes, interceptors, and component behavior.
-- Verify shared-library changes from each consuming app affected by the change:
+- Verify shared-library changes from the consuming Angular 21 app:
 
 ```bash
-cd ../frontend
-npm run build
-
-cd ../privilege-frontend
+cd ../kyc-frontend-21
 npm run build
 ```
 
-- Run app `npm test` commands when shared behavior has meaningful logic or branches.
-- If local browser, dependency, or environment issues prevent a check, report the command and failure clearly.
+- Run app `npm test` commands when shared behavior has meaningful logic or
+  branches.
+- If browser, dependency, network, or environment issues prevent a check, report
+  the exact command and failure clearly.

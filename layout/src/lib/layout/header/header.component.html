@@ -1,0 +1,165 @@
+<header [class.icon-view]="!rail.expanded()">
+  <div class="brand">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+      <path d="M12 2l8 3.5v6c0 5-3.4 8.7-8 10.5-4.6-1.8-8-5.5-8-10.5v-6L12 2z" />
+      <path d="M8.5 12l2.3 2.3L15.5 9.5" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+    <div class="brand-text">
+      {{ 'brand.name' | transloco }}
+      <small>{{ 'brand.tagline' | transloco }}</small>
+    </div>
+  </div>
+
+  <div class="hdr-center">
+    <div class="global-search">
+      <select [ngModel]="searchType()" (ngModelChange)="searchType.set($event)" aria-label="Search by">
+        @for (type of searchTypes; track type) {
+          <option [value]="type">{{ type }}</option>
+        }
+      </select>
+      <input
+        type="text"
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event)"
+        [placeholder]="'search.placeholder' | transloco"
+        (keydown.enter)="runSearch()"
+      />
+      <button type="button" class="go focus-ring" [attr.aria-label]="'search.button' | transloco" (click)="runSearch()">
+        <app-icon name="search" [size]="16" />
+      </button>
+    </div>
+  </div>
+
+  <div class="hdr-right">
+    <!-- Apps (SSO launcher) -->
+    <app-header-dropdown id="apps">
+      <button trigger type="button" class="hdr-pill focus-ring" (click)="menu.toggle('apps')">
+        <span class="icon-wrap"><app-icon name="grid" /></span>
+        <span class="lbl-text">{{ 'header.apps' | transloco }}</span>
+        <app-icon name="chevron-down" [size]="11" class="chev" />
+      </button>
+      <ng-container panel>
+        <div class="dd-head">Your Apps <span class="sso-tag">SSO</span></div>
+        <div class="apps-grid">
+          @for (app of apps; track app.name) {
+            <button type="button" class="app-tile focus-ring" (click)="launchApp(app.name)">
+              <span class="tile-icon"><app-icon [name]="app.icon" /></span>
+              <span class="name">{{ app.name }}</span>
+            </button>
+          }
+        </div>
+      </ng-container>
+    </app-header-dropdown>
+
+    <!-- Notifications -->
+    <app-header-dropdown id="notifications">
+      <button trigger type="button" class="hdr-pill focus-ring" (click)="menu.toggle('notifications')">
+        <span class="icon-wrap">
+          <app-icon name="bell" />
+          <span class="badge">3</span>
+        </span>
+        <span class="lbl-text">{{ 'header.alerts' | transloco }}</span>
+        <app-icon name="chevron-down" [size]="11" class="chev" />
+      </button>
+      <ng-container panel>
+        <div class="dd-head">Notifications</div>
+        <div class="opt">⚠️ High-risk match flagged — K-10432</div>
+        <div class="opt">📄 Document expiring — K-10391</div>
+        <div class="opt">✅ KYC approved — K-10439</div>
+      </ng-container>
+    </app-header-dropdown>
+
+    <!-- Pending tasks -->
+    <app-header-dropdown id="tasks">
+      <button trigger type="button" class="hdr-pill focus-ring" (click)="menu.toggle('tasks')">
+        <span class="icon-wrap">
+          <app-icon name="clipboard" />
+          <span class="badge">7</span>
+        </span>
+        <span class="lbl-text">{{ 'header.tasks' | transloco }}</span>
+        <app-icon name="chevron-down" [size]="11" class="chev" />
+      </button>
+      <ng-container panel>
+        <div class="dd-head">Pending Tasks</div>
+        <div class="opt">Review K-10441 <span class="meta">Today</span></div>
+        <div class="opt">Approve K-10432 <span class="meta">Today</span></div>
+        <div class="opt">Verify document set <span class="meta">Tomorrow</span></div>
+      </ng-container>
+    </app-header-dropdown>
+
+    <!-- Language -->
+    <app-header-dropdown id="language">
+      <button trigger type="button" class="hdr-pill focus-ring" (click)="menu.toggle('language')">
+        <span class="icon-wrap"><app-icon name="globe" [size]="15" /></span>
+        <span class="lbl-text">{{ languages[0].label }}</span>
+        <app-icon name="chevron-down" [size]="11" class="chev" />
+      </button>
+      <ng-container panel>
+        @for (lang of languages; track lang.code) {
+          <div class="opt" (click)="selectLanguage(lang.code)">{{ lang.label }}<span class="meta">{{ lang.code | uppercase }}</span></div>
+        }
+      </ng-container>
+    </app-header-dropdown>
+
+    <!-- Theme -->
+    <app-header-dropdown id="theme">
+      <button trigger type="button" class="hdr-pill focus-ring" (click)="menu.toggle('theme')">
+        <span class="icon-wrap">
+          @if (theme.current().swatch === 'sun' || theme.current().swatch === 'moon') {
+            <app-icon [name]="theme.current().swatch" />
+          } @else {
+            <span class="swatch" [style.background]="theme.current().swatch"></span>
+          }
+        </span>
+        <span class="lbl-text">{{ theme.current().label }}</span>
+        <app-icon name="chevron-down" [size]="11" class="chev" />
+      </button>
+      <ng-container panel>
+        <div class="dd-head">{{ 'header.theme' | transloco }}</div>
+        @for (t of theme.themes; track t.id) {
+          <div class="opt" [class.active]="t.id === theme.current().id" (click)="selectTheme(t.id)">
+            @if (t.swatch === 'sun' || t.swatch === 'moon') {
+              <app-icon [name]="t.swatch" [size]="14" />
+            } @else {
+              <span class="swatch" [style.background]="t.swatch"></span>
+            }
+            {{ t.label }}
+          </div>
+        }
+      </ng-container>
+    </app-header-dropdown>
+
+    <!-- Tenant -->
+    <app-header-dropdown id="tenant">
+      <button trigger type="button" class="hdr-pill focus-ring" (click)="menu.toggle('tenant')">
+        <span class="icon-wrap"><app-icon name="building" [size]="15" /></span>
+        <span class="lbl-text">{{ activeTenant() }}</span>
+        <app-icon name="chevron-down" [size]="11" class="chev" />
+      </button>
+      <ng-container panel>
+        <div class="dd-head">{{ 'header.tenant' | transloco }}</div>
+        @for (t of tenants; track t) {
+          <div class="opt" [class.active]="t === activeTenant()" (click)="selectTenant(t)">{{ t }}</div>
+        }
+      </ng-container>
+    </app-header-dropdown>
+
+    <div class="divider"></div>
+
+    <!-- Profile -->
+    <app-header-dropdown id="profile">
+      <button trigger type="button" class="avatar focus-ring" (click)="menu.toggle('profile')">AO</button>
+      <ng-container panel>
+        <div class="dd-head">Signed in as</div>
+        <div class="opt static"><b>Amina Osei</b></div>
+        <div class="opt static muted">Compliance Officer</div>
+        <div class="opt" (click)="menu.close()">View Profile</div>
+        <div class="opt" (click)="menu.close()">Account Settings</div>
+      </ng-container>
+    </app-header-dropdown>
+
+    <button type="button" class="hdr-btn focus-ring" [attr.aria-label]="'header.logout' | transloco" (click)="logout()">
+      <app-icon name="logout" />
+    </button>
+  </div>
+</header>

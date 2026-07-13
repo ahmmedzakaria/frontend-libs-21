@@ -24,7 +24,7 @@ export class LayoutService {
 
     setTheme(theme: ThemeType): void {
         this._theme.set(theme);
-        document.body.dataset.bsTheme = theme;
+        document.body.dataset['bsTheme'] = theme;
     }
 
     setLayoutType(type: LayoutType): void {

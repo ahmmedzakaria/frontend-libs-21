@@ -1,29 +1,19 @@
-import { Component } from '@angular/core';
-import {AsyncPipe, CommonModule} from '@angular/common';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { TopbarComponent } from '../topbar/topbar.component';
-import { SidebarComponent } from '../sidebar/sidebar.component';
-import {LayoutService} from "../layout.service";
-import {AuthService} from "@nexacore/auth";
 
+import { DirectionService } from '../core/services/direction.service';
+import { HeaderComponent } from './header/header.component';
+import { RailNavComponent } from './rail-nav/rail-nav.component';
+import { StatusBarComponent } from './status-bar/status-bar.component';
 
 @Component({
-    selector: 'app-layout',
-    standalone: true,
-    imports: [CommonModule,TopbarComponent, SidebarComponent, RouterOutlet, AsyncPipe],
-    templateUrl: './layout.component.html',
-    styleUrls: ['./layout.component.scss']
+  selector: 'app-layout',
+  standalone: true,
+  imports: [RouterOutlet, HeaderComponent, RailNavComponent, StatusBarComponent],
+  templateUrl: './layout.component.html',
+  styleUrl: './layout.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LayoutComponent {
-    constructor(
-        public layoutService: LayoutService,
-        public authService: AuthService
-    ) {
-        console.log('layoutService.layout()',layoutService.layout())
-    }
-
-    onLogout(): void {
-        this.authService.logout();
-        this.layoutService.setPublicLayout();
-    }
+  private readonly direction = inject(DirectionService);
 }

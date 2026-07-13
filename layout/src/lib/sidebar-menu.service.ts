@@ -56,6 +56,20 @@ export class SidebarMenuService {
         return this.loadApplicationContext().pipe(map(context => context?.menus || []));
     }
 
+    getCachedSidebarMenu(): SidebarMenuItem[] {
+        const rawMenus = localStorage.getItem('sidebarMenus');
+        if (!rawMenus) {
+            return [];
+        }
+
+        try {
+            const menus = JSON.parse(rawMenus);
+            return Array.isArray(menus) ? menus : [];
+        } catch {
+            return [];
+        }
+    }
+
     private unwrapApplicationContext(response: ApplicationContext | WrappedApplicationContext): ApplicationContext {
         const context = (response as WrappedApplicationContext)?.data || response as ApplicationContext;
         return {

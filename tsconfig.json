@@ -16,8 +16,7 @@
       "@nexacore/layout": ["layout/src/public-api.ts"],
       "@nexacore/layout/*": ["layout/src/lib/*"],
       "@nexacore/shared": ["shared/src/public-api.ts"],
-      "@nexacore/shared/*": ["shared/src/lib/*"],
-      "@app-core/*": ["../frontend/src/app/core/*"]
+      "@nexacore/shared/*": ["shared/src/lib/*"]
     }
   }
 }

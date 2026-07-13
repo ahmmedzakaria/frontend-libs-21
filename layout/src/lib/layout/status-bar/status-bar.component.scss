@@ -1,0 +1,59 @@
+.statusbar {
+  height: 28px;
+  background: var(--chrome-bg);
+  color: var(--chrome-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  font-size: 11px;
+  border-top: 1px solid var(--chrome-border);
+  gap: 12px;
+  transition:
+    background 0.2s,
+    color 0.2s,
+    border-color 0.2s;
+}
+.sb-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+.sb-mid {
+  flex: 1;
+  justify-content: center;
+}
+.sb-right {
+  justify-content: flex-end;
+}
+.sb-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.sb-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #2fae6e;
+  box-shadow: 0 0 0 3px rgba(47, 174, 110, 0.18);
+}
+.sb-tag {
+  background: var(--chrome-hover-bg);
+  color: var(--chrome-icon);
+  padding: 1px 7px;
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 600;
+}
+.sb-div {
+  width: 1px;
+  height: 12px;
+  background: var(--chrome-border);
+}
+.sb-mono {
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--chrome-icon);
+}

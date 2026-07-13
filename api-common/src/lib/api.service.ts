@@ -100,7 +100,7 @@ export class ApiService {
         }
 
         return window.location.hostname === 'localhost'
-            && ['4200', '4300'].includes(window.location.port);
+            && ['4200', '4300', '5300'].includes(window.location.port);
     }
 
     private joinUrl(origin: string, path: string): string {

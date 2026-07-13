@@ -1,0 +1,79 @@
+<nav class="rail" [class.exp]="rail.expanded()">
+  <button type="button" class="toggle focus-ring" (click)="rail.toggle()" aria-label="Toggle navigation width">
+    <app-icon name="hamburger" />
+  </button>
+
+  <div class="rail-body">
+    @if (loading() && modules().length === 0) {
+      <div class="rail-state">
+        <app-icon name="search" [size]="14" />
+        <span class="lbl">Loading...</span>
+      </div>
+    }
+
+    @if (!loading() && modules().length === 0) {
+      <div class="rail-state">
+        <app-icon name="help" [size]="14" />
+        <span class="lbl">No menu</span>
+      </div>
+    }
+
+    @for (mod of modules(); track mod.id) {
+      <div class="module-wrap">
+        <button
+          type="button"
+          class="module-row focus-ring"
+          [class.open]="rail.openModuleId() === mod.id"
+          (click)="toggleModule(mod)"
+        >
+          <span class="arrow">
+            @if (hasCategories(mod.id)) {
+              <app-icon name="chevron-right" [size]="10" />
+            }
+          </span>
+          <app-icon [name]="mod.icon" />
+          <span class="lbl">{{ mod.label }}</span>
+        </button>
+
+        @if (rail.openModuleId() === mod.id) {
+          @for (cat of categories(mod.id); track cat) {
+            <div
+              class="child-row"
+              cdkOverlayOrigin
+              #catOrigin="cdkOverlayOrigin"
+              tabindex="0"
+              (mouseenter)="openCategory(mod.id, cat, catOrigin)"
+              (click)="openCategory(mod.id, cat, catOrigin)"
+              (mouseleave)="flyout.scheduleClose()"
+            >
+              <app-icon [name]="categoryIcon[cat]" [size]="13" />
+              <span class="lbl">{{ cat }}</span>
+            </div>
+          }
+        }
+      </div>
+    }
+  </div>
+</nav>
+
+@if (flyout.origin(); as origin) {
+  <ng-template
+    cdkConnectedOverlay
+    [cdkConnectedOverlayOrigin]="origin"
+    [cdkConnectedOverlayOpen]="!!flyout.content()"
+    [cdkConnectedOverlayPositions]="[
+      { originX: 'end', originY: 'top', overlayX: 'start', overlayY: 'top', offsetX: 0 }
+    ]"
+  >
+    @if (flyout.content(); as content) {
+      <div class="rail-flyout" (mouseenter)="flyout.cancelClose()" (mouseleave)="flyout.scheduleClose()">
+        <div class="cat">{{ content.category }}</div>
+        @for (item of content.items; track item.label + item.path) {
+          <button type="button" class="item focus-ring" (click)="selectItem(item.path)">
+            {{ item.label }}
+          </button>
+        }
+      </div>
+    }
+  </ng-template>
+}

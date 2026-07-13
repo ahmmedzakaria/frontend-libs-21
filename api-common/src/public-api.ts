@@ -1,5 +1,6 @@
 export * from './lib/api.service';
 export * from './lib/environment';
+export * from './lib/notification.service';
 export * from './lib/interceptors/api-response.interceptor';
 export * from './lib/interceptors/jwt.interceptor';
 export * from './lib/interceptors/language.interceptor';

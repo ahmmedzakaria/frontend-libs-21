@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import { Router } from '@angular/router';
 import {AuthService} from "../auth.service";
@@ -28,7 +28,8 @@ export class LoginComponent implements OnInit {
         private fb: FormBuilder,
         private authService: AuthService,
         private router: Router,
-        private layoutService: LayoutService
+        private layoutService: LayoutService,
+        private changeDetector: ChangeDetectorRef
     ) {
         this.form = this.fb.group({
             username: ['', Validators.required],
@@ -42,10 +43,12 @@ export class LoginComponent implements OnInit {
                 this.passwordLoginEnabled = this.authService.isLoginMethodEnabled(config, 'PASSWORD');
                 this.ssoLoginEnabled = this.authService.isLoginMethodEnabled(config, 'SSO');
                 this.loadingConfig = false;
+                this.changeDetector.markForCheck();
             },
             error: err => {
                 this.errorMessage = err?.error || err?.message || 'Authentication config load failed';
                 this.loadingConfig = false;
+                this.changeDetector.markForCheck();
             }
         });
     }
@@ -67,6 +70,7 @@ export class LoginComponent implements OnInit {
             },
             error: err => {
                 this.errorMessage = err?.error || err?.message || 'Login failed';
+                this.changeDetector.markForCheck();
             }
         });
     }
@@ -79,6 +83,7 @@ export class LoginComponent implements OnInit {
             error: err => {
                 this.ssoLoading = false;
                 this.errorMessage = err?.error || err?.message || 'SSO login failed';
+                this.changeDetector.markForCheck();
             }
         });
     }

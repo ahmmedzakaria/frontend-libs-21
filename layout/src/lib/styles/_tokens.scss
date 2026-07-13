@@ -1,0 +1,106 @@
+// Design tokens — same variable names and values as the original HTML POC's
+// CSS custom properties, just organized as an SCSS partial. Kept as native
+// CSS custom properties (not SCSS variables) so ThemeService can flip them
+// at runtime via the `data-theme` attribute / `.dark` class on <body>.
+
+:root {
+  --ink: #121821;
+  --paper: #f3f5f7;
+  --card: #ffffff;
+  --surface-2: #f8f9fb;
+  --border: #e2e6ea;
+  --text: #1a222c;
+  --text-muted: #5c6672;
+  --accent: #1f6f5c;
+  --accent-soft: #e4f1ed;
+  --amber: #a8630b;
+  --amber-soft: #fbeed9;
+  --red: #9f2b2b;
+  --red-soft: #faeaea;
+  --focus: #2f7dd1;
+  --radius: 8px;
+  --shadow: 0 8px 24px rgba(18, 24, 33, 0.14);
+
+  // chrome = header, rail, status bar
+  --chrome-bg: #ffffff;
+  --chrome-border: #e2e6ea;
+  --chrome-border-strong: #d7dce1;
+  --chrome-text: #1a222c;
+  --chrome-text-muted: #7d8794;
+  --chrome-icon: #5c6672;
+  --chrome-hover-bg: #eef1f4;
+  --chrome-active-bg: var(--accent-soft);
+  --chrome-search-bg: #f3f5f7;
+  --chrome-search-border: #dde2e7;
+  --chrome-search-text: #1a222c;
+  --chrome-search-placeholder: #97a1ab;
+}
+
+body.dark {
+  --paper: #0d1218;
+  --card: #161d26;
+  --surface-2: #1b2330;
+  --border: #2a323d;
+  --text: #e7ebef;
+  --text-muted: #8b96a3;
+  --accent-soft: #173430;
+  --amber-soft: #2c2110;
+  --red-soft: #2b1616;
+
+  --chrome-bg: #121821;
+  --chrome-border: #232d3a;
+  --chrome-border-strong: #0a0e13;
+  --chrome-text: #ffffff;
+  --chrome-text-muted: #9aa5b1;
+  --chrome-icon: #c7cfd8;
+  --chrome-hover-bg: #1c2531;
+  --chrome-active-bg: #1c2531;
+  --chrome-search-bg: #1b2430;
+  --chrome-search-border: #2a3542;
+  --chrome-search-text: #ffffff;
+  --chrome-search-placeholder: #69707c;
+}
+
+// Accent-only theme variants (light structural base)
+body[data-theme='blue'] {
+  --accent: #2c5aa0;
+  --accent-soft: #e4ebf5;
+}
+body[data-theme='green'] {
+  --accent: #1c7a4c;
+  --accent-soft: #e1f2e8;
+}
+body[data-theme='purple'] {
+  --accent: #6b3fa0;
+  --accent-soft: #ede4f5;
+}
+body[data-theme='gray'] {
+  --accent: #3f4a54;
+  --accent-soft: #e7eaed;
+}
+body.dark[data-theme='dark'] {
+  --accent: #1f6f5c;
+  --accent-soft: #173430;
+}
+
+// Navy Banking — its own dark palette, distinct from generic Dark
+body.dark[data-theme='navy'] {
+  --accent: #c99a3b;
+  --accent-soft: #2e2510;
+  --paper: #0b1420;
+  --card: #101d30;
+  --surface-2: #16233a;
+  --border: #1f2f47;
+  --text: #e9edf3;
+  --text-muted: #8b9bb0;
+
+  --chrome-bg: #0b1a33;
+  --chrome-border: #1c2f4d;
+  --chrome-border-strong: #081527;
+  --chrome-hover-bg: #142848;
+  --chrome-active-bg: #142848;
+  --chrome-search-bg: #0f2140;
+  --chrome-search-border: #1c2f4d;
+  --chrome-search-text: #ffffff;
+  --chrome-search-placeholder: #7488a8;
+}
