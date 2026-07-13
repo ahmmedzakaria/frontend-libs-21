@@ -10,6 +10,7 @@ export class LayoutService {
         showTopbar: false,
         collapsed: false
     });
+    private logoutHandler: (() => void) | null = null;
 
     private _theme = signal<ThemeType>('light');
     private _layoutType = signal<LayoutType>('default');
@@ -29,6 +30,19 @@ export class LayoutService {
 
     setLayoutType(type: LayoutType): void {
         this._layoutType.set(type);
+    }
+
+    registerLogoutHandler(handler: () => void): void {
+        this.logoutHandler = handler;
+    }
+
+    requestLogout(): void {
+        if (this.logoutHandler) {
+            this.logoutHandler();
+            return;
+        }
+
+        this.setPublicLayout();
     }
 
     /** 🧭 Called after login */

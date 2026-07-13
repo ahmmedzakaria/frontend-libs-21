@@ -9,6 +9,7 @@ import { HeaderMenuService } from '../../core/services/header-menu.service';
 import { RailStateService } from '../../core/services/rail-state.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { ThemeId } from '../../core/models/theme.model';
+import { LayoutService } from '../../layout.service';
 
 interface AppTile {
   name: string;
@@ -41,6 +42,7 @@ export class HeaderComponent {
   protected readonly rail = inject(RailStateService);
   protected readonly menu = inject(HeaderMenuService);
   protected readonly theme = inject(ThemeService);
+  private readonly layoutService = inject(LayoutService);
   private readonly transloco = inject(TranslocoService);
 
   protected readonly searchTypes = SEARCH_TYPES;
@@ -89,8 +91,8 @@ export class HeaderComponent {
 
   logout(): void {
     if (confirm('Log out of Sentinel KYC?')) {
-      // Real implementation clears the session and redirects to the IdP logout endpoint.
-      console.info('Logging out');
+      this.menu.close();
+      this.layoutService.requestLogout();
     }
   }
 }
