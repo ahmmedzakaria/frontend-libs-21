@@ -213,8 +213,10 @@ header.icon-view .hdr-pill {
   margin: 0 4px;
 }
 
-// Dropdown panel content (rendered inside HeaderDropdownComponent's overlay)
-:host ::ng-deep .hdr-dropdown {
+// Dropdown panel content is portaled by CDK Overlay under <body>, outside
+// this component host. Keep this selector global so the panel content is
+// styled after it leaves the header DOM tree.
+::ng-deep .hdr-dropdown {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 9px;
