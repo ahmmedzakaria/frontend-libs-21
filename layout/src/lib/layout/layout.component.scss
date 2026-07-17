@@ -1,8 +1,9 @@
 :host {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: var(--layout-viewport-height);
   overflow: hidden;
+  font-family: var(--layout-font-family);
 }
 
 .app-body {
@@ -14,6 +15,6 @@
 .main {
   flex: 1;
   overflow: auto;
-  padding: 22px 28px;
+  padding: var(--layout-main-padding-block) var(--layout-main-padding-inline);
   background: var(--paper);
 }

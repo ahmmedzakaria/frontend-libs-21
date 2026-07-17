@@ -1,34 +1,35 @@
 :host {
   display: block;
+  font-family: var(--layout-font-family);
 }
 
 .rail {
-  width: 64px;
-  background: var(--chrome-bg);
-  color: var(--chrome-text);
-  border-inline-end: 1px solid var(--chrome-border);
+  width: var(--layout-nav-width);
+  background: var(--layout-nav-bg);
+  color: var(--layout-nav-color);
+  border-inline-end: var(--layout-border-width) solid var(--layout-nav-border-color);
   display: flex;
   flex-direction: column;
   height: 100%;
   transition:
-    width 0.18s ease,
-    background 0.2s,
-    color 0.2s;
+    width var(--layout-transition-nav) var(--layout-transition-ease),
+    background var(--layout-transition-base),
+    color var(--layout-transition-base);
 
   &.exp {
-    width: 208px;
+    width: var(--layout-nav-expanded-width);
   }
 }
 
 .toggle {
-  height: 44px;
+  height: var(--layout-control-rail-toggle);
   border: none;
-  background: transparent;
+  background: var(--layout-transparent-color);
   display: flex;
   align-items: center;
-  padding-inline-start: 20px;
+  padding-inline-start: var(--layout-space-5);
   cursor: pointer;
-  border-bottom: 1px solid var(--chrome-border);
+  border-bottom: var(--layout-border-width) solid var(--chrome-border);
   color: var(--chrome-text-muted);
 
   &:hover {
@@ -42,45 +43,45 @@
 }
 
 .module-row {
-  width: 100%;
-  height: 46px;
+  width: var(--layout-full-size);
+  height: var(--layout-control-rail-row);
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding-inline: 10px;
+  gap: var(--layout-space-2);
+  padding-inline: var(--layout-space-25);
   border: none;
-  border-inline-start: 3px solid transparent;
-  background: transparent;
+  border-inline-start: var(--layout-border-width-accent) solid var(--layout-transparent-color);
+  background: var(--layout-transparent-color);
   cursor: pointer;
   white-space: nowrap;
-  color: var(--chrome-icon);
+  color: var(--layout-nav-item-color);
   font-family: inherit;
 
   .arrow {
-    width: 11px;
+    width: var(--layout-control-sm);
     flex-shrink: 0;
     display: flex;
     color: var(--chrome-text-muted);
 
     svg {
-      transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: transform var(--layout-transition-base) var(--layout-transition-emphasized);
     }
   }
   &.open .arrow svg {
     transform: rotate(90deg);
   }
   .lbl {
-    font-size: 13.5px;
-    font-weight: 500;
+    font-size: var(--layout-font-size-base);
+    font-weight: var(--layout-font-weight-medium);
     opacity: 0;
-    transition: opacity 0.15s;
+    transition: opacity var(--layout-transition-fast);
   }
   &:hover {
-    background: var(--chrome-hover-bg);
+    background: var(--layout-nav-item-hover-bg);
     color: var(--chrome-text);
   }
   &.open {
-    background: var(--chrome-active-bg);
+    background: var(--layout-nav-item-active-bg);
     color: var(--chrome-text);
     border-inline-start-color: var(--accent);
 
@@ -94,16 +95,16 @@
 }
 
 .rail-state {
-  min-height: 44px;
+  min-height: var(--layout-control-rail-toggle);
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding-inline: 20px 10px;
+  gap: var(--layout-space-2);
+  padding-inline: var(--layout-space-5) var(--layout-space-25);
   color: var(--chrome-text-muted);
 
   .lbl {
     opacity: 0;
-    font-size: 12.5px;
+    font-size: var(--layout-font-size-md);
     white-space: nowrap;
   }
 }
@@ -113,19 +114,19 @@
 }
 
 .child-row {
-  padding-block: 8px;
-  padding-inline-start: 30px;
-  font-size: 12.5px;
+  padding-block: var(--layout-space-2);
+  padding-inline-start: var(--layout-control-2xl);
+  font-size: var(--layout-font-size-md);
   color: var(--chrome-text-muted);
   cursor: pointer;
   white-space: nowrap;
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: var(--layout-space-225);
 
   .lbl {
     opacity: 0;
-    transition: opacity 0.15s;
+    transition: opacity var(--layout-transition-fast);
   }
   &:hover {
     background: var(--chrome-hover-bg);
@@ -149,26 +150,26 @@
   background: var(--card);
   border-radius: 0 var(--radius) var(--radius) 0;
   box-shadow: var(--shadow);
-  width: 220px;
+  width: var(--layout-nav-flyout-width);
   overflow: auto;
-  max-height: calc(100vh - 74px);
+  max-height: calc(var(--layout-viewport-height) - var(--layout-header-height) - var(--layout-space-4));
 
   .cat {
-    padding: 12px 16px 6px;
-    font-size: 11px;
+    padding: var(--layout-space-3) var(--layout-space-4) var(--layout-space-15);
+    font-size: var(--layout-font-size-sm);
     text-transform: uppercase;
     color: var(--text-muted);
-    font-weight: 600;
+    font-weight: var(--layout-font-weight-semibold);
   }
   .item {
     display: block;
-    width: 100%;
+    width: var(--layout-full-size);
     text-align: start;
-    padding: 10px 16px;
-    font-size: 13.5px;
+    padding: var(--layout-space-25) var(--layout-space-4);
+    font-size: var(--layout-font-size-base);
     color: var(--text);
     border: none;
-    background: transparent;
+    background: var(--layout-transparent-color);
     cursor: pointer;
     font-family: inherit;
 

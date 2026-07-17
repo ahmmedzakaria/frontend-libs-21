@@ -1,37 +1,38 @@
 :host {
   display: block;
+  font-family: var(--layout-font-family);
 }
 
 header {
-  height: 58px;
-  background: var(--chrome-bg);
-  color: var(--chrome-text);
+  height: var(--layout-header-height);
+  background: var(--layout-header-bg);
+  color: var(--layout-header-color);
   display: flex;
   align-items: center;
-  padding: 0 18px;
-  border-bottom: 1px solid var(--chrome-border-strong);
-  gap: 20px;
+  padding: 0 var(--layout-space-45);
+  border-bottom: var(--layout-border-width) solid var(--layout-header-border-color);
+  gap: var(--layout-space-5);
   transition:
-    background 0.2s,
-    color 0.2s,
-    border-color 0.2s;
+    background var(--layout-transition-base),
+    color var(--layout-transition-base),
+    border-color var(--layout-transition-base);
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-weight: 600;
-  font-size: 15px;
+  gap: var(--layout-space-25);
+  font-weight: var(--layout-font-weight-semibold);
+  font-size: var(--layout-font-size-lg);
   flex-shrink: 0;
 
   small {
     display: block;
-    font-weight: 400;
+    font-weight: var(--layout-font-weight-normal);
     color: var(--chrome-text-muted);
-    font-size: 11px;
+    font-size: var(--layout-font-size-sm);
     text-transform: uppercase;
-    margin-top: 1px;
+    margin-top: var(--layout-space-025);
   }
 }
 header.icon-view .brand-text {
@@ -48,50 +49,50 @@ header.icon-view .brand-text {
 .global-search {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: var(--layout-space-05);
   background: var(--chrome-search-bg);
-  border: 1px solid var(--chrome-search-border);
-  border-radius: 9px;
-  height: 38px;
-  width: 100%;
-  max-width: 560px;
-  padding-inline-start: 12px;
+  border: var(--layout-border-width) solid var(--chrome-search-border);
+  border-radius: var(--layout-radius-lg);
+  height: var(--layout-control-6xl);
+  width: var(--layout-full-size);
+  max-width: var(--layout-search-max-width);
+  padding-inline-start: var(--layout-space-3);
 
   select {
-    background: transparent;
+    background: var(--layout-transparent-color);
     border: none;
     color: var(--chrome-icon);
-    font-size: 12px;
-    height: 38px;
-    border-inline-end: 1px solid var(--chrome-search-border);
-    padding-inline-end: 10px;
+    font-size: var(--layout-font-size-sm-plus);
+    height: var(--layout-control-6xl);
+    border-inline-end: var(--layout-border-width) solid var(--chrome-search-border);
+    padding-inline-end: var(--layout-space-25);
   }
   input {
     flex: 1;
     min-width: 0;
-    background: transparent;
+    background: var(--layout-transparent-color);
     border: none;
     outline: none;
     color: var(--chrome-search-text);
-    font-size: 13.5px;
-    padding: 0 10px;
+    font-size: var(--layout-font-size-base);
+    padding: 0 var(--layout-space-25);
 
     &::placeholder {
       color: var(--chrome-search-placeholder);
     }
   }
   .go {
-    width: 32px;
-    height: 32px;
-    margin-inline-end: 3px;
+    width: var(--layout-control-3xl);
+    height: var(--layout-control-3xl);
+    margin-inline-end: var(--layout-space-075);
     border: none;
-    border-radius: 7px;
+    border-radius: var(--layout-radius-sm);
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--chrome-icon);
     cursor: pointer;
-    background: transparent;
+    background: var(--layout-transparent-color);
 
     &:hover {
       background: var(--chrome-hover-bg);
@@ -100,11 +101,11 @@ header.icon-view .brand-text {
   }
 }
 header.icon-view .global-search {
-  max-width: 38px;
+  max-width: var(--layout-control-6xl);
   padding-inline-start: 0;
   justify-content: center;
-  background: transparent;
-  border-color: transparent;
+  background: var(--layout-transparent-color);
+  border-color: var(--layout-transparent-color);
 
   select,
   input {
@@ -115,19 +116,19 @@ header.icon-view .global-search {
 .hdr-right {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--layout-space-1);
   flex-shrink: 0;
 }
 
 .hdr-btn,
 .hdr-pill {
   border: none;
-  background: transparent;
+  background: var(--layout-transparent-color);
   font-family: inherit;
   cursor: pointer;
   color: var(--chrome-icon);
-  border-radius: 9px;
-  height: 36px;
+  border-radius: var(--layout-radius-lg);
+  height: var(--layout-control-5xl);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -138,13 +139,13 @@ header.icon-view .global-search {
   }
 }
 .hdr-btn {
-  width: 36px;
+  width: var(--layout-control-5xl);
 }
 .hdr-pill {
-  gap: 5px;
-  padding: 0 9px;
-  font-size: 12px;
-  font-weight: 600;
+  gap: var(--layout-space-125);
+  padding: 0 var(--layout-space-225);
+  font-size: var(--layout-font-size-sm-plus);
+  font-weight: var(--layout-font-weight-semibold);
   white-space: nowrap;
 
   .chev {
@@ -152,7 +153,7 @@ header.icon-view .global-search {
   }
 }
 header.icon-view .hdr-pill {
-  width: 36px;
+  width: var(--layout-control-5xl);
   padding: 0;
   justify-content: center;
 
@@ -169,48 +170,48 @@ header.icon-view .hdr-pill {
   justify-content: center;
 }
 .swatch {
-  width: 14px;
-  height: 14px;
+  width: var(--layout-control-md);
+  height: var(--layout-control-md);
   border-radius: 50%;
   box-shadow:
-    0 0 0 2px var(--chrome-bg),
-    0 0 0 3px var(--chrome-border);
+    0 0 0 var(--layout-border-width-strong) var(--chrome-bg),
+    0 0 0 var(--layout-border-width-accent) var(--chrome-border);
 }
 .badge {
   position: absolute;
-  top: -5px;
-  inset-inline-end: -7px;
-  min-width: 15px;
-  height: 15px;
+  top: calc(-1 * var(--layout-space-125));
+  inset-inline-end: calc(-1 * var(--layout-space-175));
+  min-width: var(--layout-font-size-lg);
+  height: var(--layout-font-size-lg);
   background: var(--red);
-  color: #fff;
-  font-size: 9px;
-  font-weight: 700;
-  border-radius: 99px;
+  color: var(--layout-on-strong-color);
+  font-size: var(--layout-font-size-2xs);
+  font-weight: var(--layout-font-weight-bold);
+  border-radius: var(--layout-radius-pill);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 3px;
-  border: 2px solid var(--chrome-bg);
+  padding: 0 var(--layout-space-075);
+  border: var(--layout-border-width-strong) solid var(--chrome-bg);
 }
 
 .avatar {
-  width: 30px;
-  height: 30px;
+  width: var(--layout-control-2xl);
+  height: var(--layout-control-2xl);
   border-radius: 50%;
   background: var(--accent);
-  color: #fff;
+  color: var(--layout-on-strong-color);
   border: none;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--layout-font-size-sm-plus);
+  font-weight: var(--layout-font-weight-semibold);
   cursor: pointer;
 }
 
 .divider {
-  width: 1px;
-  height: 24px;
+  width: var(--layout-border-width);
+  height: var(--layout-control-lg);
   background: var(--chrome-border);
-  margin: 0 4px;
+  margin: 0 var(--layout-space-1);
 }
 
 // Dropdown panel content is portaled by CDK Overlay under <body>, outside
@@ -218,45 +219,45 @@ header.icon-view .hdr-pill {
 // styled after it leaves the header DOM tree.
 ::ng-deep .hdr-dropdown {
   background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 9px;
+  border: var(--layout-border-width) solid var(--border);
+  border-radius: var(--layout-radius-lg);
   box-shadow: var(--shadow);
-  min-width: 190px;
+  min-width: var(--layout-dropdown-min-width);
   overflow: hidden;
 
   .dd-head {
-    padding: 10px 14px 6px;
-    font-size: 11px;
+    padding: var(--layout-space-25) var(--layout-space-35) var(--layout-space-15);
+    font-size: var(--layout-font-size-sm);
     text-transform: uppercase;
     color: var(--text-muted);
-    font-weight: 600;
+    font-weight: var(--layout-font-weight-semibold);
 
     .sso-tag {
-      margin-inline-start: 7px;
+      margin-inline-start: var(--layout-space-175);
       background: var(--accent-soft);
       color: var(--accent);
-      font-size: 9px;
-      font-weight: 700;
-      padding: 1px 6px;
-      border-radius: 99px;
+      font-size: var(--layout-font-size-2xs);
+      font-weight: var(--layout-font-weight-bold);
+      padding: var(--layout-space-025) var(--layout-space-15);
+      border-radius: var(--layout-radius-pill);
       text-transform: none;
     }
   }
   .opt {
-    padding: 9px 14px;
-    font-size: 13px;
+    padding: var(--layout-space-225) var(--layout-space-35);
+    font-size: var(--layout-font-size-md-plus);
     color: var(--text);
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 9px;
+    gap: var(--layout-space-225);
 
     &:hover {
       background: var(--surface-2);
     }
     &.active {
       color: var(--accent);
-      font-weight: 600;
+      font-weight: var(--layout-font-weight-semibold);
     }
     &.static {
       cursor: default;
@@ -266,26 +267,26 @@ header.icon-view .hdr-pill {
     }
     .meta {
       margin-inline-start: auto;
-      font-size: 11px;
+      font-size: var(--layout-font-size-sm);
       color: var(--text-muted);
-      font-weight: 400;
+      font-weight: var(--layout-font-weight-normal);
     }
   }
   .apps-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 2px;
-    padding: 6px;
+    gap: var(--layout-space-05);
+    padding: var(--layout-space-15);
   }
   .app-tile {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 7px;
-    padding: 12px 4px;
+    gap: var(--layout-space-175);
+    padding: var(--layout-space-3) var(--layout-space-1);
     border: none;
-    background: transparent;
-    border-radius: 9px;
+    background: var(--layout-transparent-color);
+    border-radius: var(--layout-radius-lg);
     cursor: pointer;
     color: var(--text);
 
@@ -293,9 +294,9 @@ header.icon-view .hdr-pill {
       background: var(--surface-2);
     }
     .tile-icon {
-      width: 34px;
-      height: 34px;
-      border-radius: 9px;
+      width: var(--layout-control-4xl);
+      height: var(--layout-control-4xl);
+      border-radius: var(--layout-radius-lg);
       background: var(--accent-soft);
       color: var(--accent);
       display: flex;
@@ -303,9 +304,9 @@ header.icon-view .hdr-pill {
       justify-content: center;
     }
     .name {
-      font-size: 10.5px;
-      font-weight: 500;
-      line-height: 1.25;
+      font-size: var(--layout-font-size-xs-plus);
+      font-weight: var(--layout-font-weight-medium);
+      line-height: var(--layout-line-height-tight);
     }
   }
 }

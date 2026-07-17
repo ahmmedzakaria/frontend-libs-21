@@ -4,103 +4,184 @@
 // at runtime via the `data-theme` attribute / `.dark` class on <body>.
 
 :root {
-  --ink: #121821;
-  --paper: #f3f5f7;
-  --card: #ffffff;
-  --surface-2: #f8f9fb;
-  --border: #e2e6ea;
-  --text: #1a222c;
-  --text-muted: #5c6672;
-  --accent: #1f6f5c;
-  --accent-soft: #e4f1ed;
-  --amber: #a8630b;
-  --amber-soft: #fbeed9;
-  --red: #9f2b2b;
-  --red-soft: #faeaea;
-  --focus: #2f7dd1;
+  // theme primitives; override these per theme and derived tokens update automatically
+  --layout-theme-primary: #1f6f5c;
+  --layout-theme-bg: #f3f5f7;
+  --layout-theme-surface: #ffffff;
+  --layout-theme-text: #1a222c;
+  --layout-theme-danger: #9f2b2b;
+  --layout-theme-warning: #a8630b;
+  --layout-theme-focus: #2f7dd1;
+
+  // derived application colors
+  --ink: color-mix(in srgb, var(--layout-theme-text) 88%, #000000);
+  --paper: var(--layout-theme-bg);
+  --card: var(--layout-theme-surface);
+  --surface-2: color-mix(in srgb, var(--layout-theme-surface) 82%, var(--layout-theme-bg));
+  --border: color-mix(in srgb, var(--layout-theme-text) 14%, var(--layout-theme-surface));
+  --text: var(--layout-theme-text);
+  --text-muted: color-mix(in srgb, var(--layout-theme-text) 62%, var(--layout-theme-bg));
+  --accent: var(--layout-theme-primary);
+  --accent-soft: color-mix(in srgb, var(--layout-theme-primary) 13%, var(--layout-theme-surface));
+  --amber: var(--layout-theme-warning);
+  --amber-soft: color-mix(in srgb, var(--layout-theme-warning) 14%, var(--layout-theme-surface));
+  --red: var(--layout-theme-danger);
+  --red-soft: color-mix(in srgb, var(--layout-theme-danger) 12%, var(--layout-theme-surface));
+  --focus: var(--layout-theme-focus);
+  --success: #2fae6e;
+  --success-soft: color-mix(in srgb, var(--success) 18%, transparent);
+  --layout-on-strong-color: #ffffff;
+  --layout-transparent-color: transparent;
   --radius: 8px;
   --shadow: 0 8px 24px rgba(18, 24, 33, 0.14);
 
+  // typography
+  --layout-font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --layout-mono-font-family: 'IBM Plex Mono', monospace;
+  --layout-font-size-2xs: 9px;
+  --layout-font-size-xs: 10px;
+  --layout-font-size-xs-plus: 10.5px;
+  --layout-font-size-sm: 11px;
+  --layout-font-size-sm-plus: 12px;
+  --layout-font-size-md: 12.5px;
+  --layout-font-size-md-plus: 13px;
+  --layout-font-size-base: 13.5px;
+  --layout-font-size-lg: 15px;
+  --layout-font-size-xl: 1.25rem;
+  --layout-font-size-icon: 1.2rem;
+  --layout-font-weight-normal: 400;
+  --layout-font-weight-medium: 500;
+  --layout-font-weight-semibold: 600;
+  --layout-font-weight-bold: 700;
+
+  // layout size primitives; override these and derived dimensions update automatically
+  --layout-size-unit: 4px;
+  --layout-density-scale: 1;
+  --layout-header-units: 14.5;
+  --layout-footer-units: 7;
+  --layout-nav-units: 16;
+  --layout-nav-expanded-ratio: 3.25;
+  --layout-nav-detail-ratio: 4.46875;
+  --layout-nav-flyout-ratio: 3.4375;
+  --layout-main-padding-block-units: 5.5;
+  --layout-main-padding-inline-units: 7;
+
+  // derived layout dimensions
+  --layout-header-height: calc(var(--layout-size-unit) * var(--layout-header-units) * var(--layout-density-scale));
+  --layout-footer-height: calc(var(--layout-size-unit) * var(--layout-footer-units) * var(--layout-density-scale));
+  --layout-nav-width: calc(var(--layout-size-unit) * var(--layout-nav-units) * var(--layout-density-scale));
+  --layout-nav-expanded-width: calc(var(--layout-nav-width) * var(--layout-nav-expanded-ratio));
+  --layout-nav-detail-width: calc(var(--layout-nav-width) * var(--layout-nav-detail-ratio));
+  --layout-nav-flyout-width: calc(var(--layout-nav-width) * var(--layout-nav-flyout-ratio));
+  --layout-main-padding-block: calc(var(--layout-size-unit) * var(--layout-main-padding-block-units) * var(--layout-density-scale));
+  --layout-main-padding-inline: calc(var(--layout-size-unit) * var(--layout-main-padding-inline-units) * var(--layout-density-scale));
+  --layout-viewport-height: 100vh;
+  --layout-full-size: 100%;
+  --layout-auto-size: auto;
+  --layout-border-width: calc(var(--layout-size-unit) * 0.25);
+  --layout-border-width-strong: calc(var(--layout-size-unit) * 0.5);
+  --layout-border-width-accent: calc(var(--layout-size-unit) * 0.75);
+  --layout-radius-xs: calc(var(--layout-size-unit) * 1);
+  --layout-radius-sm: calc(var(--layout-size-unit) * 1.5);
+  --layout-radius-md: var(--radius);
+  --layout-radius-lg: calc(var(--layout-size-unit) * 2.25);
+  --layout-radius-pill: 999px;
+  --layout-space-025: calc(var(--layout-size-unit) * 0.25);
+  --layout-space-05: calc(var(--layout-size-unit) * 0.5);
+  --layout-space-075: calc(var(--layout-size-unit) * 0.75);
+  --layout-space-1: var(--layout-size-unit);
+  --layout-space-125: calc(var(--layout-size-unit) * 1.25);
+  --layout-space-15: calc(var(--layout-size-unit) * 1.5);
+  --layout-space-175: calc(var(--layout-size-unit) * 1.75);
+  --layout-space-2: calc(var(--layout-size-unit) * 2);
+  --layout-space-225: calc(var(--layout-size-unit) * 2.25);
+  --layout-space-25: calc(var(--layout-size-unit) * 2.5);
+  --layout-space-3: calc(var(--layout-size-unit) * 3);
+  --layout-space-35: calc(var(--layout-size-unit) * 3.5);
+  --layout-space-4: calc(var(--layout-size-unit) * 4);
+  --layout-space-45: calc(var(--layout-size-unit) * 4.5);
+  --layout-space-5: calc(var(--layout-size-unit) * 5);
+  --layout-space-75: calc(var(--layout-size-unit) * 7.5);
+  --layout-control-xs: calc(var(--layout-size-unit) * 1.75);
+  --layout-control-sm: calc(var(--layout-size-unit) * 2.75);
+  --layout-control-md: calc(var(--layout-size-unit) * 3.5);
+  --layout-control-lg: calc(var(--layout-size-unit) * 6);
+  --layout-control-xl: calc(var(--layout-size-unit) * 7);
+  --layout-control-2xl: calc(var(--layout-size-unit) * 7.5);
+  --layout-control-3xl: calc(var(--layout-size-unit) * 8);
+  --layout-control-4xl: calc(var(--layout-size-unit) * 8.5);
+  --layout-control-5xl: calc(var(--layout-size-unit) * 9);
+  --layout-control-6xl: calc(var(--layout-size-unit) * 9.5);
+  --layout-control-rail-toggle: calc(var(--layout-size-unit) * 11);
+  --layout-control-rail-row: calc(var(--layout-size-unit) * 11.5);
+  --layout-dropdown-min-width: calc(var(--layout-size-unit) * 47.5);
+  --layout-dropdown-wide-min-width: calc(var(--layout-size-unit) * 50);
+  --layout-search-max-width: calc(var(--layout-size-unit) * 140);
+  --layout-language-min-width: calc(var(--layout-size-unit) * 26);
+  --layout-line-height-tight: 1.25;
+
+  // motion
+  --layout-transition-fast: 0.15s;
+  --layout-transition-nav: 0.18s;
+  --layout-transition-base: 0.2s;
+  --layout-transition-medium: 0.3s;
+  --layout-transition-ease: ease;
+  --layout-transition-emphasized: cubic-bezier(0.4, 0, 0.2, 1);
+
   // chrome = header, rail, status bar
-  --chrome-bg: #ffffff;
-  --chrome-border: #e2e6ea;
-  --chrome-border-strong: #d7dce1;
-  --chrome-text: #1a222c;
-  --chrome-text-muted: #7d8794;
-  --chrome-icon: #5c6672;
-  --chrome-hover-bg: #eef1f4;
+  --chrome-bg: var(--layout-theme-surface);
+  --chrome-border: var(--border);
+  --chrome-border-strong: color-mix(in srgb, var(--layout-theme-text) 18%, var(--layout-theme-surface));
+  --chrome-text: var(--layout-theme-text);
+  --chrome-text-muted: color-mix(in srgb, var(--layout-theme-text) 52%, var(--layout-theme-bg));
+  --chrome-icon: color-mix(in srgb, var(--layout-theme-text) 68%, var(--layout-theme-bg));
+  --chrome-hover-bg: color-mix(in srgb, var(--layout-theme-primary) 7%, var(--layout-theme-bg));
   --chrome-active-bg: var(--accent-soft);
-  --chrome-search-bg: #f3f5f7;
-  --chrome-search-border: #dde2e7;
-  --chrome-search-text: #1a222c;
-  --chrome-search-placeholder: #97a1ab;
+  --chrome-search-bg: color-mix(in srgb, var(--layout-theme-bg) 78%, var(--layout-theme-surface));
+  --chrome-search-border: color-mix(in srgb, var(--layout-theme-text) 12%, var(--layout-theme-surface));
+  --chrome-search-text: var(--layout-theme-text);
+  --chrome-search-placeholder: color-mix(in srgb, var(--layout-theme-text) 42%, var(--layout-theme-bg));
+  --layout-header-bg: var(--chrome-bg);
+  --layout-header-color: var(--chrome-text);
+  --layout-header-border-color: var(--chrome-border-strong);
+  --layout-footer-bg: var(--chrome-bg);
+  --layout-footer-color: var(--chrome-text-muted);
+  --layout-footer-border-color: var(--chrome-border);
+  --layout-nav-bg: var(--chrome-bg);
+  --layout-nav-color: var(--chrome-text);
+  --layout-nav-border-color: var(--chrome-border);
+  --layout-nav-item-color: var(--chrome-icon);
+  --layout-nav-item-hover-bg: var(--chrome-hover-bg);
+  --layout-nav-item-active-bg: var(--chrome-active-bg);
 }
 
 body.dark {
-  --paper: #0d1218;
-  --card: #161d26;
-  --surface-2: #1b2330;
-  --border: #2a323d;
-  --text: #e7ebef;
-  --text-muted: #8b96a3;
-  --accent-soft: #173430;
-  --amber-soft: #2c2110;
-  --red-soft: #2b1616;
-
-  --chrome-bg: #121821;
-  --chrome-border: #232d3a;
-  --chrome-border-strong: #0a0e13;
-  --chrome-text: #ffffff;
-  --chrome-text-muted: #9aa5b1;
-  --chrome-icon: #c7cfd8;
-  --chrome-hover-bg: #1c2531;
-  --chrome-active-bg: #1c2531;
-  --chrome-search-bg: #1b2430;
-  --chrome-search-border: #2a3542;
-  --chrome-search-text: #ffffff;
-  --chrome-search-placeholder: #69707c;
+  --layout-theme-bg: #0d1218;
+  --layout-theme-surface: #161d26;
+  --layout-theme-text: #e7ebef;
 }
 
 // Accent-only theme variants (light structural base)
 body[data-theme='blue'] {
-  --accent: #2c5aa0;
-  --accent-soft: #e4ebf5;
+  --layout-theme-primary: #2c5aa0;
 }
 body[data-theme='green'] {
-  --accent: #1c7a4c;
-  --accent-soft: #e1f2e8;
+  --layout-theme-primary: #1c7a4c;
 }
 body[data-theme='purple'] {
-  --accent: #6b3fa0;
-  --accent-soft: #ede4f5;
+  --layout-theme-primary: #6b3fa0;
 }
 body[data-theme='gray'] {
-  --accent: #3f4a54;
-  --accent-soft: #e7eaed;
+  --layout-theme-primary: #3f4a54;
 }
 body.dark[data-theme='dark'] {
-  --accent: #1f6f5c;
-  --accent-soft: #173430;
+  --layout-theme-primary: #1f6f5c;
 }
 
 // Navy Banking — its own dark palette, distinct from generic Dark
 body.dark[data-theme='navy'] {
-  --accent: #c99a3b;
-  --accent-soft: #2e2510;
-  --paper: #0b1420;
-  --card: #101d30;
-  --surface-2: #16233a;
-  --border: #1f2f47;
-  --text: #e9edf3;
-  --text-muted: #8b9bb0;
-
-  --chrome-bg: #0b1a33;
-  --chrome-border: #1c2f4d;
-  --chrome-border-strong: #081527;
-  --chrome-hover-bg: #142848;
-  --chrome-active-bg: #142848;
-  --chrome-search-bg: #0f2140;
-  --chrome-search-border: #1c2f4d;
-  --chrome-search-text: #ffffff;
-  --chrome-search-placeholder: #7488a8;
+  --layout-theme-primary: #c99a3b;
+  --layout-theme-bg: #0b1420;
+  --layout-theme-surface: #0b1a33;
+  --layout-theme-text: #e9edf3;
 }

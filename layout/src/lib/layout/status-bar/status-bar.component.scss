@@ -1,23 +1,24 @@
 .statusbar {
-  height: 28px;
-  background: var(--chrome-bg);
-  color: var(--chrome-text-muted);
+  height: var(--layout-footer-height);
+  background: var(--layout-footer-bg);
+  color: var(--layout-footer-color);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
-  font-size: 11px;
-  border-top: 1px solid var(--chrome-border);
-  gap: 12px;
+  padding: 0 var(--layout-space-4);
+  font-family: var(--layout-font-family);
+  font-size: var(--layout-font-size-sm);
+  border-top: var(--layout-border-width) solid var(--layout-footer-border-color);
+  gap: var(--layout-space-3);
   transition:
-    background 0.2s,
-    color 0.2s,
-    border-color 0.2s;
+    background var(--layout-transition-base),
+    color var(--layout-transition-base),
+    border-color var(--layout-transition-base);
 }
 .sb-group {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: var(--layout-space-35);
   min-width: 0;
 }
 .sb-mid {
@@ -30,30 +31,30 @@
 .sb-item {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--layout-space-15);
   white-space: nowrap;
 }
 .sb-dot {
-  width: 7px;
-  height: 7px;
+  width: var(--layout-control-xs);
+  height: var(--layout-control-xs);
   border-radius: 50%;
-  background: #2fae6e;
-  box-shadow: 0 0 0 3px rgba(47, 174, 110, 0.18);
+  background: var(--success);
+  box-shadow: 0 0 0 var(--layout-border-width-accent) var(--success-soft);
 }
 .sb-tag {
   background: var(--chrome-hover-bg);
   color: var(--chrome-icon);
-  padding: 1px 7px;
-  border-radius: 99px;
-  font-size: 10px;
-  font-weight: 600;
+  padding: var(--layout-space-025) var(--layout-space-175);
+  border-radius: var(--layout-radius-pill);
+  font-size: var(--layout-font-size-xs);
+  font-weight: var(--layout-font-weight-semibold);
 }
 .sb-div {
-  width: 1px;
-  height: 12px;
+  width: var(--layout-border-width);
+  height: var(--layout-space-3);
   background: var(--chrome-border);
 }
 .sb-mono {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--layout-mono-font-family);
   color: var(--chrome-icon);
 }

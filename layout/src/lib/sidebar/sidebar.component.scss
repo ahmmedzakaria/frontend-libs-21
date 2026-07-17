@@ -1,57 +1,58 @@
 .sidebar {
-  background-color: var(--bs-body-bg);
-  height: 100vh;
-  width: 260px;
-  transition: width 0.3s ease;
-  border-right: 1px solid var(--bs-border-color);
+  font-family: var(--layout-font-family);
+  background-color: var(--layout-nav-bg);
+  height: var(--layout-viewport-height);
+  width: var(--layout-nav-expanded-width);
+  transition: width var(--layout-transition-medium) var(--layout-transition-ease);
+  border-right: var(--layout-border-width) solid var(--layout-nav-border-color);
   overflow-y: auto;
 
   &.collapsed {
-    width: 80px;
+    width: var(--layout-nav-width);
   }
 
   .sidebar-header {
-    background-color: var(--bs-primary-bg-subtle);
-    border-bottom: 1px solid var(--bs-border-color);
+    background-color: var(--layout-nav-item-active-bg);
+    border-bottom: var(--layout-border-width) solid var(--layout-nav-border-color);
     .brand-logo {
-      width: 28px;
-      height: 28px;
+      width: var(--layout-control-xl);
+      height: var(--layout-control-xl);
     }
   }
 
   .nav-link {
-    color: var(--bs-body-color);
-    border-radius: 0.375rem;
-    margin: 0.25rem 0;
-    padding: 0.6rem 1rem;
-    transition: all 0.2s ease;
+    color: var(--layout-nav-item-color);
+    border-radius: var(--layout-radius-sm);
+    margin: var(--layout-space-1) 0;
+    padding: var(--layout-space-25) var(--layout-space-4);
+    transition: all var(--layout-transition-base) var(--layout-transition-ease);
 
     &:hover,
     &.active {
-      background-color: var(--bs-primary-bg-subtle);
-      color: var(--bs-primary);
+      background-color: var(--layout-nav-item-active-bg);
+      color: var(--accent);
     }
   }
 
   .submenu {
     overflow: hidden;
-    background-color: rgba(var(--bs-primary-rgb), 0.02);
-    border-left: 2px solid var(--bs-primary);
-    margin-left: 0.2rem;
-    border-radius: 0.25rem;
+    background-color: var(--accent-soft);
+    border-left: var(--layout-border-width-strong) solid var(--accent);
+    margin-left: var(--layout-space-075);
+    border-radius: var(--layout-radius-xs);
 
     a.nav-link {
-      padding: 0.4rem 0.75rem;
-      font-size: 0.9rem;
-      color: var(--bs-secondary-color);
+      padding: var(--layout-space-15) var(--layout-space-3);
+      font-size: var(--layout-font-size-md);
+      color: var(--text-muted);
       &:hover {
-        color: var(--bs-primary);
-        background-color: var(--bs-primary-bg-subtle);
+        color: var(--accent);
+        background-color: var(--layout-nav-item-active-bg);
       }
     }
   }
 
   .fa-chevron-right {
-    transition: transform 0.2s ease;
+    transition: transform var(--layout-transition-base) var(--layout-transition-ease);
   }
 }

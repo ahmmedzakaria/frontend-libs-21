@@ -1,27 +1,29 @@
 .topbar {
-  background-color: var(--bs-body-bg);
-  border-bottom: 1px solid var(--bs-border-color);
-  transition: all 0.3s ease;
+  font-family: var(--layout-font-family);
+  min-height: var(--layout-header-height);
+  background-color: var(--layout-header-bg);
+  border-bottom: var(--layout-border-width) solid var(--layout-header-border-color);
+  transition: all var(--layout-transition-medium) var(--layout-transition-ease);
 
   .navbar-brand {
-    color: var(--bs-body-color);
-    font-size: 1.25rem;
+    color: var(--layout-header-color);
+    font-size: var(--layout-font-size-xl);
     &:hover {
-      color: var(--bs-primary);
+      color: var(--accent);
     }
   }
 
   .btn-link {
-    color: var(--bs-body-color);
+    color: var(--layout-header-color);
     &:hover {
-      color: var(--bs-primary);
+      color: var(--accent);
     }
   }
 
   .theme-toggle {
     i {
-      font-size: 1.2rem;
-      transition: transform 0.3s ease;
+      font-size: var(--layout-font-size-icon);
+      transition: transform var(--layout-transition-medium) var(--layout-transition-ease);
     }
     &:hover i {
       transform: rotate(20deg);
@@ -29,34 +31,34 @@
   }
 
   .language-select {
-    width: auto;
-    min-width: 104px;
+    width: var(--layout-auto-size);
+    min-width: var(--layout-language-min-width);
   }
 
   .dropdown-menu {
-    border-radius: 0.75rem;
-    border: 1px solid var(--bs-border-color);
-    min-width: 200px;
+    border-radius: var(--layout-radius-lg);
+    border: var(--layout-border-width) solid var(--border);
+    min-width: var(--layout-dropdown-wide-min-width);
 
     .dropdown-item {
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-size: 0.95rem;
-      transition: background-color 0.2s ease;
+      gap: var(--layout-space-2);
+      font-size: var(--layout-font-size-base);
+      transition: background-color var(--layout-transition-base) var(--layout-transition-ease);
 
       &:hover {
-        background-color: var(--bs-light-bg-subtle);
+        background-color: var(--surface-2);
       }
 
       i {
-        width: 18px;
+        width: var(--layout-space-45);
         text-align: center;
       }
     }
 
     .text-danger:hover {
-      background-color: rgba(var(--bs-danger-rgb), 0.1);
+      background-color: var(--red-soft);
     }
   }
 
