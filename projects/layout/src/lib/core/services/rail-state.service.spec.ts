@@ -2,18 +2,18 @@ import { describe, expect, it } from 'vitest';
 import { RailStateService } from './rail-state.service';
 
 describe('RailStateService', () => {
-  it('starts collapsed with no module open', () => {
+  it('starts expanded (detail mode) with no module open', () => {
     const service = new RailStateService();
-    expect(service.expanded()).toBe(false);
+    expect(service.expanded()).toBe(true);
     expect(service.openModuleId()).toBeNull();
   });
 
   it('toggle() flips rail width state', () => {
     const service = new RailStateService();
     service.toggle();
-    expect(service.expanded()).toBe(true);
-    service.toggle();
     expect(service.expanded()).toBe(false);
+    service.toggle();
+    expect(service.expanded()).toBe(true);
   });
 
   it('toggleModule() opens a module, and re-toggling the same id closes it', () => {
