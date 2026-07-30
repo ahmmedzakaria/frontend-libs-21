@@ -1,22 +1,51 @@
 {
+  "compileOnSave": false,
   "compilerOptions": {
-    "target": "es2022",
-    "module": "es2022",
-    "moduleResolution": "node",
-    "experimentalDecorators": true,
     "strict": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
+    "isolatedModules": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
     "forceConsistentCasingInFileNames": true,
-    "baseUrl": ".",
-    "paths": {
-      "@nexacore/api-common": ["api-common/src/public-api.ts"],
-      "@nexacore/api-common/*": ["api-common/src/lib/*"],
-      "@nexacore/auth": ["auth/src/public-api.ts"],
-      "@nexacore/auth/*": ["auth/src/lib/*"],
-      "@nexacore/layout": ["layout/src/public-api.ts"],
-      "@nexacore/layout/*": ["layout/src/lib/*"],
-      "@nexacore/shared": ["shared/src/public-api.ts"],
-      "@nexacore/shared/*": ["shared/src/lib/*"]
+    "target": "ES2022",
+    "module": "preserve",
+    "baseUrl": "."
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": true
+  },
+  "files": [],
+  "references": [
+    {
+      "path": "./projects/api-common/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/api-common/tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/shared/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/shared/tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/layout/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/layout/tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/auth/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/auth/tsconfig.spec.json"
     }
-  }
+  ]
 }

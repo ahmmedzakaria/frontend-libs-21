@@ -1,0 +1,21 @@
+{
+  "name": "@nexacore/layout",
+  "version": "0.1.0",
+  "peerDependencies": {
+    "@nexacore/api-common": "file:../api-common",
+    "@nexacore/shared": "file:../shared",
+    "@angular/animations": "^21.0.0",
+    "@angular/cdk": "^21.0.0",
+    "@angular/common": "^21.0.0",
+    "@angular/core": "^21.0.0",
+    "@angular/forms": "^21.0.0",
+    "@angular/platform-browser": "^21.0.0",
+    "@angular/router": "^21.0.0",
+    "@jsverse/transloco": "^7.0.0",
+    "rxjs": "~7.8.0"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "sideEffects": false
+}
