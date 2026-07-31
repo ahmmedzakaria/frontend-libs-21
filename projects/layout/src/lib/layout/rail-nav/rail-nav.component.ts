@@ -234,6 +234,8 @@ export class RailNavComponent {
       return;
     }
 
+    this.rail.closeMobile();
+
     if (/^https?:\/\//i.test(path)) {
       window.location.href = path;
       return;

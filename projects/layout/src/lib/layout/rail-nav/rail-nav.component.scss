@@ -1,3 +1,5 @@
+@use '../../styles/tokens';
+
 :host {
   display: block;
   font-family: var(--layout-font-family);
@@ -18,6 +20,25 @@
 
   &.exp {
     width: var(--layout-nav-expanded-width);
+  }
+}
+
+// Below the mobile breakpoint the rail is always off-canvas, regardless of
+// desktop `expanded`/collapsed state — `mobile-open` slides it in as a
+// full-width-detail drawer over the page rather than pushing content aside.
+@media (max-width: tokens.$breakpoint-mobile) {
+  .rail {
+    position: fixed;
+    inset-block: var(--layout-header-height) 0;
+    inset-inline-start: 0;
+    z-index: 40;
+    width: var(--layout-nav-expanded-width);
+    transform: translateX(-100%);
+    transition: transform var(--layout-transition-nav) var(--layout-transition-ease);
+
+    &.mobile-open {
+      transform: translateX(0);
+    }
   }
 }
 

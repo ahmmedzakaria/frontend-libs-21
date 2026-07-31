@@ -31,21 +31,27 @@
       <tbody>
         @if (loading()) {
           <tr role="row" class="state-row">
-            <td [attr.colspan]="columns().length" role="cell">
+            <td [attr.colspan]="columns().length" role="cell" class="cell-lead">
               <div class="loading-row">Loading…</div>
             </td>
           </tr>
         } @else if (!data().length) {
           <tr role="row" class="state-row">
-            <td [attr.colspan]="columns().length" role="cell" class="empty-cell">
+            <td [attr.colspan]="columns().length" role="cell" class="empty-cell cell-lead">
               <app-empty-state icon="folder" [title]="emptyTitle()" [message]="emptyMessage()" />
             </td>
           </tr>
         } @else {
           @for (row of data(); track trackRow($index, row)) {
             <tr role="row" class="data-row" (click)="rowClick.emit(row)">
-              @for (col of columns(); track col.key) {
-                <td role="cell" [class.align-end]="col.align === 'end'">
+              @for (col of columns(); track col.key; let first = $first; let last = $last) {
+                <td
+                  role="cell"
+                  [class.align-end]="col.align === 'end'"
+                  [class.cell-lead]="first"
+                  [class.cell-trail]="last"
+                  [attr.data-label]="first || last ? null : col.header"
+                >
                   @if (col.cellTemplate) {
                     <ng-container [ngTemplateOutlet]="col.cellTemplate" [ngTemplateOutletContext]="{ $implicit: row }" />
                   } @else {

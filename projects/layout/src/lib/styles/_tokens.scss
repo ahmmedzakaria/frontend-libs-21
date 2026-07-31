@@ -3,6 +3,12 @@
 // CSS custom properties (not SCSS variables) so ThemeService can flip them
 // at runtime via the `data-theme` attribute / `.dark` class on <body>.
 
+// The one exception: `@media` feature queries can't reference CSS custom
+// properties (no `var()` support inside a media condition), so the shared
+// mobile breakpoint has to be a real SCSS variable — `@use` this partial and
+// reference `tokens.$breakpoint-mobile` in any component's `@media` rule.
+$breakpoint-mobile: 48rem;
+
 :root {
   // theme primitives; override these per theme and derived tokens update automatically
   --layout-theme-primary: #1f6f5c;

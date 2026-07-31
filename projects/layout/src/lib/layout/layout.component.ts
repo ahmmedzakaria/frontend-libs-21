@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 import { DirectionService } from '../core/services/direction.service';
+import { RailStateService } from '../core/services/rail-state.service';
 import { HeaderComponent } from './header/header.component';
 import { RailNavComponent } from './rail-nav/rail-nav.component';
 import { StatusBarComponent } from './status-bar/status-bar.component';
@@ -16,4 +17,5 @@ import { StatusBarComponent } from './status-bar/status-bar.component';
 })
 export class LayoutComponent {
   private readonly direction = inject(DirectionService);
+  protected readonly rail = inject(RailStateService);
 }

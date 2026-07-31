@@ -1,6 +1,9 @@
 <app-header />
 
 <div class="app-body">
+  @if (rail.mobileOpen()) {
+    <div class="rail-backdrop" (click)="rail.closeMobile()"></div>
+  }
   <app-rail-nav />
   <main class="main">
     <router-outlet />

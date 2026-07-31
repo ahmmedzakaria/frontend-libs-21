@@ -1,4 +1,4 @@
-<nav class="rail" [class.exp]="rail.expanded()">
+<nav class="rail" [class.exp]="rail.expanded()" [class.mobile-open]="rail.mobileOpen()">
   <button type="button" class="toggle focus-ring" (click)="rail.toggle()" aria-label="Toggle navigation width">
     <app-icon name="hamburger" />
   </button>

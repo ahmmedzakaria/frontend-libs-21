@@ -1,3 +1,5 @@
+@use '../../styles/tokens';
+
 .statusbar {
   height: var(--layout-footer-height);
   background: var(--layout-footer-bg);
@@ -57,4 +59,14 @@
 .sb-mono {
   font-family: var(--layout-mono-font-family);
   color: var(--chrome-icon);
+}
+
+@media (max-width: tokens.$breakpoint-mobile) {
+  // Informational-only segments — last-synced/audit-logging and the
+  // trailing clock/version — get dropped below the mobile breakpoint,
+  // keeping just the system-operational dot and the session-expiry warning.
+  .sb-mid,
+  .sb-secondary {
+    display: none;
+  }
 }

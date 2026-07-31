@@ -1,6 +1,27 @@
+@use '../../styles/tokens';
+
 :host {
   display: block;
   font-family: var(--layout-font-family);
+}
+
+.hamburger {
+  display: none;
+  width: var(--layout-control-5xl);
+  height: var(--layout-control-5xl);
+  border: none;
+  background: var(--layout-transparent-color);
+  color: var(--chrome-icon);
+  border-radius: var(--layout-radius-lg);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+
+  &:hover {
+    background: var(--chrome-hover-bg);
+    color: var(--chrome-text);
+  }
 }
 
 header {
@@ -308,5 +329,20 @@ header.icon-view .hdr-pill {
       font-weight: var(--layout-font-weight-medium);
       line-height: var(--layout-line-height-tight);
     }
+  }
+}
+
+@media (max-width: tokens.$breakpoint-mobile) {
+  .hamburger {
+    display: flex;
+  }
+  // The rail is always off-canvas below this breakpoint, so the header's own
+  // desktop-only "detail vs icon-only" toggle no longer applies — force the
+  // same compact treatment regardless of `rail.expanded()`.
+  .brand-text {
+    display: none;
+  }
+  .global-search {
+    display: none;
   }
 }

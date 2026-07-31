@@ -93,3 +93,62 @@
   padding: var(--layout-space-3) var(--layout-space-35);
   border-top: var(--layout-border-width) solid var(--border);
 }
+
+// Below this breakpoint each row becomes a stacked card instead of a
+// horizontally-scrolling table row — no domain-specific column-name
+// assumptions, purely positional: the first column (typically an identity
+// photo/avatar) renders prominently with no label, the last column
+// (typically row actions) renders as a full-width footer row, and everything
+// between renders as `label: value`. Keep this literal in sync with
+// `layout`'s `$breakpoint-mobile` in `projects/layout/src/lib/styles/_tokens.scss`
+// — they can't share an SCSS variable across separately-packaged projects.
+@media (max-width: 48rem) {
+  .table-scroll {
+    overflow-x: visible;
+  }
+  .data-table {
+    thead {
+      display: none;
+    }
+    tbody,
+    tr,
+    td {
+      display: block;
+      width: 100%;
+    }
+    .data-row {
+      padding: var(--layout-space-3) var(--layout-space-35);
+    }
+    .state-row td {
+      padding: var(--layout-space-25) var(--layout-space-35);
+    }
+    td {
+      border-bottom: none;
+      padding: var(--layout-space-1) 0;
+      text-align: start;
+
+      &.cell-lead {
+        margin-bottom: var(--layout-space-2);
+      }
+      &.cell-trail {
+        margin-top: var(--layout-space-2);
+        padding-top: var(--layout-space-2);
+        border-top: var(--layout-border-width) solid var(--border);
+      }
+      &:not(.cell-lead):not(.cell-trail) {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--layout-space-2);
+
+        &::before {
+          content: attr(data-label);
+          flex-shrink: 0;
+          font-size: var(--layout-font-size-xs);
+          font-weight: var(--layout-font-weight-semibold);
+          color: var(--text-muted);
+        }
+      }
+    }
+  }
+}
