@@ -16,7 +16,6 @@
   @include shell.control-frame;
   height: var(--layout-control-6xl);
   padding: 0 var(--layout-space-3);
-  position: relative;
 
   .prefix {
     color: var(--text-muted);
@@ -28,32 +27,4 @@
 }
 .error {
   @include shell.field-error;
-}
-
-// Floating label: sits over the input at rest, rises above it once the
-// control has a value or is focused — driven by reactive state, not
-// :placeholder-shown, so it also floats for values set programmatically.
-.floating {
-  .control-frame {
-    padding-top: var(--layout-space-2);
-  }
-  .floating-lbl {
-    position: absolute;
-    left: var(--layout-space-3);
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: var(--layout-font-size-base);
-    color: var(--text-muted);
-    pointer-events: none;
-    transition:
-      transform var(--layout-transition-fast),
-      font-size var(--layout-transition-fast),
-      top var(--layout-transition-fast);
-  }
-  .control-frame.has-value .floating-lbl,
-  .control-frame:focus-within .floating-lbl {
-    top: var(--layout-space-2);
-    transform: translateY(0);
-    font-size: var(--layout-font-size-xs);
-  }
 }

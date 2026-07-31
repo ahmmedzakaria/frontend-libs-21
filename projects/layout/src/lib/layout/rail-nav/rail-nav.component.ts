@@ -8,6 +8,7 @@ import { NavCategory, NavItem, NavModule } from '../../core/models/nav-module.mo
 import { RailStateService } from '../../core/services/rail-state.service';
 import { RailFlyoutService } from '../../core/services/rail-flyout.service';
 import { NavModeService } from '../../core/services/nav-mode.service';
+import { BreadcrumbService } from '../../core/services/breadcrumb.service';
 import { SidebarMenuItem, SidebarMenuService } from '../../sidebar-menu.service';
 
 const CATEGORY_ICON: Record<NavCategory, string> = {
@@ -34,6 +35,7 @@ export class RailNavComponent {
 
   private readonly router = inject(Router);
   private readonly sidebarMenu = inject(SidebarMenuService);
+  private readonly breadcrumb = inject(BreadcrumbService);
   private readonly destroyRef = inject(DestroyRef);
 
   constructor() {
@@ -91,12 +93,12 @@ export class RailNavComponent {
     }
 
     if (this.navMode.grouped()) {
-      this.navigateTo(mod.path);
+      this.navigateTo(mod.path, [], mod.label);
       return;
     }
 
-    const items = this.flatItems(mod.id);
-    this.navigateTo(items[0]?.path ?? mod.path);
+    const first = this.flatItems(mod.id)[0];
+    this.navigateTo(first?.path ?? mod.path, first ? [mod.label] : [], first?.label ?? mod.label);
   }
 
   protected openCategory(moduleId: string, category: NavCategory, origin: CdkOverlayOrigin): void {
@@ -105,15 +107,15 @@ export class RailNavComponent {
     this.flyout.open({ moduleId, moduleLabel: mod?.label ?? '', category, items }, origin);
   }
 
-  protected selectItem(path: string | undefined): void {
-    this.navigateTo(path);
+  protected selectItem(path: string | undefined, moduleLabel: string, category: string, label: string): void {
+    this.navigateTo(path, [moduleLabel, category], label);
     this.flyout.close();
   }
 
-  protected selectFlatItem(moduleId: string, path: string | undefined): void {
-    this.navigateTo(path);
-    if (this.rail.openModuleId() === moduleId) {
-      this.rail.toggleModule(moduleId);
+  protected selectFlatItem(mod: NavModule, item: NavItem): void {
+    this.navigateTo(item.path, [mod.label], item.label);
+    if (this.rail.openModuleId() === mod.id) {
+      this.rail.toggleModule(mod.id);
     }
   }
 
@@ -229,12 +231,13 @@ export class RailNavComponent {
     return 'help';
   }
 
-  private navigateTo(path: string | undefined): void {
+  private navigateTo(path: string | undefined, labels: string[], title: string): void {
     if (!path) {
       return;
     }
 
     this.rail.closeMobile();
+    this.breadcrumb.set(labels, title);
 
     if (/^https?:\/\//i.test(path)) {
       window.location.href = path;

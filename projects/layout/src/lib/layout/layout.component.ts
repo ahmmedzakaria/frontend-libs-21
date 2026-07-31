@@ -6,11 +6,12 @@ import { RailStateService } from '../core/services/rail-state.service';
 import { HeaderComponent } from './header/header.component';
 import { RailNavComponent } from './rail-nav/rail-nav.component';
 import { StatusBarComponent } from './status-bar/status-bar.component';
+import { BreadcrumbComponent } from './breadcrumb/breadcrumb.component';
 
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [RouterOutlet, HeaderComponent, RailNavComponent, StatusBarComponent],
+  imports: [RouterOutlet, HeaderComponent, RailNavComponent, StatusBarComponent, BreadcrumbComponent],
   templateUrl: './layout.component.html',
   styleUrl: './layout.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

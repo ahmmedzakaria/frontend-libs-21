@@ -56,7 +56,7 @@
               <button
                 type="button"
                 class="child-row focus-ring"
-                (click)="selectFlatItem(mod.id, item.path)"
+                (click)="selectFlatItem(mod, item)"
               >
                 <app-icon [name]="item.icon || 'help'" [size]="13" />
                 <span class="lbl">{{ item.label }}</span>
@@ -82,7 +82,11 @@
       <div class="rail-flyout" (mouseenter)="flyout.cancelClose()" (mouseleave)="flyout.scheduleClose()">
         <div class="cat">{{ content.category }}</div>
         @for (item of content.items; track item.label + item.path) {
-          <button type="button" class="item focus-ring" (click)="selectItem(item.path)">
+          <button
+            type="button"
+            class="item focus-ring"
+            (click)="selectItem(item.path, content.moduleLabel, content.category, item.label)"
+          >
             {{ item.label }}
           </button>
         }

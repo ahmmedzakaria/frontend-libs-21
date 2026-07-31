@@ -1,29 +1,21 @@
-<div class="field" [class.floating]="floating()">
-  @if (label() && !floating()) {
+<div class="field">
+  @if (label()) {
     <label class="lbl" [for]="uid">{{ label() }}</label>
   }
-  <div
-    class="control-frame"
-    [class.invalid]="!!errorMessage()"
-    [class.disabled]="disabled()"
-    [class.has-value]="!!value()"
-  >
+  <div class="control-frame" [class.invalid]="!!errorMessage()" [class.disabled]="disabled()">
     @if (icon()) {
       <app-icon [name]="icon()!" [size]="15" class="prefix" />
     }
     <input
       [id]="uid"
       [type]="type()"
-      [placeholder]="floating() ? '' : placeholder()"
+      [placeholder]="placeholder()"
       [value]="value() ?? ''"
       [disabled]="disabled()"
       [readOnly]="isReadonly()"
       (input)="onInput($event)"
       (blur)="onBlur()"
     />
-    @if (floating() && label()) {
-      <label class="floating-lbl" [for]="uid">{{ label() }}</label>
-    }
   </div>
   @if (errorMessage()) {
     <span class="error">{{ errorMessage() }}</span>

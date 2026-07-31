@@ -28,8 +28,6 @@ export class TextboxComponent extends BaseValueAccessor<string> implements Valid
     readonly type = input<TextboxType>('text');
     /** Icon registry key, e.g. 'user', 'phone' — see @nexacore/layout's ICONS map. */
     readonly icon = input<string | null>(null);
-    /** Bootstrap-style floating label — the label sits inside the frame and rises above it once filled/focused. */
-    readonly floating = input(false);
     readonly required = input(false);
     readonly minLength = input<number | null>(null);
     readonly maxLength = input<number | null>(null);

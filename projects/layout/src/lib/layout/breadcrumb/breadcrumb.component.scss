@@ -1,0 +1,20 @@
+:host {
+  display: block;
+}
+
+.bc {
+  font-size: var(--layout-font-size-md);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: var(--layout-space-15);
+}
+.sep {
+  color: var(--border);
+}
+.ttl {
+  margin: var(--layout-space-1) 0 var(--layout-space-5);
+  font-size: var(--layout-font-size-xl);
+  font-weight: var(--layout-font-weight-bold);
+  color: var(--text);
+}

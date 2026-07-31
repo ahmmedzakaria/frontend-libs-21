@@ -1,0 +1,10 @@
+<div class="bc">
+  <app-icon name="home" [size]="12" />
+  @for (seg of breadcrumb.trail(); track $index) {
+    @if (!$first) {
+      <span class="sep">/</span>
+    }
+    <span>{{ seg.label }}</span>
+  }
+</div>
+<h2 class="ttl">{{ breadcrumb.title() }}</h2>
