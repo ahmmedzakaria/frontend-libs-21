@@ -9,12 +9,16 @@
   </button>
 
   <div class="brand">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-      <path d="M12 2l8 3.5v6c0 5-3.4 8.7-8 10.5-4.6-1.8-8-5.5-8-10.5v-6L12 2z" />
-      <path d="M8.5 12l2.3 2.3L15.5 9.5" stroke-linecap="round" stroke-linejoin="round" />
-    </svg>
+    @if (brand()?.logoUrl && !logoFailed()) {
+      <img [src]="brand()!.logoUrl!" alt="" width="22" height="22" (error)="onLogoError()" />
+    } @else {
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+        <path d="M12 2l8 3.5v6c0 5-3.4 8.7-8 10.5-4.6-1.8-8-5.5-8-10.5v-6L12 2z" />
+        <path d="M8.5 12l2.3 2.3L15.5 9.5" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+    }
     <div class="brand-text">
-      {{ 'brand.name' | transloco }}
+      {{ brand()?.displayName || ('brand.name' | transloco) }}
       <small>{{ 'brand.tagline' | transloco }}</small>
     </div>
   </div>
@@ -125,7 +129,7 @@
       </button>
       <ng-container panel>
         <div class="dd-head">{{ 'header.theme' | transloco }}</div>
-        @for (t of theme.themes; track t.id) {
+        @for (t of theme.themes(); track t.id) {
           <div class="opt" [class.active]="t.id === theme.current().id" (click)="selectTheme(t.id)">
             @if (t.swatch === 'sun' || t.swatch === 'moon') {
               <app-icon [name]="t.swatch" [size]="14" />

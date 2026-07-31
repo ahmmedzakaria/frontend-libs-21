@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, OnInit, signal } from '@angular/core';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import { Router } from '@angular/router';
 import {AuthService} from "../auth.service";
-import {LayoutService, IconComponent} from "@nexacore/layout";
+import {LayoutService, IconComponent, LayoutConfigService} from "@nexacore/layout";
 import {NgIf} from "@angular/common";
 import {TranslocoPipe} from "@jsverse/transloco";
 
@@ -27,12 +27,14 @@ export class LoginComponent implements OnInit {
     loadingConfig = true;
     ssoLoading = false;
     readonly passwordVisible = signal(false);
+    readonly logoFailed = signal(false);
 
     constructor(
         private fb: FormBuilder,
         private authService: AuthService,
         private router: Router,
         private layoutService: LayoutService,
+        protected layoutConfig: LayoutConfigService,
         private changeDetector: ChangeDetectorRef
     ) {
         this.form = this.fb.group({
@@ -80,6 +82,10 @@ export class LoginComponent implements OnInit {
 
     togglePasswordVisibility(): void {
         this.passwordVisible.update((v) => !v);
+    }
+
+    onLogoError(): void {
+        this.logoFailed.set(true);
     }
 
     loginWithSso() {

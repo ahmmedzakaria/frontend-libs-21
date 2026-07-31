@@ -18,6 +18,7 @@ $breakpoint-mobile: 48rem;
   --layout-theme-danger: #9f2b2b;
   --layout-theme-warning: #a8630b;
   --layout-theme-focus: #2f7dd1;
+  --layout-theme-success: #2fae6e;
 
   // derived application colors
   --ink: color-mix(in srgb, var(--layout-theme-text) 88%, #000000);
@@ -34,7 +35,7 @@ $breakpoint-mobile: 48rem;
   --red: var(--layout-theme-danger);
   --red-soft: color-mix(in srgb, var(--layout-theme-danger) 12%, var(--layout-theme-surface));
   --focus: var(--layout-theme-focus);
-  --success: #2fae6e;
+  --success: var(--layout-theme-success);
   --success-soft: color-mix(in srgb, var(--success) 18%, transparent);
   --layout-on-strong-color: #ffffff;
   --layout-transparent-color: transparent;
@@ -43,6 +44,7 @@ $breakpoint-mobile: 48rem;
 
   // typography
   --layout-font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --layout-heading-font-family: var(--layout-font-family);
   --layout-mono-font-family: 'IBM Plex Mono', monospace;
   --layout-font-size-2xs: 9px;
   --layout-font-size-xs: 10px;

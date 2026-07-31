@@ -9,6 +9,7 @@ import { RailStateService } from '../../core/services/rail-state.service';
 import { RailFlyoutService } from '../../core/services/rail-flyout.service';
 import { NavModeService } from '../../core/services/nav-mode.service';
 import { BreadcrumbService } from '../../core/services/breadcrumb.service';
+import { LayoutConfigService } from '../../core/services/layout-config.service';
 import { SidebarMenuItem, SidebarMenuService } from '../../sidebar-menu.service';
 
 const CATEGORY_ICON: Record<NavCategory, string> = {
@@ -36,6 +37,7 @@ export class RailNavComponent {
   private readonly router = inject(Router);
   private readonly sidebarMenu = inject(SidebarMenuService);
   private readonly breadcrumb = inject(BreadcrumbService);
+  private readonly layoutConfig = inject(LayoutConfigService);
   private readonly destroyRef = inject(DestroyRef);
 
   constructor() {
@@ -49,6 +51,7 @@ export class RailNavComponent {
       next: (context) => {
         this.modules.set(this.toNavModules(context?.menus || []));
         this.navMode.setEnabledModules(context?.enabledModules || []);
+        this.layoutConfig.apply(context?.layout);
         this.loading.set(false);
       },
       error: () => {

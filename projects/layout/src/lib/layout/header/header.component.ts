@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { UpperCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
@@ -10,6 +10,7 @@ import { RailStateService } from '../../core/services/rail-state.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { ThemeId } from '../../core/models/theme.model';
 import { LayoutService } from '../../layout.service';
+import { LayoutConfigService } from '../../core/services/layout-config.service';
 
 interface AppTile {
   name: string;
@@ -44,6 +45,11 @@ export class HeaderComponent {
   protected readonly theme = inject(ThemeService);
   private readonly layoutService = inject(LayoutService);
   private readonly transloco = inject(TranslocoService);
+  private readonly layoutConfig = inject(LayoutConfigService);
+
+  protected readonly brand = computed(() => this.layoutConfig.brand());
+  /** Reset whenever the brand changes, so a new backend logo gets a fresh attempt. */
+  protected readonly logoFailed = signal(false);
 
   protected readonly searchTypes = SEARCH_TYPES;
   protected readonly searchType = signal<(typeof SEARCH_TYPES)[number]>('Customer Name');
@@ -81,6 +87,10 @@ export class HeaderComponent {
   selectTheme(id: ThemeId): void {
     this.theme.select(id);
     this.menu.close();
+  }
+
+  onLogoError(): void {
+    this.logoFailed.set(true);
   }
 
   launchApp(name: string): void {

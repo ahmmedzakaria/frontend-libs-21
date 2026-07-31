@@ -1,9 +1,13 @@
 <div class="login-page">
     <div class="login-card">
         <div class="brand">
-            <app-icon name="user-shield" [size]="26" />
+            @if (layoutConfig.brand()?.logoUrl && !logoFailed()) {
+                <img [src]="layoutConfig.brand()!.logoUrl!" alt="" width="26" height="26" (error)="onLogoError()" />
+            } @else {
+                <app-icon name="user-shield" [size]="26" />
+            }
             <div class="brand-text">
-                {{ 'brand.name' | transloco }}
+                {{ layoutConfig.brand()?.displayName || ('brand.name' | transloco) }}
                 <small>{{ 'brand.tagline' | transloco }}</small>
             </div>
         </div>

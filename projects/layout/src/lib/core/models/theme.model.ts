@@ -1,4 +1,6 @@
-export type ThemeId = 'light' | 'dark' | 'blue' | 'navy' | 'green' | 'purple' | 'gray';
+import { LayoutThemeChromeOverrides, LayoutThemePrimaries } from './layout-config.model';
+
+export type ThemeId = string;
 
 export interface ThemeDef {
   id: ThemeId;
@@ -7,6 +9,9 @@ export interface ThemeDef {
   base: 'light' | 'dark';
   /** Accent swatch shown in the theme picker; 'sun' / 'moon' use an icon instead. */
   swatch: string | 'sun' | 'moon';
+  /** Present on backend-sourced themes only — applied as CSS custom property overrides. */
+  primaries?: LayoutThemePrimaries;
+  chromeOverrides?: LayoutThemeChromeOverrides | null;
 }
 
 export const THEMES: ThemeDef[] = [

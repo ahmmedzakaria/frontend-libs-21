@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { ActionTypes, ApiEndpoint, ApiService } from '@nexacore/api-common';
+import { BackendLayoutConfig } from './core/models/layout-config.model';
 
 export interface SidebarMenuItem {
     label: string;
@@ -21,6 +22,7 @@ export interface ApplicationContext {
     enabledModules?: string[];
     enabledSubmodules?: string[];
     enabledFeatures?: string[];
+    layout?: BackendLayoutConfig;
 }
 
 interface WrappedApplicationContext {
@@ -47,6 +49,7 @@ export class SidebarMenuService {
                 localStorage.setItem('enabledSubmodules', JSON.stringify(context?.enabledSubmodules || []));
                 localStorage.setItem('enabledFeatures', JSON.stringify(context?.enabledFeatures || []));
                 localStorage.setItem('sidebarMenus', JSON.stringify(context?.menus || []));
+                localStorage.setItem('layoutConfig', JSON.stringify(context?.layout || null));
             })
         );
     }
@@ -81,6 +84,19 @@ export class SidebarMenuService {
         return this.getCachedStringArray('enabledFeatures');
     }
 
+    getCachedLayoutConfig(): BackendLayoutConfig | null {
+        const raw = localStorage.getItem('layoutConfig');
+        if (!raw) {
+            return null;
+        }
+
+        try {
+            return JSON.parse(raw) as BackendLayoutConfig;
+        } catch {
+            return null;
+        }
+    }
+
     private getCachedStringArray(key: string): string[] {
         const raw = localStorage.getItem(key);
         if (!raw) {
@@ -105,6 +121,7 @@ export class SidebarMenuService {
             enabledModules: context?.enabledModules || [],
             enabledSubmodules: context?.enabledSubmodules || [],
             enabledFeatures: context?.enabledFeatures || [],
+            layout: context?.layout,
         };
     }
 }
