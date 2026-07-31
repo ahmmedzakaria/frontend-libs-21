@@ -69,6 +69,32 @@ export class SidebarMenuService {
         }
     }
 
+    getCachedEnabledModules(): string[] {
+        return this.getCachedStringArray('enabledModules');
+    }
+
+    getCachedEnabledSubmodules(): string[] {
+        return this.getCachedStringArray('enabledSubmodules');
+    }
+
+    getCachedEnabledFeatures(): string[] {
+        return this.getCachedStringArray('enabledFeatures');
+    }
+
+    private getCachedStringArray(key: string): string[] {
+        const raw = localStorage.getItem(key);
+        if (!raw) {
+            return [];
+        }
+
+        try {
+            const parsed = JSON.parse(raw);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch {
+            return [];
+        }
+    }
+
     private unwrapApplicationContext(response: ApplicationContext | WrappedApplicationContext): ApplicationContext {
         const context = (response as WrappedApplicationContext)?.data || response as ApplicationContext;
         return {

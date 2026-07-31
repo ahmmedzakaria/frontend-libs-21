@@ -1,66 +1,62 @@
-<div class="d-flex justify-content-center align-items-center vh-80 bg-light">
-    <div class="card shadow-sm p-4" style="min-width: 350px; max-width: 400px;">
-        <div class="text-center mb-4">
-            <i class="fa-solid fa-user-shield fa-3x text-primary mb-2"></i>
-            <h2 class="fw-bold">Login</h2>
-            <p class="text-muted">Enter your credentials to continue</p>
+<div class="login-page">
+    <div class="login-card">
+        <div class="login-header">
+            <app-icon name="user-shield" [size]="40" class="header-icon" />
+            <h2 class="login-title">Login</h2>
+            <p class="login-subtitle">Enter your credentials to continue</p>
         </div>
 
-        <div *ngIf="loadingConfig" class="text-center py-3">
-            <span class="spinner-border spinner-border-sm me-2"></span>
+        <div *ngIf="loadingConfig" class="loading-row">
+            <app-icon name="spinner" [size]="16" class="spin" />
             Loading...
         </div>
 
-        <div *ngIf="!loadingConfig && ssoLoginEnabled" class="d-grid mt-4">
-            <button type="button" class="btn btn-primary" (click)="loginWithSso()" [disabled]="ssoLoading">
-                <i class="fa-solid fa-right-to-bracket me-2"></i>
+        <div *ngIf="!loadingConfig && ssoLoginEnabled" class="sso-row">
+            <button type="button" class="btn btn-primary btn-block" (click)="loginWithSso()" [disabled]="ssoLoading">
+                <app-icon name="right-to-bracket" [size]="14" />
                 {{ ssoLoading ? 'Redirecting...' : 'Login with SSO' }}
             </button>
         </div>
 
         <form *ngIf="!loadingConfig && passwordLoginEnabled" [formGroup]="form" (ngSubmit)="login()">
-            <!-- Username -->
-            <div class="mb-3">
-                <label for="username" class="form-label fw-semibold">Username</label>
+            <div class="field">
+                <label for="username" class="field-label">Username</label>
                 <input
                         id="username"
                         type="text"
-                        class="form-control"
+                        class="native-input"
                         formControlName="username"
                         placeholder="Enter username" />
-                <div class="text-danger small" *ngIf="form.get('username')?.invalid && form.get('username')?.touched">
+                <div class="field-error" *ngIf="form.get('username')?.invalid && form.get('username')?.touched">
                     Username is required
                 </div>
             </div>
 
-            <!-- Password -->
-            <div class="mb-3">
-                <label for="password" class="form-label fw-semibold">Password</label>
+            <div class="field">
+                <label for="password" class="field-label">Password</label>
                 <input
                         id="password"
                         type="password"
-                        class="form-control"
+                        class="native-input"
                         formControlName="password"
                         placeholder="Enter password" />
-                <div class="text-danger small" *ngIf="form.get('password')?.invalid && form.get('password')?.touched">
+                <div class="field-error" *ngIf="form.get('password')?.invalid && form.get('password')?.touched">
                     Password is required
                 </div>
             </div>
 
-            <!-- Error Message -->
-            <!-- Submit -->
-            <div class="d-grid mt-4">
-                <button type="submit" class="btn btn-primary" [disabled]="form.invalid">
-                    <i class="fa-solid fa-right-to-bracket me-2"></i> Login
+            <div class="submit-row">
+                <button type="submit" class="btn btn-primary btn-block" [disabled]="form.invalid">
+                    <app-icon name="right-to-bracket" [size]="14" /> Login
                 </button>
             </div>
         </form>
 
-        <div *ngIf="!loadingConfig && !passwordLoginEnabled && !ssoLoginEnabled" class="alert alert-warning py-2 small mt-3">
+        <div *ngIf="!loadingConfig && !passwordLoginEnabled && !ssoLoginEnabled" class="alert alert-warning">
             No login method is enabled.
         </div>
 
-        <div *ngIf="errorMessage" class="alert alert-danger py-2 small mt-3">
+        <div *ngIf="errorMessage" class="alert alert-danger">
             {{ errorMessage }}
         </div>
     </div>

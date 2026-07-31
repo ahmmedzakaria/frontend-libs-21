@@ -1,45 +1,98 @@
-<div class="date-picker mb-3">
-    <div class="form-floating position-relative">
-        <input
-                class="form-control"
-                readonly
-                [value]="rangeMode
-        ? (range.start && range.end ? range.start + ' → ' + range.end : '')
-        : control.value || ''"
-                (click)="toggleCalendar()"
-        />
-        <label>{{ label }}</label>
-        <i *ngIf="showIcon" class="fa-solid fa-calendar-days calendar-icon" (click)="toggleCalendar()"></i>
-    </div>
+<div class="dp-field">
+  @if (label()) {
+    <span class="lbl">{{ label() }}</span>
+  }
 
-    <div class="calendar-popover" *ngIf="isOpen">
-        <div class="calendar-header">
-            <button class="btn btn-sm" (click)="prevMonth()"><i class="fa-solid fa-chevron-left"></i></button>
-            <span>{{ baseMonth | date: 'MMMM yyyy' }}</span>
-            <button class="btn btn-sm" (click)="nextMonth()"><i class="fa-solid fa-chevron-right"></i></button>
-        </div>
+  <button
+    type="button"
+    class="trigger focus-ring"
+    cdkOverlayOrigin
+    #origin="cdkOverlayOrigin"
+    [attr.aria-expanded]="open()"
+    aria-haspopup="dialog"
+    [disabled]="disabled()"
+    [class.invalid]="!!errorMessage()"
+    (click)="toggle()"
+  >
+    <app-icon name="calendar-days" [size]="15" class="cal-icon" />
+    <span class="value" [class.placeholder]="!displayValue()">{{ displayValue() || placeholder() }}</span>
+  </button>
 
-        <div class="calendar-body">
-            <div class="month-container" *ngFor="let month of monthMatrix">
-                <div class="month-label">{{ month.label }}</div>
-                <div class="calendar-row">
-                    <div
-                            *ngFor="let day of month.days"
-                            class="calendar-day"
-                            [ngClass]="{
-              'selected': isSelected(day),
-              'in-range': isInRange(day),
-              'range-start': isStart(day),
-              'range-end': isEnd(day)
-            }"
-                            (mouseenter)="onHover(day)"
-                            (mouseleave)="onHover(null)"
-                            (click)="selectDate(day)"
-                    >
-                        {{ day.getDate() }}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+  @if (errorMessage()) {
+    <span class="error">{{ errorMessage() }}</span>
+  }
 </div>
+
+<ng-template
+  cdkConnectedOverlay
+  [cdkConnectedOverlayOrigin]="origin"
+  [cdkConnectedOverlayOpen]="open()"
+  [cdkConnectedOverlayHasBackdrop]="true"
+  cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
+  [cdkConnectedOverlayPositions]="[
+    { originX: 'start', originY: 'bottom', overlayX: 'start', overlayY: 'top', offsetY: 4 },
+    { originX: 'start', originY: 'top', overlayX: 'start', overlayY: 'bottom', offsetY: -4 }
+  ]"
+  (backdropClick)="close()"
+  (detach)="close()"
+>
+  <div class="dp-panel" [class.multi]="months().length > 1" (keydown)="onGridKeydown($event)">
+    <div class="dp-header">
+      <button type="button" class="nav-btn focus-ring" aria-label="Previous month" (click)="prevMonth()">
+        <app-icon name="chevron-left" [size]="14" />
+      </button>
+      <span class="month-label">
+        {{ months()[0].label }}
+        @if (months().length > 1) {
+          &ndash; {{ months()[months().length - 1].label }}
+        }
+      </span>
+      <button type="button" class="nav-btn focus-ring" aria-label="Next month" (click)="nextMonth()">
+        <app-icon name="chevron-right" [size]="14" />
+      </button>
+    </div>
+
+    <div class="dp-months">
+      @for (month of months(); track month.label) {
+        <div class="dp-month">
+          @if (months().length > 1) {
+            <div class="dp-month-label">{{ month.label }}</div>
+          }
+          <div class="dp-grid" role="grid">
+            <div class="dp-row weekdays" role="row">
+              @for (w of weekdayLabels; track w) {
+                <span class="weekday" role="columnheader">{{ w }}</span>
+              }
+            </div>
+            @for (week of month.weeks; track $index) {
+              <div class="dp-row" role="row">
+                @for (day of week; track day.date.getTime()) {
+                  <button
+                    type="button"
+                    role="gridcell"
+                    class="day focus-ring"
+                    [class.other-month]="day.otherMonth"
+                    [class.selected]="isSelected(day.date)"
+                    [class.today]="isToday(day.date)"
+                    [class.in-range]="isInRange(day.date)"
+                    [class.range-start]="isStart(day.date)"
+                    [class.range-end]="isEnd(day.date)"
+                    [attr.aria-selected]="isSelected(day.date) || isStart(day.date) || isEnd(day.date)"
+                    [attr.aria-disabled]="isDisabled(day.date) || null"
+                    [tabindex]="isFocused(day.date) ? 0 : -1"
+                    [disabled]="isDisabled(day.date)"
+                    (mouseenter)="onDayHover(day.date)"
+                    (mouseleave)="onDayHover(null)"
+                    (click)="selectDate(day.date)"
+                  >
+                    {{ day.date.getDate() }}
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</ng-template>

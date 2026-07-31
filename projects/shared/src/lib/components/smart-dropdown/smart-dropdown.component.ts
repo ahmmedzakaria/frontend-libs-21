@@ -1,197 +1,233 @@
-import {
-    Component, ElementRef, EventEmitter, forwardRef, HostListener,
-    Input, OnInit, Output, ViewChild
-} from '@angular/core';
-import {
-    ControlValueAccessor, NG_VALIDATORS, NG_VALUE_ACCESSOR, ValidationErrors, Validator
-} from '@angular/forms';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { debounceTime, of, Subject, switchMap, tap } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
+import { ChangeDetectionStrategy, Component, computed, effect, input, signal } from '@angular/core';
+import { NG_VALIDATORS, NG_VALUE_ACCESSOR, ValidationErrors, Validator } from '@angular/forms';
+import { OverlayModule } from '@angular/cdk/overlay';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Observable, Subject, catchError, debounceTime, distinctUntilChanged, of, switchMap } from 'rxjs';
+import { IconComponent } from '@nexacore/layout';
+import { BaseValueAccessor } from '../base/base-value-accessor';
+import { DropdownOption } from '../dropdown/dropdown.component';
 
-type DropdownMode = 'static' | 'api-simple' | 'api-scroll';
+export type SmartDropdownMode = 'static' | 'api-simple' | 'api-scroll';
+
+export interface SmartDropdownPage<T> {
+    items: DropdownOption<T>[];
+    hasMore: boolean;
+}
+
+/**
+ * Fetches one page of options for a query. The caller owns the actual HTTP
+ * call (via ApiService, not a raw HttpClient here) and maps its own response
+ * shape into DropdownOption<T> — this component has no domain knowledge of
+ * what it's listing. `page` is always 0 for 'api-simple' mode; 'api-scroll'
+ * calls again with an incrementing page as the user scrolls near the bottom.
+ */
+export type SmartDropdownLoader<T> = (query: string, page: number) => Observable<SmartDropdownPage<T>>;
+
+let nextUid = 0;
 
 @Component({
     selector: 'app-smart-dropdown',
     standalone: true,
-    imports: [CommonModule, FormsModule],
-    templateUrl: './smart-dropdown.component.html',
-    styleUrls: ['./smart-dropdown.component.scss'],
+    imports: [OverlayModule, IconComponent],
     providers: [
-        {
-            provide: NG_VALUE_ACCESSOR,
-            useExisting: forwardRef(() => SmartDropdownComponent),
-            multi: true
-        },
-        {
-            provide: NG_VALIDATORS,
-            useExisting: forwardRef(() => SmartDropdownComponent),
-            multi: true
-        }
-    ]
+        { provide: NG_VALUE_ACCESSOR, useExisting: SmartDropdownComponent, multi: true },
+        { provide: NG_VALIDATORS, useExisting: SmartDropdownComponent, multi: true }
+    ],
+    templateUrl: './smart-dropdown.component.html',
+    styleUrl: './smart-dropdown.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SmartDropdownComponent implements OnInit, ControlValueAccessor, Validator {
-    /** Inputs */
-    @Input() label = '';
-    @Input() placeholder = 'Select...';
-    @Input() required = false;
-    @Input() mode: DropdownMode = 'static'; // 'static' | 'api-simple' | 'api-scroll'
-    @Input() options: { label: string; value: any }[] = [];
-    @Input() apiUrl?: string; // for api modes
-    @Input() pageSize = 10;
-    @Input() reselectable = true;
-    @Input() searchable = true;
-    @Input() disabled = false;
-    @Input() helpText?: string;
-    @Input() requestBody: any = {};
-    /** Outputs */
-    @Output() changed = new EventEmitter<any>();
+export class SmartDropdownComponent<T = string> extends BaseValueAccessor<T> implements Validator {
+    readonly mode = input<SmartDropdownMode>('static');
+    /** Options for 'static' mode. */
+    readonly options = input<DropdownOption<T>[]>([]);
+    /** Fetch function for 'api-simple'/'api-scroll' modes. */
+    readonly loadOptions = input<SmartDropdownLoader<T> | null>(null);
+    readonly label = input('');
+    readonly placeholder = input('Select...');
+    readonly searchable = input(true);
+    readonly searchPlaceholder = input('Search...');
+    readonly debounceMs = input(400);
+    readonly required = input(false);
+    readonly errorMessage = input<string | null>(null);
+    readonly compareWith = input<(a: T, b: T) => boolean>((a, b) => a === b);
+    /** Known label for the current value at load time (async modes; e.g. editing a record) — avoids a fetch just to display it. */
+    readonly initialOption = input<DropdownOption<T> | null>(null);
 
-    /** View refs */
-    @ViewChild('searchInput') searchInput!: ElementRef<HTMLInputElement>;
-    @ViewChild('scrollContainer') scrollContainer!: ElementRef<HTMLDivElement>;
+    protected readonly uid = `sd-${nextUid++}`;
+    protected readonly open = signal(false);
+    protected readonly query = signal('');
+    protected readonly loading = signal(false);
+    protected readonly loadingMore = signal(false);
+    protected readonly activeIndex = signal(-1);
+    protected readonly selectedLabel = signal<string | null>(null);
 
-    /** State */
-    showDropdown = false;
-    filteredOptions: { label: string; value: any }[] = [];
-    value: any = null;
-    selectedLabel = '';
-    searchTerm = '';
-    errorMessage: string | null = null;
-    focusedIndex = 0;
-    /** Pagination (for api-scroll mode) */
-    page = 0;
-    totalPages = 1;
-    loading = false;
+    private readonly page = signal(0);
+    private readonly hasMore = signal(false);
+    private readonly fetchedOptions = signal<DropdownOption<T>[]>([]);
+    private readonly search$ = new Subject<string>();
 
-    private searchSubject = new Subject<string>();
-    private onChange = (val: any) => {};
-    private onTouched = () => {};
-
-    constructor(private http: HttpClient, private el: ElementRef) {}
-
-    ngOnInit(): void {
-        if (this.mode === 'static') {
-            this.filteredOptions = [...this.options];
-        } else {
-            this.setupSearch();
-            this.loadData();
+    protected readonly displayOptions = computed<DropdownOption<T>[]>(() => {
+        if (this.mode() === 'static') {
+            const q = this.query().trim().toLowerCase();
+            const opts = this.options();
+            return this.searchable() && q ? opts.filter((o) => o.label.toLowerCase().includes(q)) : opts;
         }
-    }
+        return this.fetchedOptions();
+    });
 
-    /** --- Reactive search handling --- */
-    private setupSearch() {
-        this.searchSubject.pipe(
-            debounceTime(400),
-            tap(() => {
-                this.page = 0;
-                this.filteredOptions = [];
-            }),
-            switchMap(term => this.fetchData(term))
-        ).subscribe();
-    }
-
-    private fetchData(term = '') {
-        if (!this.apiUrl) return of([]);
-        this.loading = true;
-        const body = { searchText: term, page: this.page, size: this.pageSize, source: 'NEXACORE_APP' };
-        return this.http.post<any>(this.apiUrl, body).pipe(
-            tap(res => {
-                const content = res?.content ?? res ?? [];
-                this.filteredOptions = [...this.filteredOptions, ...content.map((c: any) => ({
-                    label: c.detailLocation ?? c.label ?? 'Unnamed',
-                    value: c.id
-                }))];
-                this.totalPages = res?.totalPages ?? 1;
-                this.loading = false;
-            })
-        );
-    }
-
-    loadData() {
-        if (this.mode === 'api-simple') {
-            this.fetchData().subscribe();
-        } else if (this.mode === 'api-scroll') {
-            this.fetchData().subscribe();
+    protected readonly selectedOption = computed<DropdownOption<T> | null>(() => {
+        const value = this.value();
+        if (value === null) {
+            return null;
         }
-    }
+        const cmp = this.compareWith();
+        const pool = this.mode() === 'static' ? this.options() : this.displayOptions();
+        return pool.find((o) => cmp(o.value, value)) ?? null;
+    });
 
-    /** --- User actions --- */
-    toggleDropdown(): void {
-        if (this.showDropdown) {
-            this.showDropdown = false;
-        } else {
-            this.showDropdown = true;
-            if (this.mode !== 'static') this.page = 0;
-            setTimeout(() => this.searchInput?.nativeElement.focus(), 100);
-        }
-    }
+    protected readonly triggerLabel = computed(() =>
+        this.mode() === 'static' ? (this.selectedOption()?.label ?? null) : this.selectedLabel()
+    );
 
-    filter(element: EventTarget | null): void {
-        const input = element as HTMLInputElement;
-        this.searchTerm = input?.value || '';
+    constructor() {
+        super();
 
-        if (this.mode === 'static') {
-            this.filteredOptions = this.options.filter(o =>
-                o.label.toLowerCase().includes(this.searchTerm.toLowerCase())
-            );
-        } else {
-            this.searchSubject.next(this.searchTerm);
-        }
-    }
+        effect(() => {
+            const init = this.initialOption();
+            const value = this.value();
+            if (init && value !== null && this.compareWith()(init.value, value)) {
+                this.selectedLabel.set(init.label);
+            }
+        });
 
-    selectOption(option: any): void {
-        if (!this.reselectable && this.value === option.value) return;
-        this.value = option.value;
-        this.selectedLabel = option.label;
-        this.onChange(this.value);
-        this.changed.emit(this.value);
-        this.showDropdown = false;
-    }
-
-    onScroll(): void {
-        if (this.mode !== 'api-scroll' || this.loading || this.page >= this.totalPages - 1) return;
-        const el = this.scrollContainer.nativeElement;
-        const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 100;
-        if (nearBottom) {
-            this.page++;
-            this.fetchData(this.searchTerm).subscribe();
-        }
-    }
-
-    /** --- Form control methods --- */
-    writeValue(value: any): void {
-        this.value = value;
-        this.updateSelectedLabel();
-    }
-
-    registerOnChange(fn: any): void {
-        this.onChange = fn;
-    }
-
-    registerOnTouched(fn: any): void {
-        this.onTouched = fn;
+        this.search$
+            .pipe(
+                debounceTime(this.debounceMs()),
+                distinctUntilChanged(),
+                switchMap((q) => {
+                    this.page.set(0);
+                    this.loading.set(true);
+                    return this.fetchPage(q, 0);
+                }),
+                takeUntilDestroyed()
+            )
+            .subscribe((result) => {
+                this.fetchedOptions.set(result.items);
+                this.hasMore.set(result.hasMore);
+                this.loading.set(false);
+                this.activeIndex.set(result.items.length ? 0 : -1);
+            });
     }
 
     validate(): ValidationErrors | null {
-        if (this.required && !this.value) {
-            this.errorMessage = `${this.label || 'This field'} is required`;
-            return { required: true };
-        }
-        this.errorMessage = null;
-        return null;
+        return this.required() && this.value() === null ? { required: true } : null;
     }
 
-    private updateSelectedLabel(): void {
-        const selected = this.options.find(o => o.value === this.value);
-        this.selectedLabel = selected ? selected.label : '';
+    toggle(): void {
+        if (this.disabled()) {
+            return;
+        }
+        this.open.update((v) => !v);
+        if (this.open()) {
+            this.query.set('');
+            if (this.mode() !== 'static') {
+                this.search$.next('');
+            }
+        } else {
+            this.markTouched();
+        }
     }
 
-    @HostListener('document:click', ['$event'])
-    onOutsideClick(event: MouseEvent): void {
-        if (!this.el.nativeElement.contains(event.target)) {
-            this.showDropdown = false;
+    close(): void {
+        if (!this.open()) {
+            return;
         }
+        this.open.set(false);
+        this.markTouched();
+    }
+
+    onQueryInput(event: Event): void {
+        const q = (event.target as HTMLInputElement).value;
+        this.query.set(q);
+        if (this.mode() !== 'static') {
+            this.search$.next(q);
+        }
+    }
+
+    selectOption(option: DropdownOption<T>): void {
+        if (option.disabled) {
+            return;
+        }
+        this.emitValue(option.value);
+        this.selectedLabel.set(option.label);
+        this.close();
+    }
+
+    onPanelScroll(event: Event): void {
+        if (this.mode() !== 'api-scroll' || this.loading() || this.loadingMore() || !this.hasMore()) {
+            return;
+        }
+        const el = event.target as HTMLElement;
+        const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 80;
+        if (!nearBottom) {
+            return;
+        }
+
+        const nextPage = this.page() + 1;
+        this.loadingMore.set(true);
+        this.fetchPage(this.query(), nextPage).subscribe((result) => {
+            this.page.set(nextPage);
+            this.fetchedOptions.update((current) => [...current, ...result.items]);
+            this.hasMore.set(result.hasMore);
+            this.loadingMore.set(false);
+        });
+    }
+
+    onListKeydown(event: KeyboardEvent): void {
+        const opts = this.displayOptions();
+        switch (event.key) {
+            case 'ArrowDown':
+                event.preventDefault();
+                this.moveActive(1);
+                break;
+            case 'ArrowUp':
+                event.preventDefault();
+                this.moveActive(-1);
+                break;
+            case 'Enter':
+                event.preventDefault();
+                if (this.activeIndex() >= 0 && opts[this.activeIndex()]) {
+                    this.selectOption(opts[this.activeIndex()]);
+                }
+                break;
+            case 'Escape':
+                event.preventDefault();
+                this.close();
+                break;
+        }
+    }
+
+    private fetchPage(query: string, page: number): Observable<SmartDropdownPage<T>> {
+        const loader = this.loadOptions();
+        if (!loader) {
+            return of({ items: [], hasMore: false });
+        }
+        return loader(query, page).pipe(catchError(() => of({ items: [], hasMore: false })));
+    }
+
+    private moveActive(delta: number): void {
+        const opts = this.displayOptions();
+        if (!opts.length) {
+            return;
+        }
+        let next = this.activeIndex();
+        for (let i = 0; i < opts.length; i++) {
+            next = (next + delta + opts.length) % opts.length;
+            if (!opts[next].disabled) {
+                break;
+            }
+        }
+        this.activeIndex.set(next);
     }
 }

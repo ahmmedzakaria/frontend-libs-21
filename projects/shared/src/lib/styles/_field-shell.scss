@@ -1,0 +1,72 @@
+// Shared field styling for Tier 1 form controls. SCSS mixins (not a plain
+// partial) because component stylesheets are individually encapsulated by
+// Angular — each consumer @includes these into its own scoped rules rather
+// than sharing one global class, so there's no cross-component CSS leakage.
+//
+// Token values are plain runtime CSS custom properties defined in
+// @nexacore/layout's _tokens.scss and loaded once by the consuming app — no
+// SCSS-level import needed here, just the var() references.
+
+@mixin field-label {
+  font-size: var(--layout-font-size-sm);
+  font-weight: var(--layout-font-weight-semibold);
+  color: var(--text-muted);
+}
+
+@mixin control-frame {
+  display: flex;
+  align-items: center;
+  gap: var(--layout-space-2);
+  border-radius: var(--radius);
+  border: var(--layout-border-width) solid var(--border);
+  background: var(--paper);
+  transition: border-color var(--layout-transition-fast);
+
+  &:focus-within {
+    outline: var(--layout-border-width-strong) solid var(--focus);
+    outline-offset: var(--layout-focus-ring-offset-flush);
+  }
+  &.invalid {
+    border-color: var(--layout-error-color);
+  }
+  &.disabled {
+    opacity: var(--layout-disabled-opacity);
+  }
+}
+
+// Resets a native input/textarea sitting inside a .control-frame wrapper so
+// the wrapper owns the visual border/background instead of the input itself.
+@mixin control-reset {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  outline: none;
+  color: var(--text);
+  font-size: var(--layout-font-size-base);
+  font-family: inherit;
+
+  &::placeholder {
+    color: var(--text-muted);
+  }
+  &:disabled {
+    cursor: default;
+  }
+}
+
+@mixin field-error {
+  font-size: var(--layout-font-size-xs);
+  color: var(--layout-error-color);
+}
+
+// Rotation animation for a loading spinner icon — components including this
+// must define their own @keyframes since Angular's emulated encapsulation
+// scopes keyframe names per-component just like any other rule here.
+@mixin spin-animation {
+  animation: field-shell-spin 0.6s linear infinite;
+}
+@keyframes field-shell-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

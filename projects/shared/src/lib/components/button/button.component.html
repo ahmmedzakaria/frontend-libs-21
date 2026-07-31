@@ -1,11 +1,16 @@
 <button
-        [ngClass]="classes"
-        [disabled]="disabled || loading"
-        (click)="onClick()"
+  type="button"
+  [class]="classes()"
+  [class.loading]="loading()"
+  [disabled]="disabled() || loading()"
+  (click)="onClick()"
 >
-    <span *ngIf="loading" class="spinner-border spinner-border-sm me-2" role="status"></span>
-
-    <i *ngIf="!loading && icon" [class]="icon" class="me-2"></i>
-
-    <span>{{ label }}</span>
+  @if (loading()) {
+    <app-icon name="spinner" [size]="14" class="spin" />
+  } @else if (icon()) {
+    <app-icon [name]="icon()!" [size]="14" />
+  }
+  @if (label()) {
+    <span class="lbl">{{ label() }}</span>
+  }
 </button>

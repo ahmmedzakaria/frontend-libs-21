@@ -1,0 +1,109 @@
+:host {
+  display: inline-block;
+}
+
+.thumb-btn {
+  padding: 0;
+  border: none;
+  background: var(--layout-transparent-color);
+  cursor: pointer;
+  line-height: 0;
+  border-radius: var(--layout-radius-sm);
+
+  &.circle {
+    border-radius: 50%;
+  }
+  &:disabled {
+    opacity: var(--layout-disabled-opacity);
+    cursor: default;
+  }
+}
+
+.thumb {
+  display: block;
+  object-fit: cover;
+  border-radius: var(--layout-radius-sm);
+  border: var(--layout-border-width) solid var(--border);
+  box-shadow: var(--shadow);
+
+  &.circle {
+    border-radius: 50%;
+  }
+}
+
+.hint {
+  font-size: var(--layout-font-size-xs);
+  color: var(--text-muted);
+  margin-top: var(--layout-space-15);
+}
+
+// One-off, high z-index for a full-screen lightbox — not reused elsewhere yet.
+.viewer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--layout-space-4);
+  background: color-mix(in srgb, black 65%, transparent);
+}
+
+.viewer-card {
+  background: var(--card);
+  border-radius: var(--layout-radius-lg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  max-width: 57.5rem;
+  width: 100%;
+}
+
+.viewer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--layout-space-3);
+  padding: var(--layout-space-3) var(--layout-space-4);
+  border-bottom: var(--layout-border-width) solid var(--border);
+}
+.viewer-title {
+  font-weight: var(--layout-font-weight-semibold);
+  color: var(--text);
+}
+.viewer-subtitle {
+  font-size: var(--layout-font-size-sm);
+  color: var(--text-muted);
+}
+
+.close-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--layout-space-1);
+  height: var(--layout-control-4xl);
+  padding: 0 var(--layout-space-25);
+  border: var(--layout-border-width) solid var(--border);
+  border-radius: var(--layout-radius-sm);
+  background: var(--paper);
+  color: var(--text);
+  font-size: var(--layout-font-size-sm);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--surface-2);
+  }
+}
+
+.viewer-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--layout-space-4);
+  background: var(--paper);
+}
+.viewer-image {
+  max-height: 78vh;
+  width: auto;
+  max-width: 100%;
+  border-radius: var(--layout-radius-lg);
+  box-shadow: var(--shadow);
+}

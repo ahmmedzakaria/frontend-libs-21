@@ -1,37 +1,28 @@
-<div class="radio-group" [ngClass]="layout" role="radiogroup" [attr.aria-label]="label">
-    <label *ngIf="label" class="form-label fw-semibold mb-2">
-        {{ label }}
-        <span *ngIf="required" class="text-danger">*</span>
-    </label>
-
-    <div
-            class="radio-options"
-            [ngStyle]="layout === 'grid' ? { 'grid-template-columns': 'repeat(' + columns + ', 1fr)' } : {}"
-    >
-        <div
-                *ngFor="let opt of options; trackBy: trackByValue"
-                class="radio-option"
-                [class.selected]="value === opt.value"
-                [class.disabled]="disabled"
-                tabindex="0"
-                (click)="onSelect(opt.value)"
-                role="radio"
-                [attr.aria-checked]="value === opt.value"
-                [attr.aria-disabled]="disabled"
-        >
-            <div class="icon" *ngIf="opt.icon">
-                <i [class]="opt.icon"></i>
-            </div>
-
-            <div class="info">
-                <span class="label">{{ opt.label }}</span>
-                <small class="desc" *ngIf="opt.description">{{ opt.description }}</small>
-            </div>
-
-            <div class="marker"></div>
-        </div>
-    </div>
-
-    <small *ngIf="helpText && !errorMessage" class="text-muted">{{ helpText }}</small>
-    <div *ngIf="errorMessage" class="invalid-feedback d-block mt-1">{{ errorMessage }}</div>
+<div class="field">
+  @if (label()) {
+    <span class="lbl">{{ label() }}</span>
+  }
+  <div class="options" [class.row]="layout() === 'row'" role="radiogroup" [attr.aria-label]="label() || null">
+    @for (option of options(); track option.label; let i = $index) {
+      <label
+        class="option"
+        [class.disabled]="option.disabled || disabled()"
+        [for]="optionId(i)"
+      >
+        <span class="dot-wrap">
+          <input
+            [id]="optionId(i)"
+            type="radio"
+            class="native-input"
+            [name]="groupName"
+            [checked]="isSelected(option)"
+            [disabled]="option.disabled || disabled()"
+            (change)="select(option)"
+          />
+          <span class="dot" [class.checked]="isSelected(option)"></span>
+        </span>
+        <span class="opt-label">{{ option.label }}</span>
+      </label>
+    }
+  </div>
 </div>

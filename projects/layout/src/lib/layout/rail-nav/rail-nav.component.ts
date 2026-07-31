@@ -7,6 +7,7 @@ import { IconComponent } from '../../shared/icon/icon.component';
 import { NavCategory, NavItem, NavModule } from '../../core/models/nav-module.model';
 import { RailStateService } from '../../core/services/rail-state.service';
 import { RailFlyoutService } from '../../core/services/rail-flyout.service';
+import { NavModeService } from '../../core/services/nav-mode.service';
 import { SidebarMenuItem, SidebarMenuService } from '../../sidebar-menu.service';
 
 const CATEGORY_ICON: Record<NavCategory, string> = {
@@ -26,6 +27,7 @@ const CATEGORY_ICON: Record<NavCategory, string> = {
 export class RailNavComponent {
   protected readonly rail = inject(RailStateService);
   protected readonly flyout = inject(RailFlyoutService);
+  protected readonly navMode = inject(NavModeService);
   protected readonly modules = signal<NavModule[]>([]);
   protected readonly loading = signal(true);
   protected readonly categoryIcon = CATEGORY_ICON;
@@ -39,10 +41,12 @@ export class RailNavComponent {
     if (cachedMenus.length) {
       this.modules.set(this.toNavModules(cachedMenus));
     }
+    this.navMode.setEnabledModules(this.sidebarMenu.getCachedEnabledModules());
 
-    const subscription = this.sidebarMenu.loadSidebarMenu().subscribe({
-      next: (menus) => {
-        this.modules.set(this.toNavModules(menus || []));
+    const subscription = this.sidebarMenu.loadApplicationContext().subscribe({
+      next: (context) => {
+        this.modules.set(this.toNavModules(context?.menus || []));
+        this.navMode.setEnabledModules(context?.enabledModules || []);
         this.loading.set(false);
       },
       error: () => {
@@ -63,13 +67,36 @@ export class RailNavComponent {
     return this.categories(moduleId).length > 0;
   }
 
+  /** All items across a module's categories, flattened — the "no module groups" view for small apps. */
+  protected flatItems(moduleId: string): NavItem[] {
+    const mod = this.modules().find((m) => m.id === moduleId);
+    if (!mod) {
+      return [];
+    }
+    return Object.values(mod.categories).flatMap((items) => items ?? []);
+  }
+
+  /** Mode-aware: whether clicking this module should expand it, vs. navigate directly. */
+  protected hasExpandableChildren(moduleId: string): boolean {
+    if (this.navMode.grouped()) {
+      return this.hasCategories(moduleId);
+    }
+    return this.flatItems(moduleId).length > 1;
+  }
+
   protected toggleModule(mod: NavModule): void {
-    if (this.hasCategories(mod.id)) {
+    if (this.hasExpandableChildren(mod.id)) {
       this.rail.toggleModule(mod.id);
       return;
     }
 
-    this.navigateTo(mod.path);
+    if (this.navMode.grouped()) {
+      this.navigateTo(mod.path);
+      return;
+    }
+
+    const items = this.flatItems(mod.id);
+    this.navigateTo(items[0]?.path ?? mod.path);
   }
 
   protected openCategory(moduleId: string, category: NavCategory, origin: CdkOverlayOrigin): void {
@@ -81,6 +108,13 @@ export class RailNavComponent {
   protected selectItem(path: string | undefined): void {
     this.navigateTo(path);
     this.flyout.close();
+  }
+
+  protected selectFlatItem(moduleId: string, path: string | undefined): void {
+    this.navigateTo(path);
+    if (this.rail.openModuleId() === moduleId) {
+      this.rail.toggleModule(moduleId);
+    }
   }
 
   private toNavModules(menus: SidebarMenuItem[]): NavModule[] {

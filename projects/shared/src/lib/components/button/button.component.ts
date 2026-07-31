@@ -1,61 +1,35 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { IconComponent } from '@nexacore/layout';
+
+export type ButtonVariant = 'primary' | 'ghost' | 'danger';
+export type ButtonSize = 'sm' | 'md' | 'lg';
 
 @Component({
     selector: 'app-button',
     standalone: true,
-    imports: [CommonModule],
+    imports: [IconComponent],
     templateUrl: './button.component.html',
-    styleUrls: ['./button.component.scss']
+    styleUrl: './button.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ButtonComponent {
-    /** Button text */
-    @Input() label: string = '';
+    readonly label = input('');
+    /** Icon registry key, e.g. 'plus', 'save' — see @nexacore/layout's ICONS map. */
+    readonly icon = input<string | null>(null);
+    readonly variant = input<ButtonVariant>('primary');
+    readonly size = input<ButtonSize>('md');
+    readonly disabled = input(false);
+    readonly loading = input(false);
 
-    /** Icon class e.g. 'fa-solid fa-plus' */
-    @Input() icon?: string;
+    readonly clicked = output<void>();
 
-    /** Bootstrap variant */
-    @Input() variant:
-        | 'primary'
-        | 'secondary'
-        | 'success'
-        | 'danger'
-        | 'warning'
-        | 'info'
-        | 'light'
-        | 'dark' = 'primary';
+    protected readonly classes = computed(
+        () => `btn btn-${this.variant()} btn-${this.size()}`
+    );
 
-    /** Size sm | md | lg */
-    @Input() size: 'sm' | 'md' | 'lg' = 'md';
-
-    /** Disabled state */
-    @Input() disabled = false;
-
-    /** Loading spinner */
-    @Input() loading = false;
-
-    /** Outline style */
-    @Input() outline = false;
-
-    /** Full width button */
-    @Input() block = false;
-
-    /** Rounded corners */
-    @Input() rounded = true;
-
-    /** Emits click event */
-    @Output() clicked = new EventEmitter<void>();
-
-    onClick(): void {
-        if (!this.disabled && !this.loading) this.clicked.emit();
-    }
-
-    get classes(): string {
-        const btnType = this.outline ? `btn-outline-${this.variant}` : `btn-${this.variant}`;
-        const sizeClass = this.size !== 'md' ? `btn-${this.size}` : '';
-        const blockClass = this.block ? 'w-100' : '';
-        const roundClass = this.rounded ? 'rounded-pill' : '';
-        return ['btn', btnType, sizeClass, blockClass, roundClass].join(' ').trim();
+    protected onClick(): void {
+        if (!this.disabled() && !this.loading()) {
+            this.clicked.emit();
+        }
     }
 }

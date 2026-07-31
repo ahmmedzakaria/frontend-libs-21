@@ -1,161 +1,158 @@
-import { CommonModule } from '@angular/common';
-import {
-    Component,
-    ElementRef,
-    EventEmitter,
-    forwardRef,
-    HostListener,
-    Input,
-    OnInit,
-    Output,
-    ViewChild
-} from '@angular/core';
-import {
-    ControlValueAccessor,
-    FormsModule,
-    NG_VALIDATORS,
-    NG_VALUE_ACCESSOR,
-    ReactiveFormsModule,
-    ValidationErrors,
-    Validator
-} from '@angular/forms';
+import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
+import { NG_VALUE_ACCESSOR } from '@angular/forms';
+import { OverlayModule } from '@angular/cdk/overlay';
+import { IconComponent } from '@nexacore/layout';
+import { BaseValueAccessor } from '../base/base-value-accessor';
 
+export interface DropdownOption<T> {
+    label: string;
+    value: T;
+    icon?: string;
+    disabled?: boolean;
+}
+
+let nextUid = 0;
+
+/**
+ * Single-select dropdown built on CDK Overlay with a connected (anchored)
+ * position, following the ARIA combobox pattern: role="combobox" on the
+ * trigger, role="listbox"/"option" in the panel, arrow-key navigation, and
+ * aria-activedescendant instead of moving DOM focus into the panel.
+ *
+ * Static options, no built-in search — see SmartDropdown for the
+ * search/async variant built on the same overlay-positioning approach.
+ */
 @Component({
     selector: 'app-dropdown',
     standalone: true,
-    imports: [CommonModule, FormsModule, ReactiveFormsModule],
+    imports: [OverlayModule, IconComponent],
+    providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: DropdownComponent, multi: true }],
     templateUrl: './dropdown.component.html',
-    styleUrls: ['./dropdown.component.scss'],
-    providers: [
-        {
-            provide: NG_VALUE_ACCESSOR,
-            useExisting: forwardRef(() => DropdownComponent),
-            multi: true
-        },
-        {
-            provide: NG_VALIDATORS,
-            useExisting: forwardRef(() => DropdownComponent),
-            multi: true
-        }
-    ]
+    styleUrl: './dropdown.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DropdownComponent implements ControlValueAccessor, Validator, OnInit {
-    @Input() label = '';
-    @Input() placeholder = 'Select an option';
-    @Input() options: { label: string; value: any; icon?: string }[] = [];
-    @Input() required = false;
-    @Input() searchable = true;
-    @Input() disabled = false;
-    @Input() helpText?: string;
+export class DropdownComponent<T = string> extends BaseValueAccessor<T> {
+    readonly options = input.required<DropdownOption<T>[]>();
+    readonly label = input('');
+    readonly placeholder = input('Select an option');
+    readonly required = input(false);
+    readonly errorMessage = input<string | null>(null);
+    readonly compareWith = input<(a: T, b: T) => boolean>((a, b) => a === b);
 
-    @Output() changed = new EventEmitter<any>();
+    protected readonly uid = `dd-${nextUid++}`;
+    protected readonly open = signal(false);
+    protected readonly activeIndex = signal(-1);
 
-    @ViewChild('searchInput') searchInput!: ElementRef<HTMLInputElement>;
-
-    showDropdown = false;
-    filteredOptions: { label: string; value: any; icon?: string }[] = [];
-    value: any = null;
-    searchTerm = '';
-    errorMessage: string | null = null;
-    focusedIndex = 0;
-    selectedLabel = '';
-
-    private onChange = (val: any) => {};
-    private onTouched = () => {};
-
-    constructor(private el: ElementRef) {}
-
-    ngOnInit(): void {
-        this.filteredOptions = [...this.options];
-    }
-
-    writeValue(value: any): void {
-        this.value = value;
-        this.updateSelectedLabel();
-    }
-
-    registerOnChange(fn: any): void {
-        this.onChange = fn;
-    }
-
-    registerOnTouched(fn: any): void {
-        this.onTouched = fn;
-    }
-
-    setDisabledState(isDisabled: boolean): void {
-        this.disabled = isDisabled;
-    }
-
-    validate(): ValidationErrors | null {
-        if (this.required && !this.value) {
-            this.errorMessage = `${this.label || 'This field'} is required`;
-            return { required: true };
+    protected readonly selectedOption = computed<DropdownOption<T> | null>(() => {
+        const value = this.value();
+        if (value === null) {
+            return null;
         }
-        this.errorMessage = null;
-        return null;
-    }
+        const cmp = this.compareWith();
+        return this.options().find((o) => cmp(o.value, value)) ?? null;
+    });
 
-    toggleDropdown(): void {
-        if (this.disabled) return;
-        this.showDropdown = !this.showDropdown;
-        if (this.showDropdown && this.searchable) {
-            setTimeout(() => this.searchInput?.nativeElement.focus(), 100);
+    toggle(): void {
+        if (this.disabled()) {
+            return;
+        }
+        this.open.update((v) => !v);
+        if (this.open()) {
+            this.syncActiveIndexToSelection();
+        } else {
+            this.markTouched();
         }
     }
 
-    selectOption(option: any): void {
-        this.value = option.value;
-        this.updateSelectedLabel();
-        this.onChange(this.value);
-        this.changed.emit(option.value);
-        this.onTouched();
-        this.showDropdown = false;
-    }
-
-    filterOptions(element: any): void {
-        this.searchTerm = (element as HTMLInputElement).value;
-        this.filteredOptions = this.options.filter(opt =>
-            opt.label.toLowerCase().includes(this.searchTerm.toLowerCase())
-        );
-    }
-
-    private updateSelectedLabel(): void {
-        const selected = this.options.find(o => o.value === this.value);
-        this.selectedLabel = selected ? selected.label : '';
-    }
-
-    @HostListener('document:click', ['$event'])
-    handleOutsideClick(event: MouseEvent): void {
-        const target = event.target as HTMLElement;
-        if (!this.el.nativeElement.contains(target)) {
-            this.showDropdown = false;
+    close(): void {
+        if (!this.open()) {
+            return;
         }
+        this.open.set(false);
+        this.markTouched();
     }
 
-    @HostListener('keydown', ['$event'])
-    handleKeyboard(event: KeyboardEvent): void {
-        if (!this.showDropdown) return;
-        const maxIndex = this.filteredOptions.length - 1;
+    selectOption(option: DropdownOption<T>): void {
+        if (option.disabled) {
+            return;
+        }
+        this.emitValue(option.value);
+        this.close();
+    }
+
+    optionId(index: number): string {
+        return `${this.uid}-opt-${index}`;
+    }
+
+    onTriggerKeydown(event: KeyboardEvent): void {
+        const opts = this.options();
 
         switch (event.key) {
             case 'ArrowDown':
-                this.focusedIndex = this.focusedIndex < maxIndex ? this.focusedIndex + 1 : 0;
                 event.preventDefault();
+                this.open() ? this.moveActive(1) : this.openAndSync();
                 break;
             case 'ArrowUp':
-                this.focusedIndex = this.focusedIndex > 0 ? this.focusedIndex - 1 : maxIndex;
                 event.preventDefault();
+                this.open() ? this.moveActive(-1) : this.openAndSync();
+                break;
+            case 'Home':
+                if (this.open()) {
+                    event.preventDefault();
+                    this.activeIndex.set(0);
+                }
+                break;
+            case 'End':
+                if (this.open()) {
+                    event.preventDefault();
+                    this.activeIndex.set(opts.length - 1);
+                }
                 break;
             case 'Enter':
-                const selected = this.filteredOptions[this.focusedIndex];
-                if (selected) this.selectOption(selected);
+            case ' ':
                 event.preventDefault();
+                if (this.open() && this.activeIndex() >= 0) {
+                    this.selectOption(opts[this.activeIndex()]);
+                } else {
+                    this.toggle();
+                }
                 break;
             case 'Escape':
-                this.showDropdown = false;
+                if (this.open()) {
+                    event.preventDefault();
+                    this.close();
+                }
+                break;
+            case 'Tab':
+                this.close();
                 break;
         }
     }
 
-    protected readonly HTMLInputElement = HTMLInputElement;
+    private openAndSync(): void {
+        this.open.set(true);
+        this.syncActiveIndexToSelection();
+    }
+
+    private moveActive(delta: number): void {
+        const opts = this.options();
+        if (!opts.length) {
+            return;
+        }
+        let next = this.activeIndex();
+        for (let i = 0; i < opts.length; i++) {
+            next = (next + delta + opts.length) % opts.length;
+            if (!opts[next].disabled) {
+                break;
+            }
+        }
+        this.activeIndex.set(next);
+    }
+
+    private syncActiveIndexToSelection(): void {
+        const cmp = this.compareWith();
+        const value = this.value();
+        const idx = value === null ? -1 : this.options().findIndex((o) => cmp(o.value, value));
+        this.activeIndex.set(idx >= 0 ? idx : 0);
+    }
 }

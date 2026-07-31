@@ -7,10 +7,9 @@ This guide applies to shared Angular source libraries under
 
 ## Project Shape
 
-- Angular 21-compatible source libraries consumed directly by sibling Angular
-  applications through TypeScript path aliases.
-- No root build package is required yet; consuming apps provide Angular
-  dependencies.
+- Angular 21-compatible source libraries, built with `ng-packagr` via the root
+  `package.json` and consumed by sibling Angular applications as `@nexacore/*`
+  packages (`file:` dependencies resolving to each library's `dist/`).
 - Published-style entry points are exposed through each library's
   `src/public-api.ts`.
 - Current libraries:
@@ -18,9 +17,9 @@ This guide applies to shared Angular source libraries under
     abstraction
   - `auth`: login component, auth service, route guards, SSO callback routes
   - `layout`: Angular 21 shell, header, rail navigation, status bar, theme and
-    direction state
-  - `shared`: reusable form controls, image preview, validation UI, legacy i18n
-    helpers during migration
+    direction state, SVG icon registry
+  - `shared`: reusable form controls (Tier 1 CVA components), image preview,
+    validation UI
   - `assets-common`: app-neutral static assets
 
 ## Repository Boundary
@@ -44,12 +43,33 @@ This guide applies to shared Angular source libraries under
 ## Layout Rules
 
 - New shell behavior belongs in `layout`.
-- Follow the reference implementation in `frontendApplications/layout`:
-  standalone components, Signals for local UI state, CDK overlays, custom SCSS
-  tokens, custom SVG icons, Transloco, and RTL direction support.
+- Standalone components, Signals for local UI state, CDK overlays, custom SCSS
+  tokens, the custom SVG icon registry (`layout`'s `icon-registry.ts`),
+  Transloco, and RTL direction support.
 - Keep business routes and feature pages in consuming apps.
-- Do not add Angular Material, Bootstrap, or Font Awesome to the shared layout
-  shell.
+- Do not add Angular Material, Bootstrap, or Font Awesome anywhere in
+  `frontend-libs-21` or its consuming apps — the icon registry and design
+  tokens fully replace them.
+
+## Component Conventions
+
+- All form controls in `shared` extend the abstract
+  `BaseValueAccessor<T>` (`shared/src/lib/components/base/base-value-accessor.ts`),
+  which implements `ControlValueAccessor` once so individual components don't
+  hand-roll it.
+- Use signal-based `input()`/`output()`/`computed()`/`effect()` — not decorator
+  `@Input()`/`@Output()` — and prefer `inject()` over constructor injection.
+- Style field-shaped components (label, container, error state) with the
+  shared `_field-shell.scss` mixin (`shared/src/lib/styles/_field-shell.scss`)
+  layered on top of `layout`'s `_tokens.scss` custom properties. No raw hex,
+  px, or `rgba()` literals in component styles.
+- Anchored floating UI (dropdowns, date pickers, smart dropdowns) uses CDK
+  `Overlay` + `a11y`, not hand-rolled `@HostListener('document:click')`
+  listeners. Centered, non-anchored overlays (lightboxes, modals) may use
+  plain `position: fixed` with a backdrop instead.
+- Render all icons through `<app-icon name="...">` backed by the shared icon
+  registry. Never use emoji or Font Awesome glyphs anywhere in this repo or
+  its consuming apps.
 
 ## API, Auth, And Security
 
@@ -64,9 +84,8 @@ This guide applies to shared Angular source libraries under
 
 ## Internationalization
 
-- Use Transloco for the Angular 21 layout shell.
-- Existing custom `I18nService` and `TranslatePipe` may remain temporarily for
-  legacy shared components until those components are migrated.
+- Transloco is the sole i18n system across `frontend-libs-21` and its
+  consuming apps. Do not reintroduce a parallel `I18nService`/`TranslatePipe`.
 - Keep translation keys stable and coordinate key changes with consuming apps.
 
 ## Public API Rules

@@ -2,24 +2,74 @@ import { Component, OnInit } from '@angular/core';
 import { NgIf } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../auth.service';
-import { LayoutService } from '@nexacore/layout';
+import { LayoutService, IconComponent } from '@nexacore/layout';
 
 @Component({
     selector: 'app-sso-callback',
     standalone: true,
-    imports: [NgIf],
+    imports: [NgIf, IconComponent],
     template: `
-        <div class="d-flex justify-content-center align-items-center vh-80 bg-light">
-            <div class="card shadow-sm p-4 text-center" style="min-width: 350px; max-width: 420px;">
-                <i class="fa-solid fa-user-shield fa-3x text-primary mb-3"></i>
-                <h2 class="fw-bold">Signing in</h2>
-                <p class="text-muted mb-0" *ngIf="!errorMessage">Completing SSO login...</p>
-                <div *ngIf="errorMessage" class="alert alert-danger py-2 small mt-3">
+        <div class="sso-page">
+            <div class="sso-card">
+                <app-icon name="user-shield" [size]="40" class="sso-icon" />
+                <h2 class="sso-title">Signing in</h2>
+                <p class="sso-subtitle" *ngIf="!errorMessage">Completing SSO login...</p>
+                <div *ngIf="errorMessage" class="alert alert-danger">
                     {{ errorMessage }}
                 </div>
             </div>
         </div>
-    `
+    `,
+    styles: [`
+        :host {
+            display: block;
+        }
+        .sso-page {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            background: var(--paper);
+            padding: var(--layout-space-4);
+        }
+        .sso-card {
+            width: 100%;
+            max-width: 26.25rem;
+            text-align: center;
+            background: var(--card);
+            border: var(--layout-border-width) solid var(--border);
+            border-radius: var(--layout-radius-lg);
+            box-shadow: var(--shadow);
+            padding: var(--layout-space-4);
+        }
+        .sso-icon {
+            color: var(--accent);
+            margin-bottom: var(--layout-space-3);
+        }
+        .sso-title {
+            font-size: var(--layout-font-size-xl);
+            font-weight: var(--layout-font-weight-bold);
+            color: var(--text);
+            margin: 0 0 var(--layout-space-1);
+        }
+        .sso-subtitle {
+            font-size: var(--layout-font-size-base);
+            color: var(--text-muted);
+            margin: 0;
+        }
+        .alert {
+            margin-top: var(--layout-space-3);
+            padding: var(--layout-space-2) var(--layout-space-25);
+            border-radius: var(--layout-radius-sm);
+            font-size: var(--layout-font-size-sm);
+            border: var(--layout-border-width) solid transparent;
+        }
+        .alert-danger {
+            background: var(--layout-error-soft);
+            border-color: var(--layout-error-border);
+            color: var(--layout-error-color);
+        }
+    `]
 })
 export class SsoCallbackComponent implements OnInit {
     errorMessage = '';

@@ -1,67 +1,93 @@
-<div class="dropdown-wrapper" [class.disabled]="disabled">
-    <label *ngIf="label" class="form-label fw-semibold mb-2">
-        {{ label }}
-        <span *ngIf="required" class="text-danger">*</span>
-    </label>
+<div class="dropdown-field">
+  @if (label()) {
+    <span class="lbl">{{ label() }}</span>
+  }
 
-    <div
-            class="dropdown-control"
-            [class.open]="showDropdown"
-            (click)="toggleDropdown()"
-            tabindex="0"
-    >
-    <span class="selected-text" *ngIf="selectedLabel; else placeholderBlock">
-      {{ selectedLabel }}
+  <button
+    type="button"
+    class="trigger focus-ring"
+    cdkOverlayOrigin
+    #origin="cdkOverlayOrigin"
+    role="combobox"
+    [attr.aria-expanded]="open()"
+    aria-haspopup="listbox"
+    [attr.aria-controls]="uid + '-listbox'"
+    [disabled]="disabled()"
+    [class.invalid]="!!errorMessage()"
+    (click)="toggle()"
+  >
+    <span class="value" [class.placeholder]="!triggerLabel()">
+      {{ triggerLabel() ?? placeholder() }}
     </span>
-        <ng-template #placeholderBlock>
-            <span class="placeholder text-muted">{{ placeholder }}</span>
-        </ng-template>
+    <app-icon name="chevron-down" [size]="13" class="chev" [class.open]="open()" />
+  </button>
 
-        <i
-                class="fa-solid"
-                [ngClass]="{
-        'fa-chevron-up': showDropdown,
-        'fa-chevron-down': !showDropdown
-      }"
-        ></i>
-    </div>
-
-    <div class="dropdown-menu shadow-sm" *ngIf="showDropdown">
-        <div class="search-box" *ngIf="searchable">
-            <input
-                #searchInput
-                type="text"
-                class="form-control form-control-sm"
-                placeholder="Search..."
-                (input)="filter($event.target)"
-            />
-        </div>
-
-        <div
-                class="options-list"
-                #scrollContainer
-                (scroll)="onScroll()"
-        >
-            <div
-                    *ngFor="let opt of filteredOptions; let i = index"
-                    class="dropdown-item"
-                    [class.focused]="i === focusedIndex"
-                    [class.selected]="opt.value === value"
-                    (click)="selectOption(opt)"
-            >
-                {{ opt.label }}
-            </div>
-            <div *ngIf="loading" class="text-center py-2">
-                <i class="fa fa-spinner fa-spin"></i> Loading...
-            </div>
-            <div *ngIf="filteredOptions.length === 0" class="no-results text-muted">
-                No results found
-            </div>
-        </div>
-    </div>
-
-    <small *ngIf="helpText && !errorMessage" class="text-muted">{{ helpText }}</small>
-    <div *ngIf="errorMessage" class="invalid-feedback d-block mt-1">
-        {{ errorMessage }}
-    </div>
+  @if (errorMessage()) {
+    <span class="error">{{ errorMessage() }}</span>
+  }
 </div>
+
+<ng-template
+  cdkConnectedOverlay
+  [cdkConnectedOverlayOrigin]="origin"
+  [cdkConnectedOverlayOpen]="open()"
+  [cdkConnectedOverlayHasBackdrop]="true"
+  cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
+  [cdkConnectedOverlayPositions]="[
+    { originX: 'start', originY: 'bottom', overlayX: 'start', overlayY: 'top', offsetY: 4 },
+    { originX: 'start', originY: 'top', overlayX: 'start', overlayY: 'bottom', offsetY: -4 }
+  ]"
+  (backdropClick)="close()"
+  (detach)="close()"
+>
+  <div class="dropdown-panel">
+    @if (searchable()) {
+      <div class="search-row">
+        <input
+          type="text"
+          [placeholder]="searchPlaceholder()"
+          [value]="query()"
+          (input)="onQueryInput($event)"
+          (keydown)="onListKeydown($event)"
+        />
+        @if (loading()) {
+          <app-icon name="spinner" [size]="14" class="spin" />
+        }
+      </div>
+    }
+
+    <div class="options" role="listbox" [id]="uid + '-listbox'" (scroll)="onPanelScroll($event)">
+      @if (!loading() && !displayOptions().length) {
+        <div class="empty">No results</div>
+      }
+      @for (option of displayOptions(); track option.label + $index; let i = $index) {
+        <div
+          class="option"
+          role="option"
+          [attr.aria-selected]="selectedOption() === option"
+          [attr.aria-disabled]="option.disabled || null"
+          [class.active]="activeIndex() === i"
+          [class.selected]="selectedOption() === option"
+          [class.disabled]="option.disabled"
+          (mouseenter)="activeIndex.set(i)"
+          (click)="selectOption(option)"
+        >
+          <span class="opt-content">
+            @if (option.icon) {
+              <app-icon [name]="option.icon" [size]="14" />
+            }
+            <span>{{ option.label }}</span>
+          </span>
+          @if (selectedOption() === option) {
+            <app-icon name="check" [size]="14" />
+          }
+        </div>
+      }
+      @if (loadingMore()) {
+        <div class="loading-more">
+          <app-icon name="spinner" [size]="14" class="spin" /> Loading…
+        </div>
+      }
+    </div>
+  </div>
+</ng-template>

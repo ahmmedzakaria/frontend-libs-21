@@ -1,44 +1,41 @@
-<div
-        class="card-selector"
-        [ngClass]="{ responsive: responsive }"
-        [style.gridTemplateColumns]="'repeat(' + columns + ', minmax(200px, 1fr))'"
-        role="radiogroup"
-        [attr.aria-label]="label"
->
-    <label *ngIf="label" class="form-label fw-semibold mb-2">{{ label }}</label>
+<div class="field">
+  @if (label()) {
+    <span class="lbl">{{ label() }}</span>
+  }
 
-    <div
-            *ngFor="let opt of options; let i = index; trackBy: trackByValue"
-            class="option-card"
-            [class.selected]="value === opt.value"
-            [class.focused]="i === focusedIndex"
-            [class.disabled]="opt.disabled"
-            tabindex="0"
-            (click)="onSelect(opt.value)"
-            role="radio"
-            [attr.aria-checked]="value === opt.value"
-            [attr.aria-disabled]="opt.disabled"
-            [@selectAnim]
-    >
-        <div class="card-icon" *ngIf="opt.icon">
-            <i [class]="opt.icon"></i>
-        </div>
-
+  <div
+    class="grid"
+    [class.responsive]="responsive()"
+    [style.gridTemplateColumns]="'repeat(' + columns() + ', minmax(11.25rem, 1fr))'"
+    role="radiogroup"
+    [attr.aria-label]="label() || null"
+    (keydown)="onKeydown($event)"
+  >
+    @for (option of options(); track option.label; let i = $index) {
+      <div
+        class="card"
+        [class.selected]="isSelected(option)"
+        [class.focused]="i === focusedIndex()"
+        [class.disabled]="option.disabled || disabled()"
+        tabindex="0"
+        role="radio"
+        [attr.aria-checked]="isSelected(option)"
+        [attr.aria-disabled]="option.disabled || disabled() || null"
+        (click)="select(option)"
+      >
+        @if (option.icon) {
+          <app-icon [name]="option.icon" [size]="22" class="card-icon" />
+        }
         <div class="card-content">
-            <div class="card-label">{{ opt.label }}</div>
-            <small class="card-description text-muted" *ngIf="opt.description">
-                {{ opt.description }}
-            </small>
+          <div class="card-label">{{ option.label }}</div>
+          @if (option.description) {
+            <small class="card-description">{{ option.description }}</small>
+          }
         </div>
-
-        <span
-                class="badge bg-primary position-absolute top-0 end-0 m-2"
-                *ngIf="opt.badge"
-        >
-      {{ opt.badge }}
-    </span>
-    </div>
+        @if (option.badge) {
+          <span class="badge">{{ option.badge }}</span>
+        }
+      </div>
+    }
+  </div>
 </div>
-
-<small *ngIf="helpText && !errorMessage" class="text-muted">{{ helpText }}</small>
-<div *ngIf="errorMessage" class="invalid-feedback d-block mt-1">{{ errorMessage }}</div>

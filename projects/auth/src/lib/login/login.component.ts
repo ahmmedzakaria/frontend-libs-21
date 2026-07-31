@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import { Router } from '@angular/router';
 import {AuthService} from "../auth.service";
-import {LayoutService} from "@nexacore/layout";
+import {LayoutService, IconComponent} from "@nexacore/layout";
 import {NgIf} from "@angular/common";
 
 
@@ -12,7 +12,8 @@ import {NgIf} from "@angular/common";
     styleUrls: ['./login.component.scss'],
     imports: [
         ReactiveFormsModule,
-        NgIf
+        NgIf,
+        IconComponent
     ],
 
 })
@@ -65,7 +66,7 @@ export class LoginComponent implements OnInit {
         this.authService.login(username, password).subscribe({
             next: () => {
                 console.log('login success setting layout');
-                this.layoutService.setAuthenticatedLayout(); // ✅ switch layout
+                this.layoutService.setAuthenticatedLayout();
                 this.router.navigate(['']);
             },
             error: err => {

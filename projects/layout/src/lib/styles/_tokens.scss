@@ -153,6 +153,33 @@
   --layout-nav-item-color: var(--chrome-icon);
   --layout-nav-item-hover-bg: var(--chrome-hover-bg);
   --layout-nav-item-active-bg: var(--chrome-active-bg);
+
+  // focus ring — shared across all interactive/form controls
+  --layout-focus-ring-color: var(--focus);
+  --layout-focus-ring-width: 2px;
+  --layout-focus-ring-offset: 2px;
+  // Ring sits flush against the control's own border — text inputs/control-frame.
+  --layout-focus-ring-offset-flush: -1px;
+
+  // disabled state — shared across all form controls
+  --layout-disabled-opacity: 0.6;
+  --layout-disabled-bg: color-mix(in srgb, var(--layout-theme-text) 8%, var(--layout-theme-surface));
+  --layout-disabled-text: color-mix(in srgb, var(--layout-theme-text) 38%, var(--layout-theme-bg));
+  --layout-disabled-border: color-mix(in srgb, var(--layout-theme-text) 10%, var(--layout-theme-surface));
+
+  // error / validation — form control invalid state
+  --layout-error-color: var(--red);
+  --layout-error-soft: var(--red-soft);
+  --layout-error-border: color-mix(in srgb, var(--red) 45%, var(--layout-theme-surface));
+
+  // CDK Overlay panels — Dropdown, SmartDropdown, DatePicker's compact select-style panels
+  --layout-panel-max-height-sm: 280px;
+  --layout-rotate-open: 180deg;
+  --layout-panel-width-md: 260px;
+  // de-emphasized but still visible/interactive — DatePicker's other-month days
+  --layout-opacity-muted: 0.55;
+  // disabled *and* de-emphasized — DatePicker's disabled days
+  --layout-disabled-opacity-strong: 0.35;
 }
 
 body.dark {

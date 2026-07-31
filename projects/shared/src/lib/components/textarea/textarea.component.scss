@@ -1,48 +1,44 @@
-.textarea-wrapper {
-  width: 100%;
-  position: relative;
+@use '../../styles/field-shell' as shell;
 
-  .form-floating {
-    width: 100%;
+// How tall an empty textarea should look before the user types anything —
+// a deliberate one-off design choice, not a reusable size.
+$min-height: 60px;
 
-    textarea.form-control {
-      resize: none;
-      min-height: 3rem;
-      line-height: 1.5;
-      font-size: 0.95rem;
-      border-radius: 0.5rem;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+:host {
+  display: block;
+}
 
-      &:focus {
-        border-color: var(--bs-primary);
-        box-shadow: 0 0 0 0.15rem rgba(var(--bs-primary-rgb), 0.25);
-      }
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--layout-space-15);
+}
+.lbl {
+  @include shell.field-label;
+}
+.control-frame {
+  @include shell.control-frame;
+  padding: var(--layout-space-25) var(--layout-space-3);
+  align-items: stretch;
 
-      &.is-invalid {
-        border-color: var(--bs-danger);
-      }
-    }
-
-    label {
-      font-size: 0.9rem;
-      color: #6c757d;
-    }
-
-    .char-count {
-      position: absolute;
-      bottom: 6px;
-      right: 12px;
-      font-size: 0.75rem;
-      opacity: 0.75;
-    }
+  textarea {
+    @include shell.control-reset;
+    resize: vertical;
+    min-height: #{$min-height};
+    line-height: var(--layout-line-height-tight);
   }
-
-  small.text-muted {
-    display: block;
-    margin-top: 0.3rem;
-  }
-
-  .invalid-feedback {
-    font-size: 0.85rem;
-  }
+}
+.meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: var(--layout-space-35);
+}
+.error {
+  @include shell.field-error;
+}
+.counter {
+  font-size: var(--layout-font-size-xs);
+  color: var(--text-muted);
+  margin-inline-start: auto;
 }

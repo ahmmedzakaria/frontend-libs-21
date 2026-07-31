@@ -27,7 +27,7 @@
           (click)="toggleModule(mod)"
         >
           <span class="arrow">
-            @if (hasCategories(mod.id)) {
+            @if (hasExpandableChildren(mod.id)) {
               <app-icon name="chevron-right" [size]="10" />
             }
           </span>
@@ -36,19 +36,32 @@
         </button>
 
         @if (rail.openModuleId() === mod.id) {
-          @for (cat of categories(mod.id); track cat) {
-            <div
-              class="child-row"
-              cdkOverlayOrigin
-              #catOrigin="cdkOverlayOrigin"
-              tabindex="0"
-              (mouseenter)="openCategory(mod.id, cat, catOrigin)"
-              (click)="openCategory(mod.id, cat, catOrigin)"
-              (mouseleave)="flyout.scheduleClose()"
-            >
-              <app-icon [name]="categoryIcon[cat]" [size]="13" />
-              <span class="lbl">{{ cat }}</span>
-            </div>
+          @if (navMode.grouped()) {
+            @for (cat of categories(mod.id); track cat) {
+              <div
+                class="child-row"
+                cdkOverlayOrigin
+                #catOrigin="cdkOverlayOrigin"
+                tabindex="0"
+                (mouseenter)="openCategory(mod.id, cat, catOrigin)"
+                (click)="openCategory(mod.id, cat, catOrigin)"
+                (mouseleave)="flyout.scheduleClose()"
+              >
+                <app-icon [name]="categoryIcon[cat]" [size]="13" />
+                <span class="lbl">{{ cat }}</span>
+              </div>
+            }
+          } @else {
+            @for (item of flatItems(mod.id); track item.label + item.path) {
+              <button
+                type="button"
+                class="child-row focus-ring"
+                (click)="selectFlatItem(mod.id, item.path)"
+              >
+                <app-icon [name]="item.icon || 'help'" [size]="13" />
+                <span class="lbl">{{ item.label }}</span>
+              </button>
+            }
           }
         }
       </div>

@@ -114,6 +114,10 @@
 }
 
 .child-row {
+  width: var(--layout-full-size);
+  border: none;
+  background: var(--layout-transparent-color);
+  font-family: inherit;
   padding-block: var(--layout-space-2);
   padding-inline-start: var(--layout-control-2xl);
   font-size: var(--layout-font-size-md);

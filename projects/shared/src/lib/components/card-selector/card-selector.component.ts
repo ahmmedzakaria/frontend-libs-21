@@ -1,19 +1,11 @@
-import { CommonModule } from '@angular/common';
-import { Component, Input, forwardRef, HostListener } from '@angular/core';
-import {
-    ControlValueAccessor,
-    NG_VALUE_ACCESSOR,
-    NG_VALIDATORS,
-    Validator,
-    ValidationErrors,
-    FormsModule,
-    ReactiveFormsModule
-} from '@angular/forms';
-import { animate, style, transition, trigger } from '@angular/animations';
+import { ChangeDetectionStrategy, Component, input, signal } from '@angular/core';
+import { NG_VALUE_ACCESSOR } from '@angular/forms';
+import { IconComponent } from '@nexacore/layout';
+import { BaseValueAccessor } from '../base/base-value-accessor';
 
-export interface CardOption {
+export interface CardOption<T> {
     label: string;
-    value: any;
+    value: T;
     description?: string;
     icon?: string;
     badge?: string;
@@ -23,110 +15,68 @@ export interface CardOption {
 @Component({
     selector: 'app-card-selector',
     standalone: true,
-    imports: [CommonModule, FormsModule, ReactiveFormsModule],
+    imports: [IconComponent],
+    providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: CardSelectorComponent, multi: true }],
     templateUrl: './card-selector.component.html',
-    styleUrls: ['./card-selector.component.scss'],
-    animations: [
-        trigger('selectAnim', [
-            transition(':enter', [
-                style({ opacity: 0, transform: 'scale(0.95)' }),
-                animate('150ms ease-out', style({ opacity: 1, transform: 'scale(1)' }))
-            ])
-        ])
-    ],
-    providers: [
-        {
-            provide: NG_VALUE_ACCESSOR,
-            useExisting: forwardRef(() => CardSelectorComponent),
-            multi: true
-        },
-        {
-            provide: NG_VALIDATORS,
-            useExisting: forwardRef(() => CardSelectorComponent),
-            multi: true
-        }
-    ]
+    styleUrl: './card-selector.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class CardSelectorComponent implements ControlValueAccessor, Validator {
-    @Input() label = '';
-    @Input() options: CardOption[] = [];
-    @Input() required = false;
-    @Input() columns = 3;
-    @Input() helpText?: string;
-    @Input() responsive = true;
+export class CardSelectorComponent<T = string> extends BaseValueAccessor<T> {
+    readonly options = input.required<CardOption<T>[]>();
+    readonly label = input('');
+    readonly columns = input(3);
+    readonly responsive = input(true);
+    readonly compareWith = input<(a: T, b: T) => boolean>((a, b) => a === b);
 
-    value: any;
-    focusedIndex = 0;
-    disabled = false;
-    errorMessage: string | null = null;
+    protected readonly focusedIndex = signal(0);
 
-    private onChange = (val: any) => {};
-    private onTouched = () => {};
-
-    writeValue(value: any): void {
-        this.value = value;
+    isSelected(option: CardOption<T>): boolean {
+        const value = this.value();
+        return value !== null && this.compareWith()(option.value, value);
     }
 
-    registerOnChange(fn: any): void {
-        this.onChange = fn;
-    }
-
-    registerOnTouched(fn: any): void {
-        this.onTouched = fn;
-    }
-
-    setDisabledState(isDisabled: boolean): void {
-        this.disabled = isDisabled;
-    }
-
-    validate(): ValidationErrors | null {
-        if (this.required && !this.value) {
-            this.errorMessage = `${this.label || 'This field'} is required`;
-            return { required: true };
+    select(option: CardOption<T>): void {
+        if (option.disabled || this.disabled()) {
+            return;
         }
-        this.errorMessage = null;
-        return null;
+        this.emitValue(option.value);
+        this.markTouched();
     }
 
-    onSelect(value: any): void {
-        if (this.disabled) return;
-        this.value = value;
-        this.onChange(value);
-        this.onTouched();
-    }
+    onKeydown(event: KeyboardEvent): void {
+        const opts = this.options();
+        const len = opts.length;
+        if (!len) {
+            return;
+        }
+        const cols = this.columns();
 
-    trackByValue(_: number, item: CardOption) {
-        return item.value;
-    }
-
-    // --- Keyboard Navigation ---
-    @HostListener('keydown', ['$event'])
-    handleKeyboard(event: KeyboardEvent) {
-        const cols = this.columns;
-        const len = this.options.length;
         switch (event.key) {
             case 'ArrowRight':
-                this.focusedIndex = (this.focusedIndex + 1) % len;
+                this.focusedIndex.update((i) => (i + 1) % len);
                 event.preventDefault();
                 break;
             case 'ArrowLeft':
-                this.focusedIndex = (this.focusedIndex - 1 + len) % len;
+                this.focusedIndex.update((i) => (i - 1 + len) % len);
                 event.preventDefault();
                 break;
             case 'ArrowDown':
-                this.focusedIndex = (this.focusedIndex + cols) % len;
+                this.focusedIndex.update((i) => (i + cols) % len);
                 event.preventDefault();
                 break;
             case 'ArrowUp':
-                this.focusedIndex = (this.focusedIndex - cols + len) % len;
+                this.focusedIndex.update((i) => (i - cols + len) % len);
                 event.preventDefault();
                 break;
             case 'Enter':
-            case ' ':
-                const focused = this.options[this.focusedIndex];
-                if (focused && !focused.disabled) this.onSelect(focused.value);
+            case ' ': {
+                const focused = opts[this.focusedIndex()];
+                if (focused) {
+                    this.select(focused);
+                }
                 event.preventDefault();
                 break;
+            }
         }
     }
 }

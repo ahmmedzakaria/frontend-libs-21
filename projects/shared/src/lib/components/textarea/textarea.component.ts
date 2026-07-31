@@ -1,102 +1,60 @@
-import { CommonModule } from '@angular/common';
-import { Component, Input, forwardRef, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
-import {
-    ControlValueAccessor,
-    NG_VALUE_ACCESSOR,
-    NG_VALIDATORS,
-    Validator,
-    ValidationErrors,
-    FormsModule,
-    ReactiveFormsModule
-} from '@angular/forms';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import { AbstractControl, NG_VALIDATORS, NG_VALUE_ACCESSOR, ValidationErrors, Validator, Validators } from '@angular/forms';
+import { BaseValueAccessor } from '../base/base-value-accessor';
+import { ValidationMessageService } from '../../services/validation-message.service';
+
+let nextUid = 0;
 
 @Component({
     selector: 'app-textarea',
     standalone: true,
-    imports: [CommonModule, FormsModule, ReactiveFormsModule],
-    templateUrl: './textarea.component.html',
-    styleUrls: ['./textarea.component.scss'],
     providers: [
-        {
-            provide: NG_VALUE_ACCESSOR,
-            useExisting: forwardRef(() => TextareaComponent),
-            multi: true
-        },
-        {
-            provide: NG_VALIDATORS,
-            useExisting: forwardRef(() => TextareaComponent),
-            multi: true
-        }
-    ]
+        { provide: NG_VALUE_ACCESSOR, useExisting: TextareaComponent, multi: true },
+        { provide: NG_VALIDATORS, useExisting: TextareaComponent, multi: true }
+    ],
+    templateUrl: './textarea.component.html',
+    styleUrl: './textarea.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TextareaComponent implements ControlValueAccessor, Validator, AfterViewInit {
-    @Input() label = '';
-    @Input() placeholder = '';
-    @Input() rows = 3;
-    @Input() maxLength?: number;
-    @Input() helpText?: string;
-    @Input() required = false;
-    @Input() autoResize = true;
-    @Input() disabled = false;
+export class TextareaComponent extends BaseValueAccessor<string> implements Validator {
+    private readonly messages = inject(ValidationMessageService);
 
-    @ViewChild('textareaEl') textareaEl!: ElementRef<HTMLTextAreaElement>;
+    readonly label = input('');
+    readonly placeholder = input('');
+    readonly rows = input(4);
+    readonly maxLength = input<number | null>(null);
+    readonly required = input(false);
 
-    value = '';
-    touched = false;
-    errorMessage: string | null = null;
+    protected readonly uid = `ta-${nextUid++}`;
+    protected readonly touched = signal(false);
+    protected readonly charCount = computed(() => (this.value() ?? '').length);
 
-    private onChange = (val: any) => {};
-    private onTouched = () => {};
+    private readonly validationErrors = computed<ValidationErrors | null>(() => {
+        const control = { value: this.value() ?? '' } as AbstractControl;
+        const errors: ValidationErrors = {};
+        if (this.required()) Object.assign(errors, Validators.required(control) ?? {});
+        if (this.maxLength() != null) Object.assign(errors, Validators.maxLength(this.maxLength()!)(control) ?? {});
+        return Object.keys(errors).length ? errors : null;
+    });
 
-    ngAfterViewInit(): void {
-        if (this.autoResize) {
-            this.adjustHeight();
+    protected readonly errorMessage = computed(() => {
+        if (!this.touched()) {
+            return null;
         }
-    }
-
-    writeValue(value: string): void {
-        this.value = value || '';
-        if (this.autoResize) this.adjustHeight();
-    }
-
-    registerOnChange(fn: any): void {
-        this.onChange = fn;
-    }
-
-    registerOnTouched(fn: any): void {
-        this.onTouched = fn;
-    }
-
-    setDisabledState(isDisabled: boolean): void {
-        this.disabled = isDisabled;
-    }
+        const msgs = this.messages.buildMessages(this.validationErrors());
+        return msgs.length ? msgs.join(' ') : null;
+    });
 
     validate(): ValidationErrors | null {
-        if (this.required && !this.value.trim()) {
-            this.errorMessage = `${this.label || 'This field'} is required`;
-            return { required: true };
-        }
-        this.errorMessage = null;
-        return null;
+        return this.validationErrors();
     }
 
     onInput(event: Event): void {
-        const input = event.target as HTMLTextAreaElement;
-        this.value = input.value;
-        this.onChange(this.value);
-        if (this.autoResize) this.adjustHeight();
+        this.emitValue((event.target as HTMLTextAreaElement).value);
     }
 
     onBlur(): void {
-        this.touched = true;
-        this.onTouched();
-    }
-
-    private adjustHeight(): void {
-        const el = this.textareaEl?.nativeElement;
-        if (el) {
-            el.style.height = 'auto';
-            el.style.height = `${el.scrollHeight}px`;
-        }
+        this.touched.set(true);
+        this.markTouched();
     }
 }

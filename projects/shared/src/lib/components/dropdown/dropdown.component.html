@@ -1,62 +1,76 @@
-<div class="dropdown-wrapper" [class.disabled]="disabled">
-    <label *ngIf="label" class="form-label fw-semibold mb-2">
-        {{ label }}
-        <span *ngIf="required" class="text-danger">*</span>
-    </label>
+<div class="dropdown-field">
+  @if (label()) {
+    <span class="lbl">{{ label() }}</span>
+  }
 
-    <div
-            class="dropdown-control"
-            [class.open]="showDropdown"
-            (click)="toggleDropdown()"
-            tabindex="0"
-    >
-    <span class="selected-text" *ngIf="selectedLabel; else placeholderBlock">
-      {{ selectedLabel }}
+  <button
+    type="button"
+    class="trigger focus-ring"
+    cdkOverlayOrigin
+    #origin="cdkOverlayOrigin"
+    role="combobox"
+    [attr.aria-expanded]="open()"
+    aria-haspopup="listbox"
+    [attr.aria-controls]="uid + '-listbox'"
+    [attr.aria-activedescendant]="open() && activeIndex() >= 0 ? optionId(activeIndex()) : null"
+    [disabled]="disabled()"
+    [class.invalid]="!!errorMessage()"
+    (click)="toggle()"
+    (keydown)="onTriggerKeydown($event)"
+  >
+    <span class="value" [class.placeholder]="!selectedOption()">
+      @if (selectedOption()?.icon) {
+        <app-icon [name]="selectedOption()!.icon!" [size]="14" />
+      }
+      {{ selectedOption()?.label ?? placeholder() }}
     </span>
-        <ng-template #placeholderBlock>
-            <span class="placeholder text-muted">{{ placeholder }}</span>
-        </ng-template>
+    <app-icon name="chevron-down" [size]="13" class="chev" [class.open]="open()" />
+  </button>
 
-        <i
-                class="fa-solid"
-                [ngClass]="{
-        'fa-chevron-up': showDropdown,
-        'fa-chevron-down': !showDropdown
-      }"
-        ></i>
-    </div>
-
-    <div class="dropdown-menu shadow-sm" *ngIf="showDropdown">
-        <div class="search-box" *ngIf="searchable">
-            <input
-                #searchInput
-                type="text"
-                class="form-control form-control-sm"
-                placeholder="Search..."
-                (input)="filterOptions($event.target)"
-            />
-        </div>
-
-        <div class="options-list">
-            <div
-                    *ngFor="let opt of filteredOptions; let i = index"
-                    class="dropdown-item"
-                    [class.focused]="i === focusedIndex"
-                    [class.selected]="opt.value === value"
-                    (click)="selectOption(opt)"
-            >
-                <i *ngIf="opt.icon" [class]="opt.icon + ' me-2'"></i>
-                {{ opt.label }}
-            </div>
-
-            <div *ngIf="filteredOptions.length === 0" class="no-results text-muted">
-                No results found
-            </div>
-        </div>
-    </div>
-
-    <small *ngIf="helpText && !errorMessage" class="text-muted">{{ helpText }}</small>
-    <div *ngIf="errorMessage" class="invalid-feedback d-block mt-1">
-        {{ errorMessage }}
-    </div>
+  @if (errorMessage()) {
+    <span class="error">{{ errorMessage() }}</span>
+  }
 </div>
+
+<ng-template
+  cdkConnectedOverlay
+  [cdkConnectedOverlayOrigin]="origin"
+  [cdkConnectedOverlayOpen]="open()"
+  [cdkConnectedOverlayHasBackdrop]="true"
+  cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
+  [cdkConnectedOverlayPositions]="[
+    { originX: 'start', originY: 'bottom', overlayX: 'start', overlayY: 'top', offsetY: 4 },
+    { originX: 'start', originY: 'top', overlayX: 'start', overlayY: 'bottom', offsetY: -4 }
+  ]"
+  (backdropClick)="close()"
+  (detach)="close()"
+>
+  <div class="dropdown-panel" role="listbox" [id]="uid + '-listbox'">
+    @for (option of options(); track option.label; let i = $index) {
+      <div
+        class="option"
+        role="option"
+        [id]="optionId(i)"
+        [attr.aria-selected]="selectedOption() === option"
+        [attr.aria-disabled]="option.disabled || null"
+        [class.active]="activeIndex() === i"
+        [class.selected]="selectedOption() === option"
+        [class.disabled]="option.disabled"
+        (mouseenter)="activeIndex.set(i)"
+        (click)="selectOption(option)"
+      >
+        <span class="opt-content">
+          @if (option.icon) {
+            <app-icon [name]="option.icon" [size]="14" />
+          }
+          <span>{{ option.label }}</span>
+        </span>
+        @if (selectedOption() === option) {
+          <app-icon name="check" [size]="14" />
+        }
+      </div>
+    } @empty {
+      <div class="option disabled">No options</div>
+    }
+  </div>
+</ng-template>

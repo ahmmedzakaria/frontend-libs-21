@@ -2,6 +2,7 @@
   "name": "@nexacore/shared",
   "version": "0.1.0",
   "peerDependencies": {
+    "@nexacore/layout": "file:../layout",
     "@angular/animations": "^21.0.0",
     "@angular/common": "^21.0.0",
     "@angular/core": "^21.0.0",

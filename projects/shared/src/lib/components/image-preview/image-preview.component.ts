@@ -1,48 +1,63 @@
-import { CommonModule } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, input, signal } from '@angular/core';
+import { IconComponent } from '@nexacore/layout';
+
+export type ImagePreviewShape = 'circle' | 'square';
 
 @Component({
     selector: 'app-image-preview',
     standalone: true,
-    imports: [CommonModule],
+    imports: [IconComponent],
     templateUrl: './image-preview.component.html',
+    styleUrl: './image-preview.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ImagePreviewComponent {
-    @Input() src = '';
-    @Input() fallbackSrc = 'assets/default-avatar.svg';
-    @Input() alt = 'Preview image';
-    @Input() title = 'Image Preview';
-    @Input() subtitle = '';
-    @Input() hint = 'Click image to view full size';
-    @Input() thumbnailClass = '';
-    @Input() imageClass = '';
-    @Input() width: number | null = null;
-    @Input() height: number | null = null;
-    @Input() previewOnClick = true;
-    @Input() disabled = false;
+    readonly src = input('');
+    readonly fallbackSrc = input('assets/default-avatar.svg');
+    readonly alt = input('Preview image');
+    readonly title = input('Image Preview');
+    readonly subtitle = input('');
+    readonly hint = input('Click image to view full size');
+    readonly shape = input<ImagePreviewShape>('square');
+    readonly width = input<number | null>(null);
+    readonly height = input<number | null>(null);
+    readonly previewOnClick = input(true);
+    readonly disabled = input(false);
 
-    currentSrc = this.fallbackSrc;
-    isViewerOpen = false;
+    protected readonly imgErrored = signal(false);
+    protected readonly viewerOpen = signal(false);
 
-    ngOnChanges(): void {
-        this.currentSrc = this.src || this.fallbackSrc;
+    protected readonly currentSrc = computed(() =>
+        this.imgErrored() || !this.src() ? this.fallbackSrc() : this.src()
+    );
+
+    constructor() {
+        // A new `src` (e.g. navigating to a different record) deserves a fresh
+        // attempt at loading, not the previous image's stale error state.
+        effect(() => {
+            this.src();
+            this.imgErrored.set(false);
+        });
     }
 
-    onImageError(event?: Event): void {
-        this.currentSrc = this.fallbackSrc;
-        if (event) {
-            (event.target as HTMLImageElement).src = this.fallbackSrc;
-        }
+    onImageError(): void {
+        this.imgErrored.set(true);
     }
 
     openViewer(): void {
-        if (!this.previewOnClick || this.disabled || this.currentSrc === this.fallbackSrc) {
+        if (!this.previewOnClick() || this.disabled() || this.currentSrc() === this.fallbackSrc()) {
             return;
         }
-        this.isViewerOpen = true;
+        this.viewerOpen.set(true);
     }
 
     closeViewer(): void {
-        this.isViewerOpen = false;
+        this.viewerOpen.set(false);
+    }
+
+    onViewerKeydown(event: KeyboardEvent): void {
+        if (event.key === 'Escape') {
+            this.closeViewer();
+        }
     }
 }

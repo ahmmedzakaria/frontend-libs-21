@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "peerDependencies": {
     "@nexacore/api-common": "file:../api-common",
-    "@nexacore/shared": "file:../shared",
     "@angular/animations": "^21.0.0",
     "@angular/cdk": "^21.0.0",
     "@angular/common": "^21.0.0",

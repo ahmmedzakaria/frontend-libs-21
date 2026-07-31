@@ -1,153 +1,246 @@
-import { CommonModule } from '@angular/common';
-import { Component, ElementRef, EventEmitter, HostListener, Input, OnInit, Output } from '@angular/core';
-import { ControlValueAccessor, FormControl, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
+import { NG_VALUE_ACCESSOR } from '@angular/forms';
+import { OverlayModule } from '@angular/cdk/overlay';
+import { IconComponent } from '@nexacore/layout';
+import { BaseValueAccessor } from '../base/base-value-accessor';
+import {
+    addDays,
+    addMonths,
+    buildMonthGrid,
+    formatDate,
+    isAfter,
+    isBefore,
+    isSameDay,
+    isWithinRange,
+    parseIsoDate,
+    toIsoDate,
+    WEEKDAY_LABELS
+} from '../../date-utils';
 
-export interface DateRange {
+export interface DateRangeValue {
     start: string | null;
     end: string | null;
 }
 
+/** Single-date mode emits a plain 'YYYY-MM-DD' string; range mode emits { start, end } of the same. */
+export type DatePickerValue = string | DateRangeValue;
+
+const EMPTY_RANGE: DateRangeValue = { start: null, end: null };
+
+let nextUid = 0;
+
 @Component({
     selector: 'app-date-picker',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule],
+    imports: [OverlayModule, IconComponent],
+    providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: DatePickerComponent, multi: true }],
     templateUrl: './date-picker.component.html',
-    styleUrls: ['./date-picker.component.scss'],
-    providers: [
-        {
-            provide: NG_VALUE_ACCESSOR,
-            useExisting: DatePickerComponent,
-            multi: true
-        }
-    ]
+    styleUrl: './date-picker.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DatePickerComponent implements ControlValueAccessor, OnInit {
-    @Input() label = 'Select Date';
-    @Input() rangeMode = false;
-    @Input() monthsToShow = 2;
-    @Input() disablePast = false;
-    @Input() disableFuture = false;
-    @Input() showIcon = true;
+export class DatePickerComponent extends BaseValueAccessor<DatePickerValue> {
+    readonly label = input('');
+    readonly placeholder = input('Select date...');
+    readonly rangeMode = input(false);
+    readonly monthsToShow = input(1);
+    readonly disablePast = input(false);
+    readonly disableFuture = input(false);
+    readonly errorMessage = input<string | null>(null);
 
-    @Output() dateChange = new EventEmitter<string | DateRange | null>();
+    protected readonly uid = `dp-${nextUid++}`;
+    protected readonly weekdayLabels = WEEKDAY_LABELS;
+    protected readonly open = signal(false);
+    protected readonly viewMonth = signal(startOfCurrentMonth());
+    protected readonly focusedDate = signal<Date>(new Date());
+    protected readonly hoverDate = signal<Date | null>(null);
 
-    control = new FormControl<string | null>(null);
-    range: DateRange = { start: null, end: null };
-    hoverDate: string | null = null;
+    protected readonly months = computed(() => {
+        const base = this.viewMonth();
+        return Array.from({ length: this.monthsToShow() }, (_, i) => {
+            const monthRef = addMonths(base, i);
+            return {
+                label: new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(monthRef),
+                weeks: buildMonthGrid(monthRef)
+            };
+        });
+    });
 
-    baseMonth = new Date();
-    monthMatrix: { label: string; days: Date[] }[] = [];
-    isOpen = false;
+    protected readonly range = computed<DateRangeValue>(() => {
+        const v = this.value();
+        return this.rangeMode() && v && typeof v === 'object' ? (v as DateRangeValue) : EMPTY_RANGE;
+    });
 
-    onChange = (_: any) => {};
-    onTouched = () => {};
+    protected readonly singleDate = computed<Date | null>(() => {
+        const v = this.value();
+        return !this.rangeMode() && typeof v === 'string' ? parseIsoDate(v) : null;
+    });
 
-    constructor(private eRef: ElementRef) {}
-
-    ngOnInit(): void {
-        this.generateMonths();
-    }
-
-    private generateMonths() {
-        this.monthMatrix = [];
-        for (let i = 0; i < this.monthsToShow; i++) {
-            const monthDate = new Date(this.baseMonth.getFullYear(), this.baseMonth.getMonth() + i);
-            const days = this.generateDays(monthDate);
-            this.monthMatrix.push({
-                label: monthDate.toLocaleString('default', { month: 'long', year: 'numeric' }),
-                days
-            });
+    protected readonly displayValue = computed(() => {
+        if (!this.rangeMode()) {
+            return formatDate(this.singleDate());
         }
-    }
-
-    private generateDays(base: Date): Date[] {
-        const start = new Date(base.getFullYear(), base.getMonth(), 1);
-        const end = new Date(base.getFullYear(), base.getMonth() + 1, 0);
-        const days: Date[] = [];
-        for (let i = 1; i <= end.getDate(); i++) {
-            days.push(new Date(base.getFullYear(), base.getMonth(), i));
+        const r = this.range();
+        if (!r.start) {
+            return '';
         }
-        return days;
-    }
+        return r.end
+            ? `${formatDate(parseIsoDate(r.start))} - ${formatDate(parseIsoDate(r.end))}`
+            : `${formatDate(parseIsoDate(r.start))} - ...`;
+    });
 
-    toggleCalendar() {
-        this.isOpen = !this.isOpen;
-    }
-
-    nextMonth() {
-        this.baseMonth = new Date(this.baseMonth.getFullYear(), this.baseMonth.getMonth() + 1);
-        this.generateMonths();
-    }
-
-    prevMonth() {
-        this.baseMonth = new Date(this.baseMonth.getFullYear(), this.baseMonth.getMonth() - 1);
-        this.generateMonths();
-    }
-
-    selectDate(date: Date) {
-        const iso = date.toISOString().split('T')[0];
-
-        if (!this.rangeMode) {
-            this.control.setValue(iso);
-            this.onChange(iso);
-            this.dateChange.emit(iso);
-            this.isOpen = false;
+    toggle(): void {
+        if (this.disabled()) {
+            return;
+        }
+        this.open.update((v) => !v);
+        if (this.open()) {
+            const ref = this.rangeMode() ? (parseIsoDate(this.range().start) ?? new Date()) : (this.singleDate() ?? new Date());
+            this.viewMonth.set(startOfCurrentMonth(ref));
+            this.focusedDate.set(ref);
         } else {
-            if (!this.range.start || (this.range.start && this.range.end)) {
-                this.range = { start: iso, end: null };
-            } else if (!this.range.end) {
-                if (new Date(iso) < new Date(this.range.start)) {
-                    this.range = { start: iso, end: this.range.start };
-                } else {
-                    this.range.end = iso;
-                }
-                this.onChange(this.range);
-                this.dateChange.emit(this.range);
-                this.isOpen = false;
-            }
+            this.markTouched();
         }
     }
 
-    onHover(date: Date | null) {
-        this.hoverDate = date ? date.toISOString().split('T')[0] : null;
+    close(): void {
+        if (!this.open()) {
+            return;
+        }
+        this.open.set(false);
+        this.markTouched();
+    }
+
+    prevMonth(): void {
+        this.viewMonth.update((m) => addMonths(m, -1));
+    }
+
+    nextMonth(): void {
+        this.viewMonth.update((m) => addMonths(m, 1));
+    }
+
+    isDisabled(date: Date): boolean {
+        const today = stripTime(new Date());
+        if (this.disablePast() && date < today) {
+            return true;
+        }
+        if (this.disableFuture() && date > today) {
+            return true;
+        }
+        return false;
     }
 
     isSelected(date: Date): boolean {
-        return !this.rangeMode && this.control.value === date.toISOString().split('T')[0];
+        return !this.rangeMode() && isSameDay(date, this.singleDate());
     }
 
-    isInRange(date: Date): boolean {
-        if (!this.range.start || (!this.range.end && !this.hoverDate)) return false;
+    isFocused(date: Date): boolean {
+        return isSameDay(date, this.focusedDate());
+    }
 
-        const d = date.toISOString().split('T')[0];
-        const start = this.range.start;
-        const end = this.range.end ?? this.hoverDate;
-        return d >= start! && d <= end!;
+    isToday(date: Date): boolean {
+        return isSameDay(date, new Date());
     }
 
     isStart(date: Date): boolean {
-        return this.range.start === date.toISOString().split('T')[0];
+        return this.rangeMode() && isSameDay(date, parseIsoDate(this.range().start));
     }
 
     isEnd(date: Date): boolean {
-        return this.range.end === date.toISOString().split('T')[0];
+        return this.rangeMode() && isSameDay(date, parseIsoDate(this.range().end));
     }
 
-    @HostListener('document:click', ['$event'])
-    handleOutsideClick(e: Event) {
-        if (!this.eRef.nativeElement.contains(e.target)) this.isOpen = false;
+    isInRange(date: Date): boolean {
+        if (!this.rangeMode()) {
+            return false;
+        }
+        const r = this.range();
+        const start = parseIsoDate(r.start);
+        const end = parseIsoDate(r.end);
+        if (start && end) {
+            return isWithinRange(date, start, end);
+        }
+        // Preview the range while the user is choosing the end date.
+        if (start && !end && this.hoverDate()) {
+            const hover = this.hoverDate()!;
+            return isAfter(hover, start) ? isWithinRange(date, start, hover) : isWithinRange(date, hover, start);
+        }
+        return false;
     }
 
-    writeValue(value: any): void {
-        if (this.rangeMode && value && typeof value === 'object') this.range = value;
-        else this.control.setValue(value);
+    onDayHover(date: Date | null): void {
+        this.hoverDate.set(date);
     }
 
-    registerOnChange(fn: any): void {
-        this.onChange = fn;
+    selectDate(date: Date): void {
+        if (this.isDisabled(date)) {
+            return;
+        }
+        const iso = toIsoDate(date);
+
+        if (!this.rangeMode()) {
+            this.emitValue(iso);
+            this.close();
+            return;
+        }
+
+        const current = this.range();
+        const currentStart = parseIsoDate(current.start);
+
+        if (!current.start || (current.start && current.end)) {
+            this.emitValue({ start: iso, end: null });
+            return;
+        }
+
+        if (isBefore(date, currentStart!)) {
+            this.emitValue({ start: iso, end: current.start });
+        } else {
+            this.emitValue({ start: current.start, end: iso });
+        }
+        this.close();
     }
 
-    registerOnTouched(fn: any): void {
-        this.onTouched = fn;
+    onGridKeydown(event: KeyboardEvent): void {
+        const deltas: Record<string, number> = {
+            ArrowRight: 1,
+            ArrowLeft: -1,
+            ArrowDown: 7,
+            ArrowUp: -7
+        };
+        if (event.key in deltas) {
+            event.preventDefault();
+            const next = addDays(this.focusedDate(), deltas[event.key]);
+            this.focusedDate.set(next);
+            if (next.getMonth() !== this.viewMonth().getMonth() || next.getFullYear() !== this.viewMonth().getFullYear()) {
+                this.viewMonth.set(startOfCurrentMonth(next));
+            }
+            return;
+        }
+        switch (event.key) {
+            case 'Enter':
+            case ' ':
+                event.preventDefault();
+                this.selectDate(this.focusedDate());
+                break;
+            case 'Escape':
+                event.preventDefault();
+                this.close();
+                break;
+            case 'PageUp':
+                event.preventDefault();
+                this.prevMonth();
+                break;
+            case 'PageDown':
+                event.preventDefault();
+                this.nextMonth();
+                break;
+        }
     }
+}
+
+function startOfCurrentMonth(ref: Date = new Date()): Date {
+    return new Date(ref.getFullYear(), ref.getMonth(), 1);
+}
+
+function stripTime(d: Date): Date {
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }

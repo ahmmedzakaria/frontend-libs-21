@@ -1,79 +1,27 @@
-import { CommonModule } from '@angular/common';
-import { Component, Input, forwardRef } from '@angular/core';
-import {
-    ControlValueAccessor,
-    NG_VALUE_ACCESSOR,
-    NG_VALIDATORS,
-    Validator,
-    ValidationErrors,
-    FormsModule,
-    ReactiveFormsModule
-} from '@angular/forms';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { NG_VALUE_ACCESSOR } from '@angular/forms';
+import { IconComponent } from '@nexacore/layout';
+import { BaseValueAccessor } from '../base/base-value-accessor';
+
+let nextUid = 0;
 
 @Component({
     selector: 'app-checkbox',
     standalone: true,
-    imports: [CommonModule, FormsModule, ReactiveFormsModule],
+    imports: [IconComponent],
+    providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: CheckboxComponent, multi: true }],
     templateUrl: './checkbox.component.html',
-    styleUrls: ['./checkbox.component.scss'],
-    providers: [
-        {
-            provide: NG_VALUE_ACCESSOR,
-            useExisting: forwardRef(() => CheckboxComponent),
-            multi: true
-        },
-        {
-            provide: NG_VALIDATORS,
-            useExisting: forwardRef(() => CheckboxComponent),
-            multi: true
-        }
-    ]
+    styleUrl: './checkbox.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class CheckboxComponent implements ControlValueAccessor, Validator {
-    @Input() label = '';
-    @Input() description?: string;
-    @Input() required = false;
-    @Input() helpText?: string;
-    @Input() variant: 'default' | 'switch' | 'card' = 'default';
-    @Input() disabled = false;
-    @Input() indeterminate = false;
+export class CheckboxComponent extends BaseValueAccessor<boolean> {
+    readonly label = input<string>('');
+    /** Visual "partially selected" state — e.g. a table header checkbox when only some rows are selected. */
+    readonly indeterminate = input<boolean>(false);
 
-    value = false;
-    errorMessage: string | null = null;
+    protected readonly uid = `cb-${nextUid++}`;
 
-    private onChange = (val: any) => {};
-    private onTouched = () => {};
-
-    writeValue(value: boolean): void {
-        this.value = !!value;
-    }
-
-    registerOnChange(fn: any): void {
-        this.onChange = fn;
-    }
-
-    registerOnTouched(fn: any): void {
-        this.onTouched = fn;
-    }
-
-    setDisabledState(isDisabled: boolean): void {
-        this.disabled = isDisabled;
-    }
-
-    validate(): ValidationErrors | null {
-        if (this.required && !this.value) {
-            this.errorMessage = `${this.label || 'This field'} is required`;
-            return { required: true };
-        }
-        this.errorMessage = null;
-        return null;
-    }
-
-    toggle(): void {
-        if (this.disabled) return;
-        this.value = !this.value;
-        this.indeterminate = false;
-        this.onChange(this.value);
-        this.onTouched();
+    handleChange(event: Event): void {
+        this.emitValue((event.target as HTMLInputElement).checked);
     }
 }
