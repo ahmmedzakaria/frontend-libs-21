@@ -1,0 +1,37 @@
+:host {
+  display: block;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--layout-space-75) var(--layout-space-4);
+  color: var(--text-muted);
+
+  app-icon {
+    color: var(--text-muted);
+    opacity: var(--layout-disabled-opacity);
+    margin-bottom: var(--layout-space-25);
+  }
+  h4 {
+    margin: 0 0 var(--layout-space-1);
+    font-size: var(--layout-font-size-base);
+    font-weight: var(--layout-font-weight-semibold);
+    color: var(--text);
+  }
+  p {
+    margin: 0;
+    font-size: var(--layout-font-size-sm);
+    line-height: 1.5;
+    max-width: 20rem;
+  }
+  .action {
+    margin-top: var(--layout-space-35);
+
+    &:empty {
+      display: none;
+    }
+  }
+}

@@ -18,7 +18,11 @@ This guide applies to shared Angular source libraries under
   - `auth`: login component, auth service, route guards, SSO callback routes
   - `layout`: Angular 21 shell, header, rail navigation, status bar, theme and
     direction state, SVG icon registry
-  - `shared`: reusable form controls (Tier 1 CVA components), image preview,
+  - `shared`: reusable form controls (Tier 1 CVA components), list/data
+    composites (`DataTable`, `FilterBar`, `SearchToolbar`, `Pagination`,
+    `ExportButton`), workflow composites (`Wizard`, `WizardStep`, `Stepper`,
+    `ApprovalActions`, `ActivityFeed`), feedback primitives (`Pill`,
+    `StatusBadge`, `EmptyState`, `Modal`, `ConfirmDialog`), image preview,
     validation UI
   - `assets-common`: app-neutral static assets
 
@@ -70,6 +74,20 @@ This guide applies to shared Angular source libraries under
 - Render all icons through `<app-icon name="...">` backed by the shared icon
   registry. Never use emoji or Font Awesome glyphs anywhere in this repo or
   its consuming apps.
+
+## Workflow-Ready Scaffolding Convention
+
+- Consuming apps may add optional fields (e.g. `status`, `activity`) to their
+  own domain models ahead of a backend workflow module shipping, so the real
+  API integration is additive later rather than a rework. Gate any UI built on
+  those fields behind the field's presence (`@if (record.status)`), never a
+  hardcoded flag — the panel must stay invisible until the backend actually
+  populates the field, and must never fabricate placeholder data.
+- `ApprovalActionsComponent`, `ActivityFeedComponent`, `Pill`, and
+  `StatusBadge` are the components built for this pattern; see
+  `kyc-frontend-21/src/app/pages/person/person-preview.component.html`'s
+  `.workflow-card` for a worked example, including the `// TODO: wire to the
+  workflow API` marker convention for the stub decision handler.
 
 ## API, Auth, And Security
 

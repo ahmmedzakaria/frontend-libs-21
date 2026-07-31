@@ -1,0 +1,12 @@
+<ol class="activity-feed">
+  @for (entry of entries(); track $index) {
+    <li class="activity-item">
+      <span class="activity-connector"></span>
+      <span class="activity-avatar">{{ initials(entry.actor) }}</span>
+      <div class="activity-body">
+        <div class="activity-label"><b>{{ entry.actor }}</b> {{ entry.label }}</div>
+        <div class="activity-meta">{{ formatTimestamp(entry.timestamp) }}</div>
+      </div>
+    </li>
+  }
+</ol>

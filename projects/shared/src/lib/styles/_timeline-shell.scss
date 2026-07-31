@@ -1,0 +1,61 @@
+// Shared vertical-line-and-dot layout for ActivityFeed (and any future
+// Timeline-shaped composite) — an SCSS mixin (not a plain global class) so
+// each component's compiled CSS stays properly encapsulated per Angular's
+// ViewEncapsulation, same reasoning as _field-shell.scss.
+
+@mixin list {
+  display: flex;
+  flex-direction: column;
+}
+
+@mixin item {
+  position: relative;
+  display: flex;
+  gap: var(--layout-space-3);
+  padding-bottom: var(--layout-space-4);
+
+  &:last-child {
+    padding-bottom: 0;
+  }
+}
+
+@mixin connector {
+  position: absolute;
+  top: var(--layout-control-3xl);
+  bottom: 0;
+  left: calc(var(--layout-control-3xl) / 2);
+  width: var(--layout-border-width);
+  background: var(--border);
+  transform: translateX(-50%);
+}
+
+@mixin marker {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--layout-control-3xl);
+  height: var(--layout-control-3xl);
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+@mixin body {
+  flex: 1;
+  min-width: 0;
+  padding-top: var(--layout-space-1);
+}
+
+@mixin label {
+  font-size: var(--layout-font-size-base);
+  color: var(--text);
+}
+
+@mixin meta {
+  font-size: var(--layout-font-size-xs);
+  color: var(--text-muted);
+  margin-top: var(--layout-space-05);
+}

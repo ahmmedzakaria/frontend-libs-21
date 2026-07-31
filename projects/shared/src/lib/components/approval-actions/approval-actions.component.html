@@ -1,0 +1,26 @@
+<div class="approval-actions">
+  <app-button [label]="approveLabel()" [disabled]="loading()" (clicked)="approve()" />
+  <app-button variant="danger" [label]="rejectLabel()" [disabled]="loading()" (clicked)="requestReject()" />
+  @if (showEscalate()) {
+    <app-button variant="ghost" [label]="escalateLabel()" [disabled]="loading()" (clicked)="requestEscalate()" />
+  }
+</div>
+
+<app-confirm-dialog
+  [open]="!!pendingAction()"
+  [title]="dialogTitle()"
+  confirmLabel="Submit"
+  [danger]="pendingAction() === 'reject'"
+  [loading]="loading()"
+  (confirmed)="confirmReason()"
+  (cancelled)="cancelReason()"
+>
+  <app-textarea
+    [formControl]="reason"
+    [label]="'Reason for ' + dialogTitle().toLowerCase()"
+    placeholder="Explain why…"
+  />
+  @if (reasonError()) {
+    <p class="reason-error">A reason is required.</p>
+  }
+</app-confirm-dialog>

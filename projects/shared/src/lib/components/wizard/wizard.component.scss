@@ -1,0 +1,13 @@
+:host {
+  display: block;
+}
+
+.wizard-body {
+  margin: var(--layout-space-4) 0;
+}
+
+.wizard-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--layout-space-2);
+}

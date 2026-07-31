@@ -1,0 +1,32 @@
+@use '../../styles/timeline-shell' as shell;
+
+:host {
+  display: block;
+}
+
+.activity-feed {
+  @include shell.list;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.activity-item {
+  @include shell.item;
+}
+.activity-connector {
+  @include shell.connector;
+}
+.activity-avatar {
+  @include shell.marker;
+  font-size: var(--layout-font-size-xs);
+  font-weight: var(--layout-font-weight-bold);
+}
+.activity-body {
+  @include shell.body;
+}
+.activity-label {
+  @include shell.label;
+}
+.activity-meta {
+  @include shell.meta;
+}

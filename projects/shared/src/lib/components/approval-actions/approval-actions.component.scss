@@ -1,0 +1,14 @@
+:host {
+  display: block;
+}
+
+.approval-actions {
+  display: flex;
+  gap: var(--layout-space-2);
+}
+
+.reason-error {
+  color: var(--layout-error-color);
+  font-size: var(--layout-font-size-sm);
+  margin: var(--layout-space-1) 0 0;
+}

@@ -3,15 +3,22 @@ import { NgIf } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../auth.service';
 import { LayoutService, IconComponent } from '@nexacore/layout';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 @Component({
     selector: 'app-sso-callback',
     standalone: true,
-    imports: [NgIf, IconComponent],
+    imports: [NgIf, IconComponent, TranslocoPipe],
     template: `
         <div class="sso-page">
             <div class="sso-card">
-                <app-icon name="user-shield" [size]="40" class="sso-icon" />
+                <div class="brand">
+                    <app-icon name="user-shield" [size]="26" />
+                    <div class="brand-text">
+                        {{ 'brand.name' | transloco }}
+                        <small>{{ 'brand.tagline' | transloco }}</small>
+                    </div>
+                </div>
                 <h2 class="sso-title">Signing in</h2>
                 <p class="sso-subtitle" *ngIf="!errorMessage">Completing SSO login...</p>
                 <div *ngIf="errorMessage" class="alert alert-danger">
@@ -40,11 +47,29 @@ import { LayoutService, IconComponent } from '@nexacore/layout';
             border: var(--layout-border-width) solid var(--border);
             border-radius: var(--layout-radius-lg);
             box-shadow: var(--shadow);
-            padding: var(--layout-space-4);
+            padding: var(--layout-space-45);
         }
-        .sso-icon {
+        .brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--layout-space-25);
             color: var(--accent);
-            margin-bottom: var(--layout-space-3);
+            font-weight: var(--layout-font-weight-semibold);
+            font-size: var(--layout-font-size-base);
+            margin-bottom: var(--layout-space-45);
+            text-align: start;
+        }
+        .brand .brand-text {
+            color: var(--text);
+        }
+        .brand small {
+            display: block;
+            font-weight: var(--layout-font-weight-normal);
+            color: var(--text-muted);
+            font-size: var(--layout-font-size-xs);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
         }
         .sso-title {
             font-size: var(--layout-font-size-xl);

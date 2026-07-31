@@ -1,0 +1,10 @@
+<div class="empty-state">
+  <app-icon [name]="icon()" [size]="32" />
+  @if (title()) {
+    <h4>{{ title() }}</h4>
+  }
+  @if (message()) {
+    <p>{{ message() }}</p>
+  }
+  <div class="action"><ng-content /></div>
+</div>

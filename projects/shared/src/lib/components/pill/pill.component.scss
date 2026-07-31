@@ -1,0 +1,61 @@
+:host {
+  display: inline-flex;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--layout-space-1);
+  padding: var(--layout-space-1) var(--layout-space-25);
+  border-radius: var(--layout-radius-pill);
+  font-size: var(--layout-font-size-sm);
+  font-weight: var(--layout-font-weight-semibold);
+  white-space: nowrap;
+
+  &::before {
+    content: '';
+    width: var(--layout-space-1);
+    height: var(--layout-space-1);
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  &.no-dot::before {
+    display: none;
+  }
+
+  &.neutral {
+    background: var(--surface-2);
+    color: var(--text-muted);
+    &::before {
+      background: var(--text-muted);
+    }
+  }
+  &.accent {
+    background: var(--accent-soft);
+    color: var(--accent);
+    &::before {
+      background: var(--accent);
+    }
+  }
+  &.amber {
+    background: var(--amber-soft);
+    color: var(--amber);
+    &::before {
+      background: var(--amber);
+    }
+  }
+  &.red {
+    background: var(--red-soft);
+    color: var(--red);
+    &::before {
+      background: var(--red);
+    }
+  }
+  &.success {
+    background: var(--success-soft);
+    color: var(--success);
+    &::before {
+      background: var(--success);
+    }
+  }
+}

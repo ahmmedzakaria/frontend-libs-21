@@ -1,0 +1,95 @@
+:host {
+  display: block;
+}
+
+.data-table-wrap {
+  background: var(--card);
+  border: var(--layout-border-width) solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th {
+    text-align: start;
+    font-size: var(--layout-font-size-xs);
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: var(--layout-font-weight-semibold);
+    background: var(--surface-2);
+    padding: var(--layout-space-25) var(--layout-space-35);
+    border-bottom: var(--layout-border-width) solid var(--border);
+    white-space: nowrap;
+
+    &.align-end {
+      text-align: end;
+    }
+    &.sortable {
+      cursor: pointer;
+      user-select: none;
+
+      &:hover {
+        color: var(--text);
+      }
+    }
+  }
+  .th-content {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--layout-space-1);
+  }
+  .sort-icon {
+    opacity: var(--layout-opacity-muted);
+    transition: transform var(--layout-transition-fast);
+
+    &.active {
+      opacity: 1;
+      color: var(--accent);
+    }
+    &.asc {
+      transform: rotate(var(--layout-rotate-open));
+    }
+  }
+
+  td {
+    padding: var(--layout-space-25) var(--layout-space-35);
+    border-bottom: var(--layout-border-width) solid var(--border);
+    font-size: var(--layout-font-size-base);
+    vertical-align: middle;
+
+    &.align-end {
+      text-align: end;
+    }
+  }
+  tr:last-child td {
+    border-bottom: none;
+  }
+  .data-row:hover {
+    background: var(--surface-2);
+    cursor: pointer;
+  }
+  .state-row td {
+    border-bottom: none;
+  }
+  .empty-cell {
+    padding: 0;
+  }
+  .loading-row {
+    padding: var(--layout-space-5) var(--layout-space-35);
+    text-align: center;
+    color: var(--text-muted);
+    font-size: var(--layout-font-size-sm);
+  }
+}
+
+.table-footer {
+  padding: var(--layout-space-3) var(--layout-space-35);
+  border-top: var(--layout-border-width) solid var(--border);
+}

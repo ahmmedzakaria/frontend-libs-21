@@ -1,9 +1,10 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, signal } from '@angular/core';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import { Router } from '@angular/router';
 import {AuthService} from "../auth.service";
 import {LayoutService, IconComponent} from "@nexacore/layout";
 import {NgIf} from "@angular/common";
+import {TranslocoPipe} from "@jsverse/transloco";
 
 
 @Component({
@@ -13,7 +14,8 @@ import {NgIf} from "@angular/common";
     imports: [
         ReactiveFormsModule,
         NgIf,
-        IconComponent
+        IconComponent,
+        TranslocoPipe
     ],
 
 })
@@ -24,6 +26,7 @@ export class LoginComponent implements OnInit {
     ssoLoginEnabled = false;
     loadingConfig = true;
     ssoLoading = false;
+    readonly passwordVisible = signal(false);
 
     constructor(
         private fb: FormBuilder,
@@ -65,7 +68,6 @@ export class LoginComponent implements OnInit {
 
         this.authService.login(username, password).subscribe({
             next: () => {
-                console.log('login success setting layout');
                 this.layoutService.setAuthenticatedLayout();
                 this.router.navigate(['']);
             },
@@ -74,6 +76,10 @@ export class LoginComponent implements OnInit {
                 this.changeDetector.markForCheck();
             }
         });
+    }
+
+    togglePasswordVisibility(): void {
+        this.passwordVisible.update((v) => !v);
     }
 
     loginWithSso() {

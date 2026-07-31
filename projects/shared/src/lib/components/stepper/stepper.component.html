@@ -1,0 +1,30 @@
+<div class="stepper" role="list">
+  <div class="sr-only" aria-live="polite">
+    Step {{ activeIndex() + 1 }} of {{ steps().length }}: {{ steps()[activeIndex()]?.label }}
+  </div>
+  @for (step of steps(); track step.label; let i = $index; let last = $last) {
+    <button
+      type="button"
+      role="listitem"
+      class="step"
+      [class.active]="i === activeIndex()"
+      [class.completed]="!!step.completed && i !== activeIndex()"
+      [disabled]="!canActivate(i)"
+      [attr.aria-disabled]="!canActivate(i) || null"
+      [attr.aria-current]="i === activeIndex() ? 'step' : null"
+      (click)="select(i)"
+    >
+      <span class="step-marker">
+        @if (step.completed && i !== activeIndex()) {
+          <app-icon name="check" [size]="12" />
+        } @else {
+          {{ i + 1 }}
+        }
+      </span>
+      <span class="step-label">{{ step.label }}</span>
+    </button>
+    @if (!last) {
+      <span class="step-connector" [class.completed]="!!step.completed"></span>
+    }
+  }
+</div>

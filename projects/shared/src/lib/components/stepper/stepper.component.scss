@@ -1,0 +1,87 @@
+:host {
+  display: block;
+}
+
+// Visually-hidden-but-announced technique for the aria-live region — 1px/
+// clip-based, not on the token spacing scale, since these are structurally
+// required exact values for this specific CSS trick, not a design decision.
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: var(--layout-space-15);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: var(--layout-space-1) 0;
+  font-family: inherit;
+  flex-shrink: 0;
+
+  &:disabled {
+    cursor: default;
+    opacity: var(--layout-disabled-opacity);
+  }
+  &:focus-visible {
+    outline: var(--layout-border-width-strong) solid var(--focus);
+    outline-offset: var(--layout-focus-ring-offset);
+  }
+}
+.step-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--layout-control-3xl);
+  height: var(--layout-control-3xl);
+  border-radius: 50%;
+  border: var(--layout-border-width) solid var(--border);
+  background: var(--card);
+  color: var(--text-muted);
+  font-size: var(--layout-font-size-sm);
+  font-weight: var(--layout-font-weight-semibold);
+  flex-shrink: 0;
+}
+.step.active .step-marker {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--layout-on-strong-color);
+}
+.step.completed .step-marker {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.step-label {
+  font-size: var(--layout-font-size-sm);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.step.active .step-label {
+  color: var(--text);
+  font-weight: var(--layout-font-weight-semibold);
+}
+
+.step-connector {
+  flex: 1;
+  height: var(--layout-border-width);
+  background: var(--border);
+  margin: 0 var(--layout-space-15);
+  min-width: var(--layout-space-4);
+
+  &.completed {
+    background: var(--accent);
+  }
+}

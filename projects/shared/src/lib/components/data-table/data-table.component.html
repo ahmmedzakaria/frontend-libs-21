@@ -1,0 +1,67 @@
+<div class="data-table-wrap">
+  <div class="table-scroll">
+    <table class="data-table" role="table">
+      <thead>
+        <tr role="row">
+          @for (col of columns(); track col.key) {
+            <th
+              role="columnheader"
+              scope="col"
+              [class.sortable]="col.sortable"
+              [class.align-end]="col.align === 'end'"
+              [attr.aria-sort]="ariaSort(col)"
+              (click)="toggleSort(col)"
+            >
+              <span class="th-content">
+                {{ col.header }}
+                @if (col.sortable) {
+                  <app-icon
+                    name="chevron-down"
+                    [size]="12"
+                    class="sort-icon"
+                    [class.active]="sort()?.key === col.key && sort()?.direction !== 'none'"
+                    [class.asc]="sort()?.key === col.key && sort()?.direction === 'asc'"
+                  />
+                }
+              </span>
+            </th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @if (loading()) {
+          <tr role="row" class="state-row">
+            <td [attr.colspan]="columns().length" role="cell">
+              <div class="loading-row">Loading…</div>
+            </td>
+          </tr>
+        } @else if (!data().length) {
+          <tr role="row" class="state-row">
+            <td [attr.colspan]="columns().length" role="cell" class="empty-cell">
+              <app-empty-state icon="folder" [title]="emptyTitle()" [message]="emptyMessage()" />
+            </td>
+          </tr>
+        } @else {
+          @for (row of data(); track trackRow($index, row)) {
+            <tr role="row" class="data-row" (click)="rowClick.emit(row)">
+              @for (col of columns(); track col.key) {
+                <td role="cell" [class.align-end]="col.align === 'end'">
+                  @if (col.cellTemplate) {
+                    <ng-container [ngTemplateOutlet]="col.cellTemplate" [ngTemplateOutletContext]="{ $implicit: row }" />
+                  } @else {
+                    {{ cellValue(row, col) }}
+                  }
+                </td>
+              }
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+  @if (showPagination()) {
+    <div class="table-footer">
+      <app-pagination [page]="page()!" [pageSize]="pageSize()" [total]="total()!" (pageChange)="pageChange.emit($event)" />
+    </div>
+  }
+</div>

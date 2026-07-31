@@ -18,17 +18,34 @@
   border: var(--layout-border-width) solid var(--border);
   border-radius: var(--layout-radius-lg);
   box-shadow: var(--shadow);
-  padding: var(--layout-space-4);
+  padding: var(--layout-space-45);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--layout-space-25);
+  color: var(--accent);
+  font-weight: var(--layout-font-weight-semibold);
+  font-size: var(--layout-font-size-base);
+  margin-bottom: var(--layout-space-45);
+
+  .brand-text {
+    color: var(--text);
+  }
+  small {
+    display: block;
+    font-weight: var(--layout-font-weight-normal);
+    color: var(--text-muted);
+    font-size: var(--layout-font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
 }
 
 .login-header {
   text-align: center;
   margin-bottom: var(--layout-space-4);
-
-  .header-icon {
-    color: var(--accent);
-    margin-bottom: var(--layout-space-2);
-  }
 }
 .login-title {
   font-size: var(--layout-font-size-xl);
@@ -40,6 +57,24 @@
   font-size: var(--layout-font-size-base);
   color: var(--text-muted);
   margin: 0;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: var(--layout-space-3);
+  margin: var(--layout-space-4) 0;
+  color: var(--text-muted);
+  font-size: var(--layout-font-size-xs);
+  text-transform: uppercase;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: var(--layout-border-width);
+    background: var(--border);
+  }
 }
 
 .loading-row {
@@ -90,6 +125,41 @@
 .field-error {
   font-size: var(--layout-font-size-xs);
   color: var(--layout-error-color);
+}
+
+.password-input {
+  position: relative;
+  display: flex;
+
+  .native-input {
+    flex: 1;
+    padding-inline-end: var(--layout-control-3xl);
+  }
+}
+.toggle-visibility {
+  position: absolute;
+  inset-inline-end: var(--layout-space-1);
+  top: 50%;
+  transform: translateY(-50%);
+  width: var(--layout-control-3xl);
+  height: var(--layout-control-3xl);
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: var(--layout-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--surface-2);
+    color: var(--text);
+  }
+  &:focus-visible {
+    outline: var(--layout-border-width-strong) solid var(--focus);
+    outline-offset: var(--layout-focus-ring-offset-flush);
+  }
 }
 
 .sso-row,

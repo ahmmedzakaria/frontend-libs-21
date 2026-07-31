@@ -1,0 +1,13 @@
+<ng-template #tpl>
+  <div class="modal-panel" [style.width.px]="width()" role="dialog" aria-modal="true">
+    <div class="modal-head">
+      <h3>{{ title() }}</h3>
+      <button type="button" class="close" aria-label="Close" (click)="requestClose()">
+        <app-icon name="times" [size]="16" />
+      </button>
+    </div>
+    <div class="modal-body">
+      <ng-content></ng-content>
+    </div>
+  </div>
+</ng-template>

@@ -1,0 +1,20 @@
+<div class="search-toolbar">
+  @if (searchTypes().length) {
+    <select class="type-select" [ngModel]="effectiveType()" (ngModelChange)="setType($event)" aria-label="Search by">
+      @for (t of searchTypes(); track t.value) {
+        <option [value]="t.value">{{ t.label }}</option>
+      }
+    </select>
+  }
+  <input
+    type="text"
+    class="query-input"
+    [ngModel]="query()"
+    (ngModelChange)="setQuery($event)"
+    [placeholder]="placeholder()"
+    (keydown.enter)="runSearch()"
+  />
+  <button type="button" class="go-btn" aria-label="Search" (click)="runSearch()">
+    <app-icon name="search" [size]="16" />
+  </button>
+</div>
