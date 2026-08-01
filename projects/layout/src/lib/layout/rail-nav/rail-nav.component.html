@@ -4,93 +4,112 @@
   </button>
 
   <div class="rail-body">
-    @if (loading() && modules().length === 0) {
+    @if (loading() && treeState.tree().length === 0) {
       <div class="rail-state">
         <app-icon name="search" [size]="14" />
         <span class="lbl">Loading...</span>
       </div>
     }
 
-    @if (!loading() && modules().length === 0) {
+    @if (!loading() && treeState.tree().length === 0) {
       <div class="rail-state">
         <app-icon name="help" [size]="14" />
         <span class="lbl">No menu</span>
       </div>
     }
 
-    @for (mod of modules(); track mod.id) {
-      <div class="module-wrap">
-        <button
-          type="button"
-          class="module-row focus-ring"
-          [class.open]="rail.openModuleId() === mod.id"
-          (click)="toggleModule(mod)"
-        >
-          <span class="arrow">
-            @if (hasExpandableChildren(mod.id)) {
-              <app-icon name="chevron-right" [size]="10" />
-            }
-          </span>
-          <app-icon [name]="mod.icon" />
-          <span class="lbl">{{ mod.label }}</span>
-        </button>
+    @if (navMode.grouped()) {
+      @for (row of visibleRows(); track row.path.join('.')) {
+        @if (row.depth < 2) {
+          <button
+            type="button"
+            [class]="'row lvl-' + row.depth + ' focus-ring'"
+            [class.open]="treeState.isExpanded(row.path)"
+            [class.active]="treeState.isActive(row.path)"
+            (click)="onRowClick(row)"
+          >
+            <span class="arrow">
+              @if (!row.isLeaf) {
+                <app-icon name="chevron-right" [size]="10" />
+              }
+            </span>
+            <app-icon [name]="resolveNavIcon(row.node.icon, row.node.label)" [size]="row.depth === 0 ? 16 : 15" />
+            <span class="lbl">{{ row.node.label }}</span>
+          </button>
+        } @else {
+          <div
+            class="row lvl-2"
+            [class.active]="treeState.isActive(row.path)"
+            cdkOverlayOrigin
+            #catOrigin="cdkOverlayOrigin"
+            tabindex="0"
+            (mouseenter)="!row.isLeaf && onCategoryHover(row, catOrigin)"
+            (mouseleave)="megaPanel.scheduleClose()"
+            (click)="row.isLeaf ? onRowClick(row) : onCategoryClick(row, catOrigin)"
+            (keydown.enter)="row.isLeaf ? onRowClick(row) : onCategoryClick(row, catOrigin)"
+          >
+            <span class="arrow-spacer"></span>
+            <app-icon [name]="resolveNavIcon(row.node.icon, row.node.label)" [size]="13" />
+            <span class="lbl">{{ row.node.label }}</span>
+          </div>
+        }
+      }
+    } @else {
+      @for (mod of treeState.tree(); track mod.label; let i = $index) {
+        <div class="module-wrap">
+          <button
+            type="button"
+            class="module-row focus-ring"
+            [class.open]="rail.openModuleId() === (i + '')"
+            (click)="toggleFlatModule(i, mod)"
+          >
+            <span class="arrow">
+              @if (flatItems(i).length > 1) {
+                <app-icon name="chevron-right" [size]="10" />
+              }
+            </span>
+            <app-icon [name]="resolveNavIcon(mod.icon, mod.label)" [size]="16" />
+            <span class="lbl">{{ mod.label }}</span>
+          </button>
 
-        @if (rail.openModuleId() === mod.id) {
-          @if (navMode.grouped()) {
-            @for (cat of categories(mod.id); track cat) {
-              <div
-                class="child-row"
-                cdkOverlayOrigin
-                #catOrigin="cdkOverlayOrigin"
-                tabindex="0"
-                (mouseenter)="openCategory(mod.id, cat, catOrigin)"
-                (click)="openCategory(mod.id, cat, catOrigin)"
-                (mouseleave)="flyout.scheduleClose()"
-              >
-                <app-icon [name]="categoryIcon[cat]" [size]="13" />
-                <span class="lbl">{{ cat }}</span>
-              </div>
-            }
-          } @else {
-            @for (item of flatItems(mod.id); track item.label + item.path) {
-              <button
-                type="button"
-                class="child-row focus-ring"
-                (click)="selectFlatItem(mod, item)"
-              >
-                <app-icon [name]="item.icon || 'help'" [size]="13" />
+          @if (rail.openModuleId() === (i + '') && flatItems(i).length > 1) {
+            @for (item of flatItems(i); track item.label + itemRoute(item)) {
+              <button type="button" class="child-row focus-ring" (click)="selectFlatItem(i, mod, item)">
+                <app-icon [name]="resolveNavIcon(item.icon, item.label)" [size]="13" />
                 <span class="lbl">{{ item.label }}</span>
               </button>
             }
           }
-        }
-      </div>
+        </div>
+      }
     }
   </div>
 </nav>
 
-@if (flyout.origin(); as origin) {
-  <ng-template
-    cdkConnectedOverlay
-    [cdkConnectedOverlayOrigin]="origin"
-    [cdkConnectedOverlayOpen]="!!flyout.content()"
-    [cdkConnectedOverlayPositions]="[
-      { originX: 'end', originY: 'top', overlayX: 'start', overlayY: 'top', offsetX: 0 }
-    ]"
-  >
-    @if (flyout.content(); as content) {
-      <div class="rail-flyout" (mouseenter)="flyout.cancelClose()" (mouseleave)="flyout.scheduleClose()">
-        <div class="cat">{{ content.category }}</div>
-        @for (item of content.items; track item.label + item.path) {
-          <button
-            type="button"
-            class="item focus-ring"
-            (click)="selectItem(item.path, content.moduleLabel, content.category, item.label)"
-          >
-            {{ item.label }}
-          </button>
-        }
-      </div>
-    }
-  </ng-template>
+@if (viewport.isDesktop()) {
+  <!--
+    Desktop: anchored beside the triggering category row. Below the mobile
+    breakpoint this breaks down — the row can be scrolled anywhere in a long,
+    tall drawer list, including right at the bottom of the viewport, leaving no
+    room for a row-anchored panel to drop into (see the bottom-sheet branch below).
+  -->
+  @if (megaPanel.origin(); as origin) {
+    <ng-template
+      cdkConnectedOverlay
+      [cdkConnectedOverlayOrigin]="origin"
+      [cdkConnectedOverlayOpen]="!!megaPanel.content()"
+      [cdkConnectedOverlayPositions]="[
+        { originX: 'end', originY: 'top', overlayX: 'start', overlayY: 'top', offsetX: 0 }
+      ]"
+    >
+      <app-mega-panel />
+    </ng-template>
+  }
+} @else if (megaPanel.content()) {
+  <!-- Mobile/tablet: a viewport-anchored bottom sheet instead — independent of
+       where the triggering row happens to be scrolled to. -->
+  <div class="mega-panel-backdrop" aria-hidden="true" (click)="megaPanel.close()"></div>
+  <div class="mega-panel-sheet">
+    <app-mega-panel />
+  </div>
 }

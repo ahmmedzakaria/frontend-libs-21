@@ -1,14 +1,22 @@
-<app-header />
+@if (layoutConfig.topbarEnabled()) {
+  <app-header />
+}
 
 <div class="app-body">
-  @if (rail.mobileOpen()) {
-    <div class="rail-backdrop" (click)="rail.closeMobile()"></div>
+  @if (layoutConfig.sidebarEnabled()) {
+    @if (rail.mobileOpen()) {
+      <div class="rail-backdrop" (click)="rail.closeMobile()"></div>
+    }
+    <app-rail-nav />
   }
-  <app-rail-nav />
   <main class="main">
-    <app-breadcrumb />
+    @if (layoutConfig.breadcrumbEnabled()) {
+      <app-breadcrumb />
+    }
     <router-outlet />
   </main>
 </div>
 
-<app-status-bar />
+@if (layoutConfig.footerEnabled()) {
+  <app-status-bar />
+}

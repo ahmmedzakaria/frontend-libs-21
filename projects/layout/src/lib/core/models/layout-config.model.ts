@@ -1,3 +1,15 @@
+/** Backend `NavNodeDto` returned in `layout.navTree`. */
+export interface NavTreeItem {
+  code: string;
+  tCode?: string | null;
+  label: string;
+  type: 'group' | 'module' | 'category' | 'featureGroup' | 'feature';
+  icon?: string;
+  route?: string | null;
+  privilegeCodes: string[];
+  children: NavTreeItem[];
+}
+
 /** The 8 hue/neutral primaries every derived CSS token in _tokens.scss's `color-mix()` chain computes from. */
 export interface LayoutThemePrimaries {
   text: string;
@@ -67,9 +79,9 @@ export interface LayoutBrand {
 }
 
 /**
- * Behavior flags for a layout profile. Not consumed yet (see plan's Out of
- * Scope) — kept here so the type stays complete/future-proof rather than
- * silently dropping fields the backend already sends.
+ * Behavior flags for a layout profile, applied by `LayoutConfigService` and
+ * `LayoutComponent`. `commandBarEnabled` is the one exception — no command-bar UI
+ * exists in this codebase, so it's modeled but intentionally unconsumed.
  */
 export interface LayoutProfile {
   id?: number;
@@ -95,7 +107,7 @@ export interface LayoutProfile {
 export interface BackendLayoutConfig {
   activeProfileCode?: string;
   availableProfiles?: LayoutProfile[];
-  navTree?: unknown[];
+  navTree?: NavTreeItem[];
   themes?: LayoutTheme[];
   sizes?: LayoutSizes;
   fonts?: LayoutFonts;

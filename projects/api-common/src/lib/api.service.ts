@@ -76,7 +76,7 @@ export class ApiService {
     private resolveBasePath(actionType: ActionTypes): string {
         // Only LOGIN endpoints (auth.service.ts) live under loginUrl
         // (/api/v1/auth). ActionTypes.AUTH-tagged endpoints (privilege
-        // context/sidebar-menu) are regular authenticated calls under the
+        // context) are regular authenticated calls under the
         // normal apiBaseUrl (/api/v1/system/...), not under /auth.
         const configuredPath = actionType === ActionTypes.LOGIN
             ? this.environment.loginUrl

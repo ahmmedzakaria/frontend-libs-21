@@ -1,237 +1,153 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { TranslocoModule } from '@jsverse/transloco';
 import { CdkOverlayOrigin, OverlayModule } from '@angular/cdk/overlay';
 
 import { IconComponent } from '../../shared/icon/icon.component';
-import { NavCategory, NavItem, NavModule } from '../../core/models/nav-module.model';
+import { MegaPanelComponent } from '../mega-panel/mega-panel.component';
+import { resolveNavIcon } from '../../core/models/nav-icon.util';
 import { RailStateService } from '../../core/services/rail-state.service';
-import { RailFlyoutService } from '../../core/services/rail-flyout.service';
+import { MegaPanelService } from '../../core/services/mega-panel.service';
+import { NavTreeStateService } from '../../core/services/nav-tree-state.service';
 import { NavModeService } from '../../core/services/nav-mode.service';
 import { BreadcrumbService } from '../../core/services/breadcrumb.service';
 import { LayoutConfigService } from '../../core/services/layout-config.service';
-import { SidebarMenuItem, SidebarMenuService } from '../../sidebar-menu.service';
+import { ViewportService } from '../../core/services/viewport.service';
+import { NavTreeItem } from '../../core/models/layout-config.model';
+import { ApplicationContextService } from '../../application-context.service';
 
-const CATEGORY_ICON: Record<NavCategory, string> = {
-  Operation: 'bolt',
-  Setup: 'gear',
-  Report: 'bar-chart'
-};
+/** A row in the grouped (Module Group → Module → Category) rail. Depth 0/1 render
+ * inline and expand/collapse; depth 2 (Category) opens the mega panel instead.
+ * Any node with no `children` renders as a directly-clickable leaf regardless of
+ * depth — the graceful-degradation path for real backend trees shallower than 3
+ * levels (see NavTreeStateService's doc comment). */
+interface RailRow {
+  path: number[];
+  depth: number;
+  node: NavTreeItem;
+  isLeaf: boolean;
+}
 
 @Component({
   selector: 'app-rail-nav',
   standalone: true,
-  imports: [TranslocoModule, IconComponent, OverlayModule],
+  imports: [IconComponent, OverlayModule, MegaPanelComponent],
   templateUrl: './rail-nav.component.html',
   styleUrl: './rail-nav.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class RailNavComponent {
   protected readonly rail = inject(RailStateService);
-  protected readonly flyout = inject(RailFlyoutService);
+  protected readonly megaPanel = inject(MegaPanelService);
   protected readonly navMode = inject(NavModeService);
-  protected readonly modules = signal<NavModule[]>([]);
+  protected readonly treeState = inject(NavTreeStateService);
+  protected readonly viewport = inject(ViewportService);
   protected readonly loading = signal(true);
-  protected readonly categoryIcon = CATEGORY_ICON;
+  protected readonly resolveNavIcon = resolveNavIcon;
 
   private readonly router = inject(Router);
-  private readonly sidebarMenu = inject(SidebarMenuService);
+  private readonly applicationContext = inject(ApplicationContextService);
   private readonly breadcrumb = inject(BreadcrumbService);
   private readonly layoutConfig = inject(LayoutConfigService);
   private readonly destroyRef = inject(DestroyRef);
 
   constructor() {
-    const cachedMenus = this.sidebarMenu.getCachedSidebarMenu();
-    if (cachedMenus.length) {
-      this.modules.set(this.toNavModules(cachedMenus));
-    }
-    this.navMode.setEnabledModules(this.sidebarMenu.getCachedEnabledModules());
-
-    const subscription = this.sidebarMenu.loadApplicationContext().subscribe({
+    const subscription = this.applicationContext.load().subscribe({
       next: (context) => {
-        this.modules.set(this.toNavModules(context?.menus || []));
-        this.navMode.setEnabledModules(context?.enabledModules || []);
         this.layoutConfig.apply(context?.layout);
+        const activeProfile = context?.layout?.availableProfiles?.find(
+          (p) => p.code === context?.layout?.activeProfileCode
+        );
+        this.navMode.applyNavigationMode(activeProfile?.navigationMode);
         this.loading.set(false);
       },
-      error: () => {
-        this.modules.set(this.toNavModules(cachedMenus));
-        this.loading.set(false);
-      }
+      error: () => this.loading.set(false)
     });
 
     this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
 
-  protected categories(moduleId: string): NavCategory[] {
-    const mod = this.modules().find((m) => m.id === moduleId);
-    return mod ? (Object.keys(mod.categories) as NavCategory[]) : [];
-  }
+  /** Depth-based row flattening — mirrors sentinel-kyc-angular-cld's `visibleRows`. */
+  protected readonly visibleRows = computed<RailRow[]>(() => {
+    const detail = this.rail.expanded();
+    this.treeState.expandedPaths(); // register as a dependency
+    const rows: RailRow[] = [];
+    this.buildRows(this.treeState.tree(), [], 0, detail, rows);
+    return rows;
+  });
 
-  protected hasCategories(moduleId: string): boolean {
-    return this.categories(moduleId).length > 0;
-  }
+  private buildRows(nodes: NavTreeItem[], path: number[], depth: number, detail: boolean, rows: RailRow[]): void {
+    nodes.forEach((node, index) => {
+      const nodePath = path.concat(index);
+      const hasChildren = !!node.children?.length;
+      rows.push({ path: nodePath, depth, node, isLeaf: !hasChildren });
 
-  /** All items across a module's categories, flattened — the "no module groups" view for small apps. */
-  protected flatItems(moduleId: string): NavItem[] {
-    const mod = this.modules().find((m) => m.id === moduleId);
-    if (!mod) {
-      return [];
-    }
-    return Object.values(mod.categories).flatMap((items) => items ?? []);
-  }
-
-  /** Mode-aware: whether clicking this module should expand it, vs. navigate directly. */
-  protected hasExpandableChildren(moduleId: string): boolean {
-    if (this.navMode.grouped()) {
-      return this.hasCategories(moduleId);
-    }
-    return this.flatItems(moduleId).length > 1;
-  }
-
-  protected toggleModule(mod: NavModule): void {
-    if (this.hasExpandableChildren(mod.id)) {
-      this.rail.toggleModule(mod.id);
-      return;
-    }
-
-    if (this.navMode.grouped()) {
-      this.navigateTo(mod.path, [], mod.label);
-      return;
-    }
-
-    const first = this.flatItems(mod.id)[0];
-    this.navigateTo(first?.path ?? mod.path, first ? [mod.label] : [], first?.label ?? mod.label);
-  }
-
-  protected openCategory(moduleId: string, category: NavCategory, origin: CdkOverlayOrigin): void {
-    const mod = this.modules().find((m) => m.id === moduleId);
-    const items = mod?.categories[category] ?? [];
-    this.flyout.open({ moduleId, moduleLabel: mod?.label ?? '', category, items }, origin);
-  }
-
-  protected selectItem(path: string | undefined, moduleLabel: string, category: string, label: string): void {
-    this.navigateTo(path, [moduleLabel, category], label);
-    this.flyout.close();
-  }
-
-  protected selectFlatItem(mod: NavModule, item: NavItem): void {
-    this.navigateTo(item.path, [mod.label], item.label);
-    if (this.rail.openModuleId() === mod.id) {
-      this.rail.toggleModule(mod.id);
-    }
-  }
-
-  private toNavModules(menus: SidebarMenuItem[]): NavModule[] {
-    const modulesByKey = new Map<string, NavModule>();
-
-    this.sortMenus(menus).forEach((menu) => {
-      const category = this.toCategory(menu.label);
-
-      if (category) {
-        this.sortMenus(menu.children || []).forEach((child) => {
-          const module = this.getOrCreateModule(modulesByKey, child);
-          module.categories[category] = this.toCategoryItems(child);
-        });
+      if (!hasChildren || depth >= 2) {
+        // Leaf, or a Category row (depth 2) — its children render via the mega
+        // panel, not inline.
         return;
       }
-
-      const module = this.getOrCreateModule(modulesByKey, menu);
-      const categoryChildren = this.sortMenus(menu.children || []).filter((child) => this.toCategory(child.label));
-
-      if (categoryChildren.length) {
-        categoryChildren.forEach((child) => {
-          const childCategory = this.toCategory(child.label);
-          if (childCategory) {
-            module.categories[childCategory] = this.toCategoryItems(child);
-          }
-        });
+      if (!detail || !this.treeState.isExpanded(nodePath)) {
         return;
       }
-
-      module.categories.Operation = this.toCategoryItems(menu);
-    });
-
-    return Array.from(modulesByKey.values()).filter((module) => {
-      return module.path || Object.values(module.categories).some((items) => (items || []).length > 0);
+      this.buildRows(node.children!, nodePath, depth + 1, detail, rows);
     });
   }
 
-  private getOrCreateModule(modulesByKey: Map<string, NavModule>, item: SidebarMenuItem): NavModule {
-    const key = this.toModuleId(item);
-    const existing = modulesByKey.get(key);
-    if (existing) {
-      return existing;
+  protected onRowClick(row: RailRow): void {
+    this.treeState.setActivePath(row.path);
+    if (row.isLeaf) {
+      this.navigateTo(this.itemRoute(row.node), this.labelsForPath(row.path.slice(0, -1)), row.node.label);
+      return;
     }
-
-    const module: NavModule = {
-      id: key,
-      label: item.label,
-      path: item.path,
-      icon: this.toIconName(item.icon, item.label),
-      categories: {}
-    };
-    modulesByKey.set(key, module);
-    return module;
+    this.treeState.toggleExpand(row.path);
   }
 
-  private toCategoryItems(item: SidebarMenuItem): NavItem[] {
-    const children = this.sortMenus(item.children || []);
-    const source = children.length ? children : item.path ? [item] : [];
-
-    return source.map((child) => ({
-      label: child.label,
-      path: child.path,
-      icon: this.toIconName(child.icon, child.label)
-    }));
+  protected onCategoryHover(row: RailRow, origin: CdkOverlayOrigin): void {
+    this.megaPanel.open(row.path, origin);
   }
 
-  private sortMenus(items: SidebarMenuItem[]): SidebarMenuItem[] {
-    return [...items].sort((a, b) => {
-      const aOrder = a.menuOrder ?? a.subMenuOrder ?? Number.MAX_SAFE_INTEGER;
-      const bOrder = b.menuOrder ?? b.subMenuOrder ?? Number.MAX_SAFE_INTEGER;
-      return aOrder - bOrder || a.label.localeCompare(b.label);
-    });
+  protected onCategoryClick(row: RailRow, origin: CdkOverlayOrigin): void {
+    this.treeState.setActivePath(row.path);
+    this.megaPanel.open(row.path, origin);
   }
 
-  private toCategory(label: string): NavCategory | null {
-    const normalized = label.trim().toLowerCase();
-    if (['operation', 'operations'].includes(normalized)) {
-      return 'Operation';
+  /** Flat mode: every top-level node becomes an accordion row; all of its descendant
+   * leaves (any depth) flatten directly underneath — no fixed "category" concept. */
+  protected flatItems(index: number): NavTreeItem[] {
+    const node = this.treeState.tree()[index];
+    return node ? this.flattenLeaves(node) : [];
+  }
+
+  protected toggleFlatModule(index: number, mod: NavTreeItem): void {
+    const items = this.flatItems(index);
+    if (items.length > 1) {
+      this.rail.toggleModule(String(index));
+      return;
     }
-    if (['setup', 'setups'].includes(normalized)) {
-      return 'Setup';
-    }
-    if (['report', 'reports'].includes(normalized)) {
-      return 'Report';
-    }
-    return null;
+    const first = items[0];
+    this.navigateTo(first ? this.itemRoute(first) : this.itemRoute(mod), first ? [mod.label] : [], first?.label ?? mod.label);
   }
 
-  private toModuleId(item: SidebarMenuItem): string {
-    const source = item.path || item.label;
-    return source
-      .replace(/^\//, '')
-      .split('/')[0]
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '') || 'menu';
+  protected selectFlatItem(index: number, mod: NavTreeItem, item: NavTreeItem): void {
+    this.navigateTo(this.itemRoute(item), [mod.label], item.label);
+    if (this.rail.openModuleId() === String(index)) {
+      this.rail.toggleModule(String(index));
+    }
   }
 
-  private toIconName(icon: string | undefined, label: string): string {
-    const source = `${icon || ''} ${label}`.toLowerCase();
+  private flattenLeaves(node: NavTreeItem): NavTreeItem[] {
+    if (!node.children?.length) {
+      return this.itemRoute(node) ? [node] : [];
+    }
+    return node.children.flatMap((child) => this.flattenLeaves(child));
+  }
 
-    if (source.includes('dashboard') || source.includes('home')) return 'home';
-    if (source.includes('person') || source.includes('user') || source.includes('customer')) return 'users';
-    if (source.includes('kyc') || source.includes('id-card') || source.includes('id card')) return 'id-card';
-    if (source.includes('setup') || source.includes('setting') || source.includes('gear') || source.includes('cog')) return 'gear';
-    if (source.includes('report') || source.includes('chart') || source.includes('table')) return 'bar-chart';
-    if (source.includes('search') || source.includes('list')) return 'search';
-    if (source.includes('document') || source.includes('file')) return 'document';
-    if (source.includes('folder')) return 'folder';
+  protected itemRoute(item: NavTreeItem): string | undefined {
+    return item.route ?? undefined;
+  }
 
-    return 'help';
+  private labelsForPath(path: number[]): string[] {
+    return path.map((_, i) => this.treeState.getNode(path.slice(0, i + 1))?.label ?? '');
   }
 
   private navigateTo(path: string | undefined, labels: string[], title: string): void {

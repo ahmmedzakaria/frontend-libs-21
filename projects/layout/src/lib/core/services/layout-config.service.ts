@@ -1,6 +1,14 @@
-import { Injectable, computed, effect, inject, signal } from '@angular/core';
-import { BackendLayoutConfig, LayoutBrand, LayoutFonts, LayoutSizes, LayoutTheme } from '../models/layout-config.model';
-import { SidebarMenuService } from '../../sidebar-menu.service';
+import { Injectable, computed, effect, inject } from '@angular/core';
+import {
+  BackendLayoutConfig,
+  LayoutBrand,
+  LayoutFonts,
+  LayoutProfile,
+  LayoutSizes,
+  LayoutTheme,
+  NavTreeItem
+} from '../models/layout-config.model';
+import { ApplicationContextService } from '../../application-context.service';
 
 const FONT_LINK_ID = 'layout-config-font-link';
 
@@ -15,27 +23,49 @@ const SIZE_VAR_MAP: Record<keyof LayoutSizes, string> = {
   railWidthExpanded: '--layout-nav-expanded-width'
 };
 
+/** `LayoutProfile.density` → the multiplier applied to `--layout-density-scale`. Only
+ * `'COMFORTABLE'` has been observed live; `'COMPACT'`'s 0.85 is a placeholder pending
+ * a real sample. Unknown/absent values fall back to 1 (today's unconditional scale). */
+const DENSITY_SCALE_MAP: Record<string, number> = {
+  COMFORTABLE: 1,
+  COMPACT: 0.85
+};
+
 /**
  * Consumes the `layout` block the backend now nests inside `ApplicationContext`
  * (`system/privilege/context`) — themes, sizes, fonts, brand. Deliberately has
- * no HTTP of its own: `SidebarMenuService.loadApplicationContext()` already
- * fetches this data for nav menus, so this service is just `apply()`'d the
+ * no HTTP of its own: `ApplicationContextService.load()` already fetches this
+ * data, so this service is just `apply()`'d the
  * `layout` field from that same response (see RailNavComponent's constructor).
  */
 @Injectable({ providedIn: 'root' })
 export class LayoutConfigService {
-  private readonly sidebarMenu = inject(SidebarMenuService);
+  private readonly applicationContext = inject(ApplicationContextService);
 
-  private readonly config = signal<BackendLayoutConfig | null>(this.sidebarMenu.getCachedLayoutConfig());
+  private readonly config = computed<BackendLayoutConfig | null>(() => this.applicationContext.layoutConfig());
 
   readonly themes = computed<LayoutTheme[]>(() => this.config()?.themes ?? []);
   readonly sizes = computed<LayoutSizes | null>(() => this.config()?.sizes ?? null);
   readonly fonts = computed<LayoutFonts | null>(() => this.config()?.fonts ?? null);
-  readonly brand = computed<LayoutBrand | null>(() => {
+  readonly navTree = computed<NavTreeItem[]>(() => this.config()?.navTree ?? []);
+
+  readonly activeProfile = computed<LayoutProfile | null>(() => {
     const config = this.config();
-    const activeProfile = config?.availableProfiles?.find((p) => p.code === config.activeProfileCode) ?? config?.availableProfiles?.[0];
-    return activeProfile?.brand ?? null;
+    return (config?.availableProfiles?.find((p) => p.code === config?.activeProfileCode) ?? config?.availableProfiles?.[0]) ?? null;
   });
+
+  readonly brand = computed<LayoutBrand | null>(() => this.activeProfile()?.brand ?? null);
+
+  // Each `?? true`/`?? false` preserves today's unconditional-render behavior when
+  // the backend omits the field, matching the fallback-safe pattern used above.
+  readonly topbarEnabled = computed(() => this.activeProfile()?.topbarEnabled ?? true);
+  readonly sidebarEnabled = computed(() => this.activeProfile()?.sidebarEnabled ?? true);
+  readonly footerEnabled = computed(() => this.activeProfile()?.footerEnabled ?? true);
+  readonly breadcrumbEnabled = computed(() => this.activeProfile()?.breadcrumbEnabled ?? true);
+  /** No command-bar UI exists in this codebase; exposed for completeness, intentionally unconsumed. */
+  readonly commandBarEnabled = computed(() => this.activeProfile()?.commandBarEnabled ?? false);
+  readonly density = computed(() => this.activeProfile()?.density ?? 'COMFORTABLE');
+  readonly rtlEnabled = computed(() => this.activeProfile()?.rtlEnabled ?? false);
 
   constructor() {
     // Backend `sizes` override the final derived dimensions directly (headerHeight,
@@ -84,11 +114,16 @@ export class LayoutConfigService {
         this.setFavicon(faviconUrl);
       }
     });
+
+    effect(() => {
+      const scale = DENSITY_SCALE_MAP[this.density()] ?? 1;
+      document.body.style.setProperty('--layout-density-scale', String(scale));
+    });
   }
 
   apply(config: BackendLayoutConfig | undefined): void {
     if (config) {
-      this.config.set(config);
+      this.applicationContext.setLayoutConfig(config);
     }
   }
 

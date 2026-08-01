@@ -4,7 +4,7 @@ import { BehaviorSubject, switchMap, of, throwError, from, Observable } from 'rx
 import { catchError, map } from 'rxjs/operators';
 import {ActionTypes, ApiEndpoint, ApiService, AuthConfig, AuthResponse, LoginMethod, LoginStatusResponse} from "@nexacore/api-common";
 import {jwtDecode} from "jwt-decode";
-import {LayoutService, SidebarMenuService} from "@nexacore/layout";
+import {ApplicationContextService, LayoutService} from "@nexacore/layout";
 import {Router} from "@angular/router";
 
 
@@ -68,7 +68,7 @@ export class AuthService {
     constructor(private http: HttpClient,
                 private apiService: ApiService,
                 private layoutService: LayoutService,
-                private sidebarMenuService: SidebarMenuService,
+                private applicationContextService: ApplicationContextService,
                 private router: Router,
     ) {
         const token = this.getToken();
@@ -95,11 +95,11 @@ export class AuthService {
                         localStorage.setItem('refreshToken', res.refreshToken || '');
                         localStorage.setItem(LOGIN_METHOD_KEY, 'PASSWORD');
                         this.decodeAndSetUser(res.accessToken);
-                        return this.sidebarMenuService.loadApplicationContext().pipe(
+                        return this.applicationContextService.load().pipe(
                             catchError(error => {
                                 console.error('Application context load failed after login', error);
                                 this.clearApplicationContextStorage();
-                                return of({ menus: [], privilegeCodes: [] });
+                                return of({ privilegeCodes: [] });
                             })
                         );
                     }
@@ -179,7 +179,7 @@ export class AuthService {
                 this.decodeAndSetUser(authResponse.accessToken);
                 this.clearSsoSessionStorage();
 
-                return this.sidebarMenuService.loadApplicationContext().pipe(
+                return this.applicationContextService.load().pipe(
                     map(() => undefined),
                     catchError(error => {
                         console.error('Application context load failed after SSO login', error);
@@ -474,10 +474,6 @@ export class AuthService {
         localStorage.removeItem('clientCode');
         localStorage.removeItem('clientType');
         localStorage.removeItem('privilegeCodes');
-        localStorage.removeItem('enabledModules');
-        localStorage.removeItem('enabledSubmodules');
-        localStorage.removeItem('enabledFeatures');
-        localStorage.removeItem('sidebarMenus');
     }
 
     private clearSsoSessionStorage(): void {

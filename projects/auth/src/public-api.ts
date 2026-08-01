@@ -2,5 +2,8 @@ export * from './lib/auth.guard';
 export * from './lib/auth.routes';
 export * from './lib/auth.service';
 export * from './lib/login.guard';
+export * from './lib/privilege.guard';
+export * from './lib/menu-privilege.guard';
+export * from './lib/has-privilege.directive';
 export * from './lib/login/login.component';
 export * from './lib/sso-callback/sso-callback.component';

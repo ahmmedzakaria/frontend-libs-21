@@ -5,74 +5,51 @@ import { of } from 'rxjs';
 import { describe, expect, it } from 'vitest';
 
 import { RailNavComponent } from './rail-nav.component';
-import { SidebarMenuService, ApplicationContext } from '../../sidebar-menu.service';
+import { ApplicationContext, ApplicationContextService } from '../../application-context.service';
 import { NavModeService } from '../../core/services/nav-mode.service';
+import { BackendLayoutConfig, NavTreeItem } from '../../core/models/layout-config.model';
 
-const FLAT_MENUS = [
-  { label: 'Dashboard', path: '/dashboard', menuOrder: 1 },
+const NAV_TREE: NavTreeItem[] = [
+  { code: 'DASHBOARD', label: 'Dashboard', type: 'feature', route: '/dashboard', privilegeCodes: [], children: [] },
   {
+    code: 'CUSTOMERS',
     label: 'Customers',
-    path: '/customers',
-    menuOrder: 2,
+    type: 'module',
+    route: null,
+    privilegeCodes: [],
     children: [
-      { label: 'List', path: '/customers/list', menuOrder: 1 },
-      { label: 'New', path: '/customers/new', menuOrder: 2 }
+      { code: 'CUSTOMER_LIST', label: 'List', type: 'feature', route: '/customers/list', privilegeCodes: [], children: [] },
+      { code: 'CUSTOMER_CREATE', label: 'New', type: 'feature', route: '/customers/new', privilegeCodes: [], children: [] }
     ]
   }
 ];
 
-function stubSidebarMenuService(context: Partial<ApplicationContext>): Partial<SidebarMenuService> {
+function stubApplicationContextService(
+  navigationMode?: 'MODULE_LIST' | 'MODULE_GROUP_MEGA_PANEL'
+): Partial<ApplicationContextService> {
+  const layout: BackendLayoutConfig = {
+    activeProfileCode: 'DEFAULT',
+    availableProfiles: [{ code: 'DEFAULT', navigationMode, brand: { displayName: '', shortName: '' } }],
+    navTree: NAV_TREE
+  };
+
   return {
-    getCachedSidebarMenu: () => [],
-    getCachedEnabledModules: () => context.enabledModules || [],
-    loadApplicationContext: () =>
+    getCachedLayoutConfig: () => null,
+    load: () =>
       of({
-        menus: context.menus || [],
         privilegeCodes: [],
-        enabledModules: context.enabledModules || [],
-        enabledSubmodules: [],
-        enabledFeatures: []
+        layout
       } as ApplicationContext)
   };
 }
 
 describe('RailNavComponent', () => {
-  it('renders flat (single-click) items when enabledModules is empty', () => {
+  it('defaults to grouped mode and expands depth-0 rows to reveal their children inline', () => {
     TestBed.configureTestingModule({
       providers: [
         provideZonelessChangeDetection(),
         provideRouter([]),
-        { provide: SidebarMenuService, useValue: stubSidebarMenuService({ menus: FLAT_MENUS, enabledModules: [] }) }
-      ]
-    });
-
-    const fixture = TestBed.createComponent(RailNavComponent);
-    fixture.detectChanges();
-    const component = fixture.componentInstance;
-    const navMode = TestBed.inject(NavModeService);
-
-    expect(navMode.grouped()).toBe(false);
-
-    const dashboardModule = component['modules']().find((m) => m.id === 'dashboard')!;
-    const customersModule = component['modules']().find((m) => m.id === 'customers')!;
-
-    // Dashboard has no real children -> should be a direct link, not expandable.
-    expect(component['hasExpandableChildren'](dashboardModule.id)).toBe(false);
-
-    // Customers has 2 real children -> should expand to a flat list (no Operation/Setup/Report categories).
-    expect(component['hasExpandableChildren'](customersModule.id)).toBe(true);
-    expect(component['flatItems'](customersModule.id).map((i) => i.label)).toEqual(['List', 'New']);
-  });
-
-  it('keeps grouped/category behavior when enabledModules is populated', () => {
-    TestBed.configureTestingModule({
-      providers: [
-        provideZonelessChangeDetection(),
-        provideRouter([]),
-        {
-          provide: SidebarMenuService,
-          useValue: stubSidebarMenuService({ menus: FLAT_MENUS, enabledModules: ['compliance'] })
-        }
+        { provide: ApplicationContextService, useValue: stubApplicationContextService() }
       ]
     });
 
@@ -83,7 +60,36 @@ describe('RailNavComponent', () => {
 
     expect(navMode.grouped()).toBe(true);
 
-    const customersModule = component['modules']().find((m) => m.id === 'customers')!;
-    expect(component['hasExpandableChildren'](customersModule.id)).toBe(component['hasCategories'](customersModule.id));
+    const rowsBeforeExpand = component['visibleRows']();
+    expect(rowsBeforeExpand.map((r: any) => r.node.label)).toEqual(['Dashboard', 'Customers']);
+    expect(rowsBeforeExpand[0].isLeaf).toBe(true);
+    expect(rowsBeforeExpand[1].isLeaf).toBe(false);
+
+    // Customers (depth 0, index 1) has real children but no grandchildren, so it
+    // never reaches a depth-2 "Category" row — it degrades to an inline list,
+    // same shallow-tree behavior supported for a 2-3 level backend nav tree.
+    component['onRowClick'](rowsBeforeExpand[1]);
+    const rowsAfterExpand = component['visibleRows']();
+    expect(rowsAfterExpand.map((r: any) => r.node.label)).toEqual(['Dashboard', 'Customers', 'List', 'New']);
+    expect(rowsAfterExpand[2].depth).toBe(1);
+  });
+
+  it('switches to flat mode when the backend navigationMode says so, flattening all descendant leaves', () => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideZonelessChangeDetection(),
+        provideRouter([]),
+        { provide: ApplicationContextService, useValue: stubApplicationContextService('MODULE_LIST') }
+      ]
+    });
+
+    const fixture = TestBed.createComponent(RailNavComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    const navMode = TestBed.inject(NavModeService);
+
+    expect(navMode.grouped()).toBe(false);
+    expect(component['flatItems'](0).map((i: NavTreeItem) => i.label)).toEqual(['Dashboard']);
+    expect(component['flatItems'](1).map((i: NavTreeItem) => i.label)).toEqual(['List', 'New']);
   });
 });

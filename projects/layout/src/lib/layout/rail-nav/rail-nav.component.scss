@@ -64,6 +64,7 @@
 }
 
 .module-row {
+  box-sizing: border-box;
   width: var(--layout-full-size);
   height: var(--layout-control-rail-row);
   display: flex;
@@ -135,6 +136,7 @@
 }
 
 .child-row {
+  box-sizing: border-box;
   width: var(--layout-full-size);
   border: none;
   background: var(--layout-transparent-color);
@@ -170,37 +172,98 @@
   opacity: 1;
 }
 
-// Flyout panel content, rendered into the CDK overlay pane
-::ng-deep .rail-flyout {
-  background: var(--card);
-  border-radius: 0 var(--radius) var(--radius) 0;
-  box-shadow: var(--shadow);
-  width: var(--layout-nav-flyout-width);
-  overflow: auto;
-  max-height: calc(var(--layout-viewport-height) - var(--layout-header-height) - var(--layout-space-4));
+// Grouped-mode rows (Module Group/Module inline rows + Category mega-panel
+// trigger), depth-indented. Shares `.module-row`'s visual language above —
+// same control height/hover/active treatment — but supports 3 depths and a
+// non-button (div) element for the Category row, since it needs hover as well
+// as click/keyboard activation.
+.row {
+  box-sizing: border-box;
+  width: var(--layout-full-size);
+  height: var(--layout-control-rail-row);
+  display: flex;
+  align-items: center;
+  gap: var(--layout-space-2);
+  padding-inline: var(--layout-space-25);
+  border: none;
+  border-inline-start: var(--layout-border-width-accent) solid var(--layout-transparent-color);
+  background: var(--layout-transparent-color);
+  cursor: pointer;
+  white-space: nowrap;
+  color: var(--layout-nav-item-color);
+  font-family: inherit;
 
-  .cat {
-    padding: var(--layout-space-3) var(--layout-space-4) var(--layout-space-15);
-    font-size: var(--layout-font-size-sm);
-    text-transform: uppercase;
-    color: var(--text-muted);
-    font-weight: var(--layout-font-weight-semibold);
+  .arrow,
+  .arrow-spacer {
+    width: var(--layout-control-sm);
+    flex-shrink: 0;
   }
-  .item {
-    display: block;
-    width: var(--layout-full-size);
-    text-align: start;
-    padding: var(--layout-space-25) var(--layout-space-4);
-    font-size: var(--layout-font-size-base);
-    color: var(--text);
-    border: none;
-    background: var(--layout-transparent-color);
-    cursor: pointer;
-    font-family: inherit;
+  .arrow {
+    display: flex;
+    color: var(--chrome-text-muted);
 
-    &:hover {
-      background: var(--surface-2);
+    svg {
+      transition: transform var(--layout-transition-base) var(--layout-transition-emphasized);
+    }
+  }
+  &.open .arrow svg {
+    transform: rotate(90deg);
+  }
+  .lbl {
+    font-size: var(--layout-font-size-base);
+    font-weight: var(--layout-font-weight-medium);
+    opacity: 0;
+    transition: opacity var(--layout-transition-fast);
+  }
+  &:hover {
+    background: var(--layout-nav-item-hover-bg);
+    color: var(--chrome-text);
+  }
+  &.open,
+  &.active {
+    background: var(--layout-nav-item-active-bg);
+    color: var(--chrome-text);
+    border-inline-start-color: var(--accent);
+
+    .arrow {
       color: var(--accent);
     }
+  }
+}
+.rail.exp .row .lbl {
+  opacity: 1;
+}
+
+.row.lvl-1 {
+  padding-inline-start: var(--layout-control-2xl);
+  font-size: var(--layout-font-size-md);
+}
+.row.lvl-2 {
+  padding-inline-start: calc(var(--layout-control-2xl) + var(--layout-space-4));
+  font-size: var(--layout-font-size-md);
+}
+
+// Mobile/tablet mega-panel presentation — see rail-nav.component.html's
+// `@else if (megaPanel.content())` branch. These wrap `<app-mega-panel>`
+// (a separate component), so they're styled here rather than in
+// mega-panel.component.scss, which only covers that component's own template.
+.mega-panel-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: color-mix(in srgb, black 45%, transparent);
+}
+
+.mega-panel-sheet {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 1001;
+  max-height: 80vh;
+
+  ::ng-deep .mega-panel {
+    width: 100%;
+    max-height: 80vh;
+    border-radius: var(--radius) var(--radius) 0 0;
   }
 }
