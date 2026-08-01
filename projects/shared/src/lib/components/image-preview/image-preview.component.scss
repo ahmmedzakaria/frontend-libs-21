@@ -31,6 +31,16 @@
   }
 }
 
+.thumb-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-2);
+  color: var(--text-muted);
+  min-width: 3rem;
+  min-height: 3rem;
+}
+
 .hint {
   font-size: var(--layout-font-size-xs);
   color: var(--text-muted);

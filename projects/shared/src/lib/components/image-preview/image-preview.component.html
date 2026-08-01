@@ -7,15 +7,26 @@
     (click)="openViewer()"
     [attr.aria-label]="title()"
   >
-    <img
-      [src]="currentSrc()"
-      [alt]="alt()"
-      class="thumb"
-      [class.circle]="shape() === 'circle'"
-      [attr.width]="width()"
-      [attr.height]="height()"
-      (error)="onImageError()"
-    />
+    @if (hasImage()) {
+      <img
+        [src]="src()"
+        [alt]="alt()"
+        class="thumb"
+        [class.circle]="shape() === 'circle'"
+        [attr.width]="width()"
+        [attr.height]="height()"
+        (error)="onImageError()"
+      />
+    } @else {
+      <span
+        class="thumb thumb-fallback"
+        [class.circle]="shape() === 'circle'"
+        [style.width.px]="width()"
+        [style.height.px]="height()"
+      >
+        <app-icon [name]="fallbackIcon()" [size]="iconFallbackSize()" />
+      </span>
+    }
   </button>
 
   @if (previewOnClick() && hint()) {
@@ -45,7 +56,7 @@
           </button>
         </div>
         <div class="viewer-body">
-          <img [src]="currentSrc()" [alt]="alt()" class="viewer-image" (error)="onImageError()" />
+          <img [src]="src()" [alt]="alt()" class="viewer-image" (error)="onImageError()" />
         </div>
       </div>
     </div>

@@ -13,7 +13,7 @@ export type ImagePreviewShape = 'circle' | 'square';
 })
 export class ImagePreviewComponent {
     readonly src = input('');
-    readonly fallbackSrc = input('assets/default-avatar.svg');
+    readonly fallbackIcon = input('user');
     readonly alt = input('Preview image');
     readonly title = input('Image Preview');
     readonly subtitle = input('');
@@ -27,9 +27,12 @@ export class ImagePreviewComponent {
     protected readonly imgErrored = signal(false);
     protected readonly viewerOpen = signal(false);
 
-    protected readonly currentSrc = computed(() =>
-        this.imgErrored() || !this.src() ? this.fallbackSrc() : this.src()
-    );
+    protected readonly hasImage = computed(() => !!this.src() && !this.imgErrored());
+    /** Scale the fallback icon with the thumbnail so it isn't a tiny mark inside a large avatar box. */
+    protected readonly iconFallbackSize = computed(() => {
+        const box = Math.min(this.width() ?? 48, this.height() ?? 48);
+        return Math.round(box * 0.5);
+    });
 
     constructor() {
         // A new `src` (e.g. navigating to a different record) deserves a fresh
@@ -45,7 +48,7 @@ export class ImagePreviewComponent {
     }
 
     openViewer(): void {
-        if (!this.previewOnClick() || this.disabled() || this.currentSrc() === this.fallbackSrc()) {
+        if (!this.previewOnClick() || this.disabled() || !this.hasImage()) {
             return;
         }
         this.viewerOpen.set(true);
