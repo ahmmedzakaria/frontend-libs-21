@@ -1,0 +1,126 @@
+@use '../../styles/tokens';
+
+// One-off layout widths specific to this component — named rather than bare
+// literals, but not promoted to global tokens since nothing else reuses them.
+$panel-width-desktop: 790px;
+// How much of the viewport a fixed rail (collapsed/expanded) plus its gutter
+// needs to clear, so the panel's desktop width formula doesn't run off-screen.
+$rail-clearance-desktop: 330px;
+$context-column-width: 180px;
+$feature-column-min-width: 165px;
+$context-art-size: 56px;
+// Beyond `--layout-space-5`, the shared scale (in _tokens.scss) doesn't define
+// a step — same `size-unit * N` formula, just not promoted to a global token
+// since nothing else reuses these particular multiples.
+$space-7: calc(var(--layout-size-unit) * 7);
+$space-8: calc(var(--layout-size-unit) * 8);
+$space-10: calc(var(--layout-size-unit) * 10);
+$space-11: calc(var(--layout-size-unit) * 11);
+$space-13: calc(var(--layout-size-unit) * 13);
+$space-16: calc(var(--layout-size-unit) * 16);
+
+.mega-panel {
+  background: var(--card);
+  border: var(--layout-border-width) solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  width: min(#{$panel-width-desktop}, calc(100vw - #{$rail-clearance-desktop}));
+  max-height: 92vh;
+  overflow-y: auto;
+  padding: #{$space-11};
+}
+
+.mega-layout {
+  display: grid;
+  grid-template-columns: #{$context-column-width} minmax(0, 1fr);
+  gap: #{$space-11};
+  align-items: start;
+}
+
+@media (max-width: tokens.$breakpoint-mobile) {
+  .mega-panel {
+    width: calc(100vw - #{$space-8});
+    max-height: 80vh;
+    padding: #{$space-8};
+  }
+
+  .mega-layout {
+    grid-template-columns: 1fr;
+    gap: #{$space-8};
+  }
+
+  .mega-context {
+    border-inline-end: none;
+    border-bottom: var(--layout-border-width) solid var(--border);
+    padding-inline-end: 0;
+    padding-bottom: #{$space-8};
+    display: flex;
+    align-items: center;
+    gap: var(--layout-space-4);
+  }
+
+  .mega-context-art {
+    width: calc(#{$context-art-size} * 0.7);
+    height: calc(#{$context-art-size} * 0.7);
+    margin-bottom: 0;
+  }
+}
+
+.mega-context {
+  border-inline-end: var(--layout-border-width) solid var(--border);
+  padding-inline-end: #{$space-10};
+}
+.mega-context-art {
+  width: #{$context-art-size};
+  height: #{$context-art-size};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: var(--radius);
+  margin-bottom: #{$space-8};
+}
+.mega-context-title {
+  font-size: var(--layout-font-size-base);
+  font-weight: var(--layout-font-weight-bold);
+  color: var(--text);
+}
+
+.mega-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(#{$feature-column-min-width}, 1fr));
+  gap: #{$space-11} #{$space-13};
+  align-content: start;
+}
+.mega-list-title {
+  font-size: var(--layout-font-size-base);
+  font-weight: var(--layout-font-weight-bold);
+  color: var(--text);
+  margin-bottom: var(--layout-space-5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mega-subitem {
+  min-height: #{$space-16};
+  display: flex;
+  align-items: center;
+  padding: var(--layout-space-4) var(--layout-space-5);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-size: var(--layout-font-size-base);
+  cursor: pointer;
+
+  &:hover,
+  &.active {
+    background: var(--surface-2);
+    color: var(--text);
+  }
+}
+
+.nav-empty {
+  padding: #{$space-7};
+  color: var(--text-muted);
+  font-size: var(--layout-font-size-sm);
+}

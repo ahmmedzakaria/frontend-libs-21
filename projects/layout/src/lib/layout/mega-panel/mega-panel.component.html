@@ -1,0 +1,34 @@
+@if (panel.content(); as content) {
+  <div class="mega-panel" (mouseenter)="onEnter()" (mouseleave)="onLeave()">
+    <div class="mega-layout">
+      <div class="mega-context">
+        <div class="mega-context-art">
+          <app-icon [name]="content.groupIcon" [size]="28" />
+        </div>
+        <div class="mega-context-title">{{ content.title }}</div>
+      </div>
+
+      <div class="mega-grid">
+        @if (content.featureGroups.length) {
+          @for (fg of content.featureGroups; track fg.label; let gi = $index) {
+            <div class="mega-list">
+              <div class="mega-list-title">{{ fg.label }}</div>
+              @for (f of fg.children; track f.code; let fi = $index) {
+                <div
+                  class="mega-subitem focus-ring"
+                  tabindex="0"
+                  (click)="selectFeature(content.path, gi, fi, f)"
+                  (keydown.enter)="selectFeature(content.path, gi, fi, f)"
+                >
+                  {{ f.label }}
+                </div>
+              }
+            </div>
+          }
+        } @else {
+          <div class="nav-empty">No items configured</div>
+        }
+      </div>
+    </div>
+  </div>
+}
