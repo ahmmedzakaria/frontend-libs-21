@@ -161,18 +161,17 @@
 
     <!-- Profile -->
     <app-header-dropdown id="profile">
-      <button trigger type="button" class="avatar focus-ring" (click)="menu.toggle('profile')">AO</button>
+      <button trigger type="button" class="avatar focus-ring" (click)="menu.toggle('profile')">{{ userInitials() }}</button>
       <ng-container panel>
         <div class="dd-head">Signed in as</div>
-        <div class="opt static"><b>Amina Osei</b></div>
-        <div class="opt static muted">Compliance Officer</div>
+        <div class="opt static"><b>{{ currentUser()?.username || 'Unknown user' }}</b></div>
+        @if (currentUser()?.role) {
+          <div class="opt static muted">{{ currentUser()!.role }}</div>
+        }
         <div class="opt" (click)="menu.close()">View Profile</div>
         <div class="opt" (click)="menu.close()">Account Settings</div>
+        <div class="opt" (click)="logout()">{{ 'header.logout' | transloco }}</div>
       </ng-container>
     </app-header-dropdown>
-
-    <button type="button" class="hdr-btn focus-ring" [attr.aria-label]="'header.logout' | transloco" (click)="logout()">
-      <app-icon name="logout" />
-    </button>
   </div>
 </header>

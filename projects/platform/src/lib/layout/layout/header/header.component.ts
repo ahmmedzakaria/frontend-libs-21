@@ -51,6 +51,17 @@ export class HeaderComponent {
   /** Reset whenever the brand changes, so a new backend logo gets a fresh attempt. */
   protected readonly logoFailed = signal(false);
 
+  protected readonly currentUser = computed(() => this.layoutService.currentUser());
+  protected readonly userInitials = computed(() => {
+    const username = this.currentUser()?.username;
+    if (!username) {
+      return '??';
+    }
+    const parts = username.split(/[.\s_-]+/).filter(Boolean);
+    const initials = parts.length > 1 ? parts[0][0] + parts[1][0] : username.slice(0, 2);
+    return initials.toUpperCase();
+  });
+
   protected readonly searchTypes = SEARCH_TYPES;
   protected readonly searchType = signal<(typeof SEARCH_TYPES)[number]>('Customer Name');
   protected readonly searchQuery = signal('');

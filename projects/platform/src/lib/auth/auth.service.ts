@@ -490,6 +490,10 @@ export class AuthService {
         );
     }
 
+    getCurrentUserRoles(): string[] {
+        return this.currentUserSubject.value?.roles ?? [];
+    }
+
     getCurrentUsername(): string | null {
         if (this.currentUserSubject.value?.sub) {
             return this.currentUserSubject.value.sub;

@@ -2,6 +2,11 @@ import { Injectable, signal, computed } from '@angular/core';
 
 export type LayoutType = 'default' | 'compact' | 'horizontal';
 
+export interface CurrentUser {
+    username: string;
+    role?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class LayoutService {
     private _layout = signal({
@@ -12,9 +17,15 @@ export class LayoutService {
     private logoutHandler: (() => void) | null = null;
 
     private _layoutType = signal<LayoutType>('default');
+    private _currentUser = signal<CurrentUser | null>(null);
 
     layout = computed(() => this._layout());
     layoutType = computed(() => this._layoutType());
+    currentUser = computed(() => this._currentUser());
+
+    setCurrentUser(user: CurrentUser | null): void {
+        this._currentUser.set(user);
+    }
 
     toggleSidebar(): void {
         this._layout.update(cfg => ({ ...cfg, collapsed: !cfg.collapsed }));
@@ -54,5 +65,6 @@ export class LayoutService {
             showTopbar: false,
             collapsed: false
         });
+        this._currentUser.set(null);
     }
 }
