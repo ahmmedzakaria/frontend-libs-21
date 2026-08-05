@@ -3,6 +3,15 @@
 All notable changes to `@nexacore/platform` are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.2.0] - 2026-08-05
+
+Split `lib/shared/` back out into its own `@nexacore/shared` package — see
+`../shared/CHANGELOG.md` for why. `@nexacore/platform` now contains
+`lib/api-common`, `lib/layout`, and `lib/auth` only. No public API changes to
+the symbols that remain here; `IconComponent`/the icon registry stay in
+`lib/layout` and are now consumed by `@nexacore/shared` as a `peerDependency`
+back onto this package.
+
 ## [0.1.0] - 2026-08-05
 
 Merged the four previously-separate packages — `@nexacore/api-common`,
@@ -52,33 +61,6 @@ directly into `src/lib/*`, with no independent build, version, or tests.
   `ApiService.resolveBasePath()` or anywhere else.
 - First test coverage for this package: `api.service.spec.ts` verifies both
   the `API_ENVIRONMENT` default-factory fallback and an app-provided override.
-
-## `shared` history
-
-### [0.1.0] - 2026-07-30
-
-Initial extraction into a real `ng-packagr` Angular library — previously this
-was raw TypeScript source consumed by `kyc-frontend-21` via a path alias
-directly into `src/lib/*`, with no independent build, version, or tests.
-
-- **Breaking**: `KycFormComponent` no longer injects `kyc-frontend-21`'s own
-  `KycService` and no longer calls any backend endpoint itself — it was a
-  hard dependency on an app-specific service that made this component
-  impossible to package standalone. It now builds the `FormData` payload and
-  emits it via a new `formSubmitted` output; the consuming app owns the
-  actual create/update call and its own success handling. The old `saved`
-  output is gone.
-- `KycTableComponent` and `KycFormComponent` now import their `Kyc` type from
-  this package's own `models/kyc.model.ts` instead of reaching into
-  `kyc-frontend-21`'s `@app-core/services/kyc.service` — a shared library
-  must not depend on a specific consuming app's internals.
-- Consumers that reached past this package's public API into internal file
-  paths (e.g. `@nexacore/shared/i18n/translate.pipe`) will need to import
-  from `@nexacore/shared` directly instead — that only ever worked via a
-  wildcard path alias that a real published package doesn't expose.
-- `Kyc` model, exported from the public API — the single source of truth
-  `kyc-frontend-21`'s own `core/services/kyc.service.ts` now re-exports
-  rather than duplicating.
 
 ## `layout` history
 

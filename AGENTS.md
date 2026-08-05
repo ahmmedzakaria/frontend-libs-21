@@ -7,35 +7,47 @@ This guide applies to shared Angular source libraries under
 
 ## Project Shape
 
-- A single Angular 21-compatible source library, `platform`, built with
-  `ng-packagr` and consumed by sibling Angular applications as the
-  `@nexacore/platform` package (a `file:` dependency resolving to
-  `dist/platform`). Originally shipped as four separate packages
-  (`api-common`, `auth`, `layout`, `shared`); merged into one in
-  `platform/CHANGELOG.md`'s `[0.1.0] - 2026-08-05` entry — their dependency
-  graph was already fully linear and they were always installed/rebuilt
-  together, so separate packages only added rebuild/versioning overhead with
-  no real "install only what you need" payoff.
-- The published entry point is `projects/platform/src/public-api.ts`, which
-  re-exports four subfolder barrels under `projects/platform/src/lib/`, one
-  per origin concern (internal organization only — not separately
-  installable):
-  - `api-common/`: API service, interceptors, response models, notification
-    abstraction
-  - `auth/`: login component, auth service, route guards, SSO callback routes
-  - `layout/`: Angular 21 shell, header, rail navigation, mega panel, status
-    bar, theme and direction state, SVG icon registry
-  - `shared/`: reusable form controls (Tier 1 CVA components), list/data
-    composites (`DataTable`, `FilterBar`, `SearchToolbar`, `Pagination`,
-    `ExportButton`), workflow composites (`Wizard`, `WizardStep`, `Stepper`,
-    `ApprovalActions`, `ActivityFeed`), feedback primitives (`Pill`,
-    `StatusBadge`, `EmptyState`, `Modal`, `ConfirmDialog`), image preview,
-    validation UI
-  - Cross-subfolder references inside `platform` are plain relative imports
-    (e.g. `shared`'s components import `IconComponent` via
-    `'../../../layout/index'`) — there is no package boundary between them
-    anymore, so no peer-dependency bookkeeping is needed for internal use.
+- Two Angular 21-compatible source libraries, both built with `ng-packagr`
+  and consumed by sibling Angular applications as `file:` dependencies
+  resolving to `dist/platform` / `dist/shared`:
+  - `platform` (`@nexacore/platform`) — API infrastructure, the layout shell,
+    and authentication. Entry point `projects/platform/src/public-api.ts`
+    re-exports three subfolder barrels under `projects/platform/src/lib/`
+    (internal organization only — not separately installable):
+    - `api-common/`: API service, interceptors, response models, notification
+      abstraction
+    - `auth/`: login component, auth service, route guards, SSO callback
+      routes
+    - `layout/`: Angular 21 shell, header, rail navigation, mega panel,
+      status bar, theme and direction state, SVG icon registry
+    - Cross-subfolder references inside `platform` are plain relative
+      imports (e.g. `auth`'s `login.component.ts` imports from
+      `'../../layout/index'`) — no peer-dependency bookkeeping needed for
+      internal use within this one package.
+  - `shared` (`@nexacore/shared`) — reusable UI components: form controls
+    (Tier 1 CVA components), list/data composites (`DataTable`, `FilterBar`,
+    `SearchToolbar`, `Pagination`, `ExportButton`), workflow composites
+    (`Wizard`, `WizardStep`, `Stepper`, `ApprovalActions`, `ActivityFeed`),
+    feedback primitives (`Pill`, `StatusBadge`, `EmptyState`, `Modal`,
+    `ConfirmDialog`), image preview, validation UI. Entry point
+    `projects/shared/src/public-api.ts`. Depends on `@nexacore/platform`
+    (`peerDependency`) for `IconComponent`/the icon registry only — the one
+    real cross-package dependency, confirmed one-directional (`platform`
+    imports nothing from `shared`).
+  - These two packages were briefly merged into one (along with the other two
+    original packages, `api-common`/`auth`), then `shared` was split back out
+    — see `platform/CHANGELOG.md`'s `[0.2.0]` entry and `shared/CHANGELOG.md`
+    for why: keeping `shared`'s heavy Tier 1-6 component code out of
+    `platform`'s eagerly-loaded entry points (interceptors, `authGuard`,
+    `AUTH_ROUTES`) measurably shrank consuming apps' initial bundle, since a
+    single merged FESM file doesn't tree-shake per-symbol as reliably as a
+    real file-level package boundary does.
   - `assets-common`: app-neutral static assets
+  - Building `shared` requires `platform` to be built first — `shared`'s
+    package.json peer-depends on `@nexacore/platform`, resolved via this
+    repo's own root `package.json` `file:./dist/platform` self-dependency
+    (refresh with `npm install` after building `platform`, before building
+    `shared`).
 
 ## Repository Boundary
 
@@ -48,9 +60,15 @@ This guide applies to shared Angular source libraries under
 
 ## Dependency Direction
 
-- Angular apps depend on the single `@nexacore/platform` package.
-- `platform` must not import app-only modules from `kyc-frontend-21/src`.
-- Avoid `@app-core/*` in `platform`.
+- Angular apps depend on `@nexacore/platform` and, when they need form
+  controls or list/workflow UI, `@nexacore/shared`.
+- `shared` may depend on `platform` (currently just `IconComponent`/the icon
+  registry); `platform` must never import from `shared` — that would
+  reintroduce the eager-bundle regression the split fixed. Verify with
+  `grep -rn "@nexacore/shared" projects/platform/src` before adding any new
+  cross-package reference.
+- Neither package may import app-only modules from `kyc-frontend-21/src`.
+- Avoid `@app-core/*` in either package.
 - Keep auth, layout, i18n, and API abstractions generic enough for future
   Angular 21 apps.
 
@@ -67,16 +85,19 @@ This guide applies to shared Angular source libraries under
 
 ## Component Conventions
 
-- All form controls in `lib/shared/` extend the abstract
-  `BaseValueAccessor<T>` (`lib/shared/components/base/base-value-accessor.ts`),
-  which implements `ControlValueAccessor` once so individual components don't
+- All form controls in `shared` (`projects/shared/src/lib/components/`)
+  extend the abstract `BaseValueAccessor<T>`
+  (`projects/shared/src/lib/components/base/base-value-accessor.ts`), which
+  implements `ControlValueAccessor` once so individual components don't
   hand-roll it.
 - Use signal-based `input()`/`output()`/`computed()`/`effect()` — not decorator
   `@Input()`/`@Output()` — and prefer `inject()` over constructor injection.
 - Style field-shaped components (label, container, error state) with the
-  shared `_field-shell.scss` mixin (`lib/shared/styles/_field-shell.scss`)
-  layered on top of `lib/layout/styles/_tokens.scss` custom properties. No raw
-  hex, px, or `rgba()` literals in component styles.
+  `_field-shell.scss` mixin (`projects/shared/src/lib/styles/_field-shell.scss`)
+  layered on top of `platform`'s `lib/layout/styles/_tokens.scss` custom
+  properties (consumed as plain CSS custom properties at runtime by whichever
+  app loads `layout`'s tokens globally — no build-time SCSS coupling between
+  the two packages). No raw hex, px, or `rgba()` literals in component styles.
 - Anchored floating UI (dropdowns, date pickers, smart dropdowns) uses CDK
   `Overlay` + `a11y`, not hand-rolled `@HostListener('document:click')`
   listeners. Centered, non-anchored overlays (lightboxes, modals) may use
@@ -118,9 +139,11 @@ This guide applies to shared Angular source libraries under
 
 ## Public API Rules
 
-- Export new shared services, models, components, guards, pipes, and routes from
-  the relevant `lib/<concern>/index.ts`, which the top-level
-  `src/public-api.ts` re-exports.
+- In `platform`, export new services, models, components, guards, pipes, and
+  routes from the relevant `lib/<concern>/index.ts`, which the top-level
+  `src/public-api.ts` re-exports. In `shared`, export new components/services
+  directly from the top-level `src/public-api.ts` (no sub-barrels — it's a
+  single concern).
 - Preserve public names where possible. If a rename is necessary, update
   consuming apps in the same change.
 - Prefer typed models and narrow service contracts over untyped objects or
@@ -128,10 +151,20 @@ This guide applies to shared Angular source libraries under
 
 ## Testing And Verification
 
+- After editing `platform`, rebuild it before rebuilding `shared` (`shared`
+  resolves `@nexacore/platform` via this repo's own `node_modules` symlink):
+
+```bash
+npx ng build platform
+npm install
+npx ng build shared
+```
+
 - Verify shared-library changes from the consuming Angular 21 app:
 
 ```bash
 cd ../kyc-frontend-21
+npm install
 npm run build
 ```
 
