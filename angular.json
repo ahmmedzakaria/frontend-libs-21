@@ -6,20 +6,20 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "api-common": {
+    "platform": {
       "projectType": "library",
-      "root": "projects/api-common",
-      "sourceRoot": "projects/api-common/src",
+      "root": "projects/platform",
+      "sourceRoot": "projects/platform/src",
       "prefix": "lib",
       "architect": {
         "build": {
           "builder": "@angular/build:ng-packagr",
           "configurations": {
             "production": {
-              "tsConfig": "projects/api-common/tsconfig.lib.prod.json"
+              "tsConfig": "projects/platform/tsconfig.lib.prod.json"
             },
             "development": {
-              "tsConfig": "projects/api-common/tsconfig.lib.json"
+              "tsConfig": "projects/platform/tsconfig.lib.json"
             }
           },
           "defaultConfiguration": "production"
@@ -27,85 +27,7 @@
         "test": {
           "builder": "@angular/build:unit-test",
           "options": {
-            "tsConfig": "projects/api-common/tsconfig.spec.json"
-          }
-        }
-      }
-    },
-    "shared": {
-      "projectType": "library",
-      "root": "projects/shared",
-      "sourceRoot": "projects/shared/src",
-      "prefix": "lib",
-      "architect": {
-        "build": {
-          "builder": "@angular/build:ng-packagr",
-          "configurations": {
-            "production": {
-              "tsConfig": "projects/shared/tsconfig.lib.prod.json"
-            },
-            "development": {
-              "tsConfig": "projects/shared/tsconfig.lib.json"
-            }
-          },
-          "defaultConfiguration": "production"
-        },
-        "test": {
-          "builder": "@angular/build:unit-test",
-          "options": {
-            "tsConfig": "projects/shared/tsconfig.spec.json"
-          }
-        }
-      }
-    },
-    "layout": {
-      "projectType": "library",
-      "root": "projects/layout",
-      "sourceRoot": "projects/layout/src",
-      "prefix": "lib",
-      "architect": {
-        "build": {
-          "builder": "@angular/build:ng-packagr",
-          "configurations": {
-            "production": {
-              "tsConfig": "projects/layout/tsconfig.lib.prod.json"
-            },
-            "development": {
-              "tsConfig": "projects/layout/tsconfig.lib.json"
-            }
-          },
-          "defaultConfiguration": "production"
-        },
-        "test": {
-          "builder": "@angular/build:unit-test",
-          "options": {
-            "tsConfig": "projects/layout/tsconfig.spec.json"
-          }
-        }
-      }
-    },
-    "auth": {
-      "projectType": "library",
-      "root": "projects/auth",
-      "sourceRoot": "projects/auth/src",
-      "prefix": "lib",
-      "architect": {
-        "build": {
-          "builder": "@angular/build:ng-packagr",
-          "configurations": {
-            "production": {
-              "tsConfig": "projects/auth/tsconfig.lib.prod.json"
-            },
-            "development": {
-              "tsConfig": "projects/auth/tsconfig.lib.json"
-            }
-          },
-          "defaultConfiguration": "production"
-        },
-        "test": {
-          "builder": "@angular/build:unit-test",
-          "options": {
-            "tsConfig": "projects/auth/tsconfig.spec.json"
+            "tsConfig": "projects/platform/tsconfig.spec.json"
           }
         }
       }
