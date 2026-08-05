@@ -4,6 +4,7 @@
   }
 
   <button
+    #triggerBtn
     type="button"
     class="trigger focus-ring"
     cdkOverlayOrigin
@@ -31,6 +32,7 @@
   cdkConnectedOverlay
   [cdkConnectedOverlayOrigin]="origin"
   [cdkConnectedOverlayOpen]="open()"
+  [cdkConnectedOverlayWidth]="triggerWidth()"
   [cdkConnectedOverlayHasBackdrop]="true"
   cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
   [cdkConnectedOverlayPositions]="[
@@ -39,11 +41,13 @@
   ]"
   (backdropClick)="close()"
   (detach)="close()"
+  (attach)="onOverlayAttach()"
 >
   <div class="dropdown-panel">
     @if (searchable()) {
       <div class="search-row">
         <input
+          #searchInput
           type="text"
           [placeholder]="searchPlaceholder()"
           [value]="query()"

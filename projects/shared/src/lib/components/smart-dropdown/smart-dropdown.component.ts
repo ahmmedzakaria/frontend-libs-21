@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, input, signal, viewChild } from '@angular/core';
 import { NG_VALIDATORS, NG_VALUE_ACCESSOR, ValidationErrors, Validator } from '@angular/forms';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -61,6 +61,13 @@ export class SmartDropdownComponent<T = string> extends BaseValueAccessor<T> imp
     protected readonly loadingMore = signal(false);
     protected readonly activeIndex = signal(-1);
     protected readonly selectedLabel = signal<string | null>(null);
+    /** Matched to the trigger's live width right before opening, so the
+     * overlay panel lines up with its parent field instead of falling back
+     * to `$panel-min-width`. */
+    protected readonly triggerWidth = signal(0);
+
+    private readonly triggerButton = viewChild<ElementRef<HTMLButtonElement>>('triggerBtn');
+    private readonly searchInput = viewChild<ElementRef<HTMLInputElement>>('searchInput');
 
     private readonly page = signal(0);
     private readonly hasMore = signal(false);
@@ -128,15 +135,26 @@ export class SmartDropdownComponent<T = string> extends BaseValueAccessor<T> imp
         if (this.disabled()) {
             return;
         }
-        this.open.update((v) => !v);
         if (this.open()) {
+            this.open.set(false);
+            this.markTouched();
+            return;
+        }
+
+        this.triggerWidth.set(this.triggerButton()?.nativeElement.getBoundingClientRect().width ?? 0);
+        // Deferred one microtask so the `cdkConnectedOverlayWidth` binding
+        // reaches the CDK directive's input on its own change-detection pass
+        // before the overlay actually attaches — opening in the same tick as
+        // the width write let the overlay attach with the old (initial 0)
+        // width on the very first open, falling back to the panel's CSS
+        // `min-width` instead of matching the trigger.
+        queueMicrotask(() => {
+            this.open.set(true);
             this.query.set('');
             if (this.mode() !== 'static') {
                 this.search$.next('');
             }
-        } else {
-            this.markTouched();
-        }
+        });
     }
 
     close(): void {
@@ -145,6 +163,12 @@ export class SmartDropdownComponent<T = string> extends BaseValueAccessor<T> imp
         }
         this.open.set(false);
         this.markTouched();
+    }
+
+    /** Bound to the overlay's `(attach)` output — fires once the panel is in
+     * the DOM, the right moment to move focus into the search box. */
+    onOverlayAttach(): void {
+        this.searchInput()?.nativeElement.focus();
     }
 
     onQueryInput(event: Event): void {

@@ -67,6 +67,7 @@ $panel-max-height: 260px;
 }
 
 .dropdown-panel {
+  width: 100%;
   min-width: #{$panel-min-width};
   max-height: #{$panel-max-height};
   display: flex;
