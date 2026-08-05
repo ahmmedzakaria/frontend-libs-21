@@ -86,6 +86,12 @@ $space-16: calc(var(--layout-size-unit) * 16);
   font-weight: var(--layout-font-weight-bold);
   color: var(--text);
 }
+.mega-context-desc {
+  margin: #{$space-7} 0 0;
+  font-size: var(--layout-font-size-sm);
+  line-height: 1.4;
+  color: var(--text-muted);
+}
 
 .mega-grid {
   display: grid;

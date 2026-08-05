@@ -5,6 +5,12 @@ export interface NavTreeItem {
   label: string;
   type: 'group' | 'module' | 'category' | 'featureGroup' | 'feature';
   icon?: string;
+  /** Populated only on `type: 'group'` nodes; null everywhere else. */
+  moduleGroupIconName?: string | null;
+  /** Populated only on `type: 'module'` nodes; null everywhere else. */
+  moduleIconName?: string | null;
+  /** Context blurb, currently populated on `type: 'module'` nodes only. */
+  description?: string | null;
   route?: string | null;
   privilegeCodes: string[];
   children: NavTreeItem[];

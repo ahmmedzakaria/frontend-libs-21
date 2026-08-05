@@ -59,5 +59,6 @@ export const ICONS: Record<string, string> = {
   upload: '<path d="M12 16V4M8 8l4-4 4 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3" stroke-linecap="round" stroke-linejoin="round"/>',
   user: '<circle cx="12" cy="8" r="4"/><path d="M4 20c1-4.5 4-6.5 8-6.5s7 2 8 6.5" stroke-linecap="round" stroke-linejoin="round"/>',
   'user-plus': '<circle cx="10" cy="8" r="4"/><path d="M2.5 20c1-4.2 3.8-6 7.5-6s6.5 1.8 7.5 6" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 8v6M16 11h6" stroke-linecap="round"/>',
-  'user-shield': '<circle cx="9" cy="8" r="4"/><path d="M2 20c.8-3.8 3.2-5.7 7-5.7" stroke-linecap="round"/><path d="M18 12l4 1.5v3.2c0 2.5-1.7 4-4 4.8-2.3-.8-4-2.3-4-4.8v-3.2z" stroke-linejoin="round"/>'
+  'user-shield': '<circle cx="9" cy="8" r="4"/><path d="M2 20c.8-3.8 3.2-5.7 7-5.7" stroke-linecap="round"/><path d="M18 12l4 1.5v3.2c0 2.5-1.7 4-4 4.8-2.3-.8-4-2.3-4-4.8v-3.2z" stroke-linejoin="round"/>',
+  'shield-check': '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" stroke-linejoin="round"/><path d="M8.5 12l2.3 2.3L15.5 9.5" stroke-linecap="round" stroke-linejoin="round"/>'
 };

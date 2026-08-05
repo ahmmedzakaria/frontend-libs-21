@@ -8,6 +8,7 @@ export interface MegaPanelContent {
   path: number[];
   title: string;
   groupIcon: string;
+  description: string | null;
   featureGroups: NavTreeItem[];
 }
 
@@ -18,9 +19,11 @@ export interface MegaPanelContent {
  * depth-2 (Category) node in `NavTreeStateService`'s tree; its `children`
  * (Feature Groups) become the panel's grid columns.
  *
- * Deliberately drops sentinel's hardcoded `MODULE_GROUP_NOTES` context-pane
- * blurb lookup — that's demo copy for sentinel's fictional business domains and
- * has no equivalent backend field here.
+ * `description` now sources from the backend's `NavNodeDto.description`
+ * (currently populated on `type: 'module'` nodes only) — this replaces
+ * sentinel's hardcoded `MODULE_GROUP_NOTES` blurb lookup, which was
+ * deliberately dropped when this service was first ported since no backend
+ * field carried a description at the time.
  */
 @Injectable({ providedIn: 'root' })
 export class MegaPanelService {
@@ -68,7 +71,8 @@ export class MegaPanelService {
     return {
       path,
       title: titleSource ? `${titleSource.label} · ${category.label}` : category.label,
-      groupIcon: resolveNavIcon(moduleGroup?.icon, moduleGroup?.label ?? ''),
+      groupIcon: resolveNavIcon(titleSource),
+      description: titleSource?.description ?? null,
       featureGroups: category.children ?? []
     };
   }

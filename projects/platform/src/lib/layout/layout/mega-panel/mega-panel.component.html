@@ -6,6 +6,9 @@
           <app-icon [name]="content.groupIcon" [size]="28" />
         </div>
         <div class="mega-context-title">{{ content.title }}</div>
+        @if (content.description) {
+          <p class="mega-context-desc">{{ content.description }}</p>
+        }
       </div>
 
       <div class="mega-grid">

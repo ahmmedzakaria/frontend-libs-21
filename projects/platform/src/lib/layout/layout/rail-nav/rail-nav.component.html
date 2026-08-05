@@ -26,6 +26,7 @@
             [class]="'row lvl-' + row.depth + ' focus-ring'"
             [class.open]="treeState.isExpanded(row.path)"
             [class.active]="treeState.isActive(row.path)"
+            [attr.title]="row.node.description"
             (click)="onRowClick(row)"
           >
             <span class="arrow">
@@ -33,13 +34,14 @@
                 <app-icon name="chevron-right" [size]="10" />
               }
             </span>
-            <app-icon [name]="resolveNavIcon(row.node.icon, row.node.label)" [size]="row.depth === 0 ? 16 : 15" />
+            <app-icon [name]="resolveNavIcon(row.node)" [size]="row.depth === 0 ? 16 : 15" />
             <span class="lbl">{{ row.node.label }}</span>
           </button>
         } @else {
           <div
             class="row lvl-2"
             [class.active]="treeState.isActive(row.path)"
+            [attr.title]="row.node.description"
             cdkOverlayOrigin
             #catOrigin="cdkOverlayOrigin"
             tabindex="0"
@@ -49,7 +51,7 @@
             (keydown.enter)="row.isLeaf ? onRowClick(row) : onCategoryClick(row, catOrigin)"
           >
             <span class="arrow-spacer"></span>
-            <app-icon [name]="resolveNavIcon(row.node.icon, row.node.label)" [size]="13" />
+            <app-icon [name]="resolveNavIcon(row.node)" [size]="13" />
             <span class="lbl">{{ row.node.label }}</span>
           </div>
         }
@@ -61,6 +63,7 @@
             type="button"
             class="module-row focus-ring"
             [class.open]="rail.openModuleId() === (i + '')"
+            [attr.title]="mod.description"
             (click)="toggleFlatModule(i, mod)"
           >
             <span class="arrow">
@@ -68,14 +71,14 @@
                 <app-icon name="chevron-right" [size]="10" />
               }
             </span>
-            <app-icon [name]="resolveNavIcon(mod.icon, mod.label)" [size]="16" />
+            <app-icon [name]="resolveNavIcon(mod)" [size]="16" />
             <span class="lbl">{{ mod.label }}</span>
           </button>
 
           @if (rail.openModuleId() === (i + '') && flatItems(i).length > 1) {
             @for (item of flatItems(i); track item.label + itemRoute(item)) {
               <button type="button" class="child-row focus-ring" (click)="selectFlatItem(i, mod, item)">
-                <app-icon [name]="resolveNavIcon(item.icon, item.label)" [size]="13" />
+                <app-icon [name]="resolveNavIcon(item)" [size]="13" />
                 <span class="lbl">{{ item.label }}</span>
               </button>
             }
