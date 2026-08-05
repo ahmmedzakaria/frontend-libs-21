@@ -100,9 +100,7 @@ export class HeaderComponent {
   }
 
   logout(): void {
-    if (confirm('Log out of Sentinel KYC?')) {
-      this.menu.close();
-      this.layoutService.requestLogout();
-    }
+    this.menu.close();
+    this.layoutService.requestLogout();
   }
 }

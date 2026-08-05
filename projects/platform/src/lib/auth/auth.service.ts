@@ -490,7 +490,7 @@ export class AuthService {
         );
     }
 
-    private getCurrentUsername(): string | null {
+    getCurrentUsername(): string | null {
         if (this.currentUserSubject.value?.sub) {
             return this.currentUserSubject.value.sub;
         }
