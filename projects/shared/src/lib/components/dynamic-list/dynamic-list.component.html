@@ -1,0 +1,85 @@
+<div class="dynamic-list__toolbar">
+  <app-filter-bar class="dynamic-list__filters" [searchTypes]="searchTypes()" [placeholder]="searchPlaceholder()" (searched)="onSearch($event)" />
+  @if (exportColumns(); as exportCols) {
+    <app-export-button [rows]="rows()" [columns]="exportCols" [filename]="exportFilename()" />
+  }
+</div>
+
+@for (column of templatedColumns(); track column.key) {
+  <ng-template #dynTpl let-row>
+    @switch (column.type) {
+      @case ('badge') {
+        @if (column.label?.(row); as label) {
+          <app-status-badge [status]="column.status(row)" [label]="label" />
+        } @else {
+          <app-status-badge [status]="column.status(row)" />
+        }
+      }
+      @case ('pill') {
+        <app-pill [label]="column.label(row)" [tone]="column.tone ? column.tone(row) : 'neutral'" />
+      }
+      @case ('image') {
+        @if (column.src(row); as src) {
+          <app-image-preview
+            [src]="src"
+            [alt]="column.alt ? column.alt(row) : 'Preview image'"
+            [fallbackIcon]="column.fallbackIcon ?? 'user'"
+            [shape]="column.shape ?? 'circle'"
+            [width]="column.size ?? 36"
+            [height]="column.size ?? 36"
+            [previewOnClick]="false"
+            [disabled]="false"
+          />
+        } @else {
+          <span class="dynamic-list__avatar-fallback">
+            <app-icon [name]="column.fallbackIcon ?? 'user'" [size]="18" />
+          </span>
+        }
+      }
+      @case ('actions') {
+        <div class="dynamic-list__row-actions">
+          @for (action of column.actions; track action.label) {
+            @if (action.permissionKey) {
+              <button
+                *appAuthorizedUi="action.permissionKey"
+                type="button"
+                class="dynamic-list__action-btn"
+                [class.danger]="action.danger"
+                [title]="action.label"
+                (click)="$event.stopPropagation(); action.onClick(row, $event)"
+              >
+                <app-icon [name]="action.icon" [size]="14" />
+              </button>
+            } @else {
+              <button
+                type="button"
+                class="dynamic-list__action-btn"
+                [class.danger]="action.danger"
+                [title]="action.label"
+                (click)="$event.stopPropagation(); action.onClick(row, $event)"
+              >
+                <app-icon [name]="action.icon" [size]="14" />
+              </button>
+            }
+          }
+        </div>
+      }
+      @default {
+        {{ column.format ? column.format(row) : '' }}
+      }
+    }
+  </ng-template>
+}
+
+<app-data-table
+  [columns]="tableColumns()"
+  [data]="rows()"
+  [loading]="loading()"
+  [page]="page()"
+  [pageSize]="pageSize()"
+  [total]="total()"
+  [emptyTitle]="emptyTitle()"
+  [emptyMessage]="emptyMessage()"
+  (rowClick)="rowClick.emit($event)"
+  (pageChange)="onPageChange($event)"
+/>
