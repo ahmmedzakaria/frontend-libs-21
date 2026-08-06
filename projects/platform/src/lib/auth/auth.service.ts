@@ -99,7 +99,7 @@ export class AuthService {
                             catchError(error => {
                                 console.error('Application context load failed after login', error);
                                 this.clearApplicationContextStorage();
-                                return of({ privilegeCodes: [] });
+                                return of({ privilegeCodes: [], routePolicies: [], uiPolicies: [] });
                             })
                         );
                     }

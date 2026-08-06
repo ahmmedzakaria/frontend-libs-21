@@ -8,7 +8,21 @@ export interface ApplicationContext {
     clientCode?: string;
     clientType?: string;
     privilegeCodes: string[];
+    routePolicies: RoutePrivilegePolicy[];
+    uiPolicies: UiPrivilegePolicy[];
     layout?: BackendLayoutConfig;
+}
+
+export interface RoutePrivilegePolicy {
+    routeUrl: string;
+    matchMode: 'ANY' | 'ALL';
+    privilegeCodes: string[];
+}
+
+export interface UiPrivilegePolicy {
+    actionCode: string;
+    matchMode: 'ANY' | 'ALL';
+    privilegeCodes: string[];
 }
 
 interface WrappedApplicationContext {
@@ -25,14 +39,20 @@ export class ApplicationContextService {
     /** Reactive copy of the effective layout. Unlike localStorage, this also
      * updates services that were instantiated before login completed. */
     readonly layoutConfig = signal<BackendLayoutConfig | null>(this.readCachedLayoutConfig());
+    readonly routePolicies = signal<RoutePrivilegePolicy[]>(this.readCachedRoutePolicies());
+    readonly uiPolicies = signal<UiPrivilegePolicy[]>(this.readCachedUiPolicies());
 
     /** True once a live `load()` call has completed this session (success or
      * failure) — distinct from `layoutConfig` being non-null, which can just
      * mean a (possibly stale) localStorage cache was seeded synchronously on
      * construction. Guards that need to know "has a real network round-trip
-     * happened yet" (e.g. `menuPrivilegeGuard`'s fail-closed check) should
+     * happened yet" (e.g. `routePrivilegeGuard`'s fail-closed check) should
      * read this instead of inferring readiness from cache presence alone. */
-    readonly loaded = signal(this.readCachedLayoutConfig() !== null);
+    readonly loaded = signal(
+        this.readCachedLayoutConfig() !== null
+        && localStorage.getItem('routePolicies') !== null
+        && localStorage.getItem('uiPolicies') !== null
+    );
 
     private inFlight: Observable<ApplicationContext> | null = null;
 
@@ -45,8 +65,12 @@ export class ApplicationContextService {
                 localStorage.setItem('clientCode', context.clientCode || '');
                 localStorage.setItem('clientType', context.clientType || '');
                 localStorage.setItem('privilegeCodes', JSON.stringify(context.privilegeCodes));
+                localStorage.setItem('routePolicies', JSON.stringify(context.routePolicies));
+                localStorage.setItem('uiPolicies', JSON.stringify(context.uiPolicies));
                 localStorage.setItem('layoutConfig', JSON.stringify(context.layout || null));
                 this.setLayoutConfig(context.layout ?? null);
+                this.routePolicies.set(context.routePolicies);
+                this.uiPolicies.set(context.uiPolicies);
                 this.loaded.set(true);
             })
         );
@@ -73,6 +97,10 @@ export class ApplicationContextService {
         return this.getCachedLayoutConfig()?.navTree ?? [];
     }
 
+    getCachedRoutePolicies(): RoutePrivilegePolicy[] {
+        return this.routePolicies();
+    }
+
     getCachedLayoutConfig(): BackendLayoutConfig | null {
         return this.layoutConfig();
     }
@@ -89,6 +117,10 @@ export class ApplicationContextService {
      */
     clear(): void {
         this.layoutConfig.set(null);
+        this.routePolicies.set([]);
+        this.uiPolicies.set([]);
+        localStorage.removeItem('routePolicies');
+        localStorage.removeItem('uiPolicies');
         this.loaded.set(false);
         this.inFlight = null;
     }
@@ -112,7 +144,35 @@ export class ApplicationContextService {
             clientCode: context?.clientCode || '',
             clientType: context?.clientType || '',
             privilegeCodes: context?.privilegeCodes || [],
+            routePolicies: context?.routePolicies || [],
+            uiPolicies: context?.uiPolicies || [],
             layout: context?.layout,
         };
+    }
+
+    private readCachedRoutePolicies(): RoutePrivilegePolicy[] {
+        const raw = localStorage.getItem('routePolicies');
+        if (!raw) {
+            return [];
+        }
+        try {
+            const policies = JSON.parse(raw);
+            return Array.isArray(policies) ? policies as RoutePrivilegePolicy[] : [];
+        } catch {
+            return [];
+        }
+    }
+
+    private readCachedUiPolicies(): UiPrivilegePolicy[] {
+        const raw = localStorage.getItem('uiPolicies');
+        if (!raw) {
+            return [];
+        }
+        try {
+            const policies = JSON.parse(raw);
+            return Array.isArray(policies) ? policies as UiPrivilegePolicy[] : [];
+        } catch {
+            return [];
+        }
     }
 }

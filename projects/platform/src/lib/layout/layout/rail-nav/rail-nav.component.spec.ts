@@ -42,6 +42,8 @@ function stubApplicationContextService(
     load: () =>
       of({
         privilegeCodes: [],
+        routePolicies: [],
+        uiPolicies: [],
         layout
       } as ApplicationContext)
   };
