@@ -474,6 +474,12 @@ export class AuthService {
         localStorage.removeItem('clientCode');
         localStorage.removeItem('clientType');
         localStorage.removeItem('privilegeCodes');
+        localStorage.removeItem('layoutConfig');
+        // Reset in-memory state too, not just localStorage — otherwise a
+        // guard's `ensureLoaded()` would see the previous user's still-cached
+        // `layoutConfig` signal and skip fetching fresh privilege codes for
+        // whoever logs in next on this browser.
+        this.applicationContextService.clear();
     }
 
     private clearSsoSessionStorage(): void {

@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
-import { Observable } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { map, shareReplay, tap } from 'rxjs/operators';
 import { ActionTypes, ApiEndpoint, ApiService } from '../api-common/index';
 import { BackendLayoutConfig, NavTreeItem } from './core/models/layout-config.model';
 
@@ -26,6 +26,16 @@ export class ApplicationContextService {
      * updates services that were instantiated before login completed. */
     readonly layoutConfig = signal<BackendLayoutConfig | null>(this.readCachedLayoutConfig());
 
+    /** True once a live `load()` call has completed this session (success or
+     * failure) — distinct from `layoutConfig` being non-null, which can just
+     * mean a (possibly stale) localStorage cache was seeded synchronously on
+     * construction. Guards that need to know "has a real network round-trip
+     * happened yet" (e.g. `menuPrivilegeGuard`'s fail-closed check) should
+     * read this instead of inferring readiness from cache presence alone. */
+    readonly loaded = signal(this.readCachedLayoutConfig() !== null);
+
+    private inFlight: Observable<ApplicationContext> | null = null;
+
     constructor(private apiService: ApiService) {}
 
     load(): Observable<ApplicationContext> {
@@ -37,8 +47,26 @@ export class ApplicationContextService {
                 localStorage.setItem('privilegeCodes', JSON.stringify(context.privilegeCodes));
                 localStorage.setItem('layoutConfig', JSON.stringify(context.layout || null));
                 this.setLayoutConfig(context.layout ?? null);
+                this.loaded.set(true);
             })
         );
+    }
+
+    /**
+     * Guarantees `getCachedNavTree()`/`hasPrivilege()`-backed checks see real
+     * data before a guard evaluates them, without re-fetching on every route
+     * activation. Concurrent callers (e.g. multiple `canActivateChild`
+     * evaluations firing off one navigation) share the same in-flight
+     * request via `shareReplay`.
+     */
+    ensureLoaded(): Observable<ApplicationContext | null> {
+        if (this.loaded()) {
+            return of(null);
+        }
+        if (!this.inFlight) {
+            this.inFlight = this.load().pipe(shareReplay({ bufferSize: 1, refCount: false }));
+        }
+        return this.inFlight;
     }
 
     getCachedNavTree(): NavTreeItem[] {
@@ -51,6 +79,18 @@ export class ApplicationContextService {
 
     setLayoutConfig(config: BackendLayoutConfig | null): void {
         this.layoutConfig.set(config);
+    }
+
+    /**
+     * Resets in-memory + cached context on login/logout so the next
+     * `ensureLoaded()` call always does a fresh network round-trip instead of
+     * treating a previous (possibly different-user) session's cache as
+     * already loaded — call alongside `localStorage.removeItem('layoutConfig')`.
+     */
+    clear(): void {
+        this.layoutConfig.set(null);
+        this.loaded.set(false);
+        this.inFlight = null;
     }
 
     private readCachedLayoutConfig(): BackendLayoutConfig | null {
