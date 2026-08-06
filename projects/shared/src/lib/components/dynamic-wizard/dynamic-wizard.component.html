@@ -1,0 +1,17 @@
+<app-wizard
+  [nextLabel]="nextLabel()"
+  [backLabel]="backLabel()"
+  [finishLabel]="finishLabel()"
+  (stepIndexChange)="stepIndexChange.emit($event)"
+  (finished)="onFinished()"
+>
+  @for (step of steps(); track step.key; let i = $index) {
+    <app-wizard-step [label]="step.label" [disabled]="!!step.disabled" [form]="stepForms()[i]">
+      <app-dynamic-form
+        [fields]="step.fields"
+        [initialValue]="step.initialValue ?? {}"
+        (formReady)="setStepForm(i, $event)"
+      />
+    </app-wizard-step>
+  }
+</app-wizard>

@@ -9,6 +9,8 @@ export * from './lib/components/date-picker/date-picker.component';
 export * from './lib/components/dropdown/dropdown.component';
 export * from './lib/components/dynamic-form/dynamic-form.component';
 export * from './lib/components/dynamic-form/dynamic-form.model';
+export * from './lib/components/dynamic-wizard/dynamic-wizard.component';
+export * from './lib/components/dynamic-wizard/dynamic-wizard.model';
 export * from './lib/components/empty-state/empty-state.component';
 export * from './lib/components/export-button/export-button.component';
 export * from './lib/components/file-upload/file-upload.component';
