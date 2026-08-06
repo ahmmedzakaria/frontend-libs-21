@@ -1,0 +1,13 @@
+:host {
+  display: block;
+}
+
+.dynamic-form {
+  display: grid;
+  grid-template-columns: repeat(var(--df-columns, 1), 1fr);
+  gap: var(--layout-space-3);
+}
+
+.dynamic-form__field {
+  min-width: 0;
+}

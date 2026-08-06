@@ -1,0 +1,108 @@
+@if (form(); as fg) {
+  <form [formGroup]="fg" class="dynamic-form" [style.--df-columns]="columns()">
+    @for (field of fields(); track field.key) {
+      <div class="dynamic-form__field" [style.grid-column]="'span ' + (field.colSpan ?? 1)">
+        @if (isTextField(field)) {
+          <app-textbox
+            [formControlName]="field.key"
+            [type]="field.type"
+            [label]="field.label ?? ''"
+            [placeholder]="field.placeholder ?? ''"
+            [icon]="field.icon ?? null"
+            [required]="!!field.required"
+            [minLength]="field.minLength ?? null"
+            [maxLength]="field.maxLength ?? null"
+            [onlyNumber]="!!field.onlyNumber"
+            [noSpecialChars]="!!field.noSpecialChars"
+            [readonly]="!!field.readonly"
+          />
+        } @else {
+          @switch (field.type) {
+            @case ('textarea') {
+              <app-textarea
+                [formControlName]="field.key"
+                [label]="field.label ?? ''"
+                [placeholder]="field.placeholder ?? ''"
+                [rows]="field.rows ?? 4"
+                [maxLength]="field.maxLength ?? null"
+                [required]="!!field.required"
+              />
+            }
+            @case ('checkbox') {
+              <app-checkbox [formControlName]="field.key" [label]="field.label ?? ''" [indeterminate]="!!field.indeterminate" />
+            }
+            @case ('radio') {
+              <app-radio-group [formControlName]="field.key" [options]="field.options" [label]="field.label ?? ''" [layout]="field.layout ?? 'column'" />
+            }
+            @case ('dropdown') {
+              <app-dropdown
+                [formControlName]="field.key"
+                [options]="field.options"
+                [label]="field.label ?? ''"
+                [placeholder]="field.placeholder ?? 'Select an option'"
+                [required]="!!field.required"
+                [errorMessage]="errorFor(field.key)"
+              />
+            }
+            @case ('smart-dropdown') {
+              <app-smart-dropdown
+                [formControlName]="field.key"
+                [mode]="field.mode ?? 'static'"
+                [options]="field.options ?? []"
+                [loadOptions]="field.loadOptions ?? null"
+                [label]="field.label ?? ''"
+                [placeholder]="field.placeholder ?? 'Select...'"
+                [searchable]="field.searchable ?? true"
+                [required]="!!field.required"
+                [errorMessage]="errorFor(field.key)"
+              />
+            }
+            @case ('date') {
+              <app-date-picker
+                [formControlName]="field.key"
+                [label]="field.label ?? ''"
+                [placeholder]="field.placeholder ?? 'Select date...'"
+                [disablePast]="!!field.disablePast"
+                [disableFuture]="!!field.disableFuture"
+                [errorMessage]="errorFor(field.key)"
+              />
+            }
+            @case ('date-range') {
+              <app-date-picker
+                [formControlName]="field.key"
+                [label]="field.label ?? ''"
+                [rangeMode]="true"
+                [monthsToShow]="field.monthsToShow ?? 2"
+                [disablePast]="!!field.disablePast"
+                [disableFuture]="!!field.disableFuture"
+                [errorMessage]="errorFor(field.key)"
+              />
+            }
+            @case ('card-selector') {
+              <app-card-selector [formControlName]="field.key" [options]="field.options" [label]="field.label ?? ''" [columns]="field.columns ?? 3" />
+            }
+            @case ('file-upload') {
+              <app-file-upload
+                [formControlName]="field.key"
+                [label]="field.label ?? 'Upload Files'"
+                [hint]="field.hint ?? 'Drag & drop files or click to browse'"
+                [accept]="field.accept ?? '*/*'"
+                [multiple]="!!field.multiple"
+                [maxSizeMB]="field.maxSizeMB ?? 10"
+              />
+            }
+            @case ('password') {
+              <app-password-group
+                [formControlName]="field.key"
+                [label]="field.label ?? 'Password'"
+                [confirmLabel]="field.confirmLabel ?? 'Confirm Password'"
+                [required]="field.required !== false"
+                [showStrength]="field.showStrength !== false"
+              />
+            }
+          }
+        }
+      </div>
+    }
+  </form>
+}
