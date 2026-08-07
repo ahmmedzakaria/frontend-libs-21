@@ -1,0 +1,92 @@
+@if (avatar(); as av) {
+  <div class="dynamic-preview__header">
+    @if (av.src(data()); as src) {
+      <app-image-preview
+        [src]="src"
+        [alt]="av.alt ? av.alt(data()) : (heading() || 'Preview image')"
+        [shape]="av.shape ?? 'circle'"
+        [width]="av.size ?? 96"
+        [height]="av.size ?? 96"
+        [previewOnClick]="true"
+        [disabled]="false"
+      />
+    } @else {
+      <span class="dynamic-preview__avatar-fallback" [style.width.px]="av.size ?? 96" [style.height.px]="av.size ?? 96">
+        <app-icon [name]="av.fallbackIcon ?? 'user'" [size]="36" />
+      </span>
+    }
+    <div class="dynamic-preview__heading-block">
+      @if (heading()) {
+        <h2 class="dynamic-preview__heading">{{ heading() }}</h2>
+      }
+      @if (subheading()) {
+        <p class="dynamic-preview__subheading">{{ subheading() }}</p>
+      }
+      <ng-content select="[headerActions]" />
+    </div>
+  </div>
+} @else if (heading() || subheading()) {
+  <div class="dynamic-preview__header dynamic-preview__header--no-avatar">
+    <div class="dynamic-preview__heading-block">
+      @if (heading()) {
+        <h2 class="dynamic-preview__heading">{{ heading() }}</h2>
+      }
+      @if (subheading()) {
+        <p class="dynamic-preview__subheading">{{ subheading() }}</p>
+      }
+      <ng-content select="[headerActions]" />
+    </div>
+  </div>
+}
+
+@for (section of sections(); track section.key) {
+  <div class="dynamic-preview__section">
+    @if (section.title) {
+      <h3 class="dynamic-preview__section-title">{{ section.title }}</h3>
+    }
+    <div class="dynamic-preview__grid" [style.--dp-columns]="section.columns ?? 2">
+      @for (field of section.fields; track field.key) {
+        <div class="dynamic-preview__field" [style.grid-column]="'span ' + (field.colSpan ?? 1)">
+          <span class="dynamic-preview__field-label">{{ field.label }}</span>
+          <span class="dynamic-preview__field-value">
+            @switch (field.type) {
+              @case ('status') {
+                @if (field.label2?.(data()); as label) {
+                  <app-status-badge [status]="field.status(data())" [label]="label" />
+                } @else {
+                  <app-status-badge [status]="field.status(data())" />
+                }
+              }
+              @case ('pill') {
+                <app-pill [label]="field.pillLabel(data())" [tone]="field.tone ? field.tone(data()) : 'neutral'" />
+              }
+              @case ('image') {
+                @if (field.src(data()); as src) {
+                  <app-image-preview
+                    [src]="src"
+                    [alt]="field.alt ? field.alt(data()) : field.label"
+                    [shape]="field.shape ?? 'circle'"
+                    [width]="field.size ?? 36"
+                    [height]="field.size ?? 36"
+                    [previewOnClick]="true"
+                    [disabled]="false"
+                  />
+                } @else {
+                  <span class="dynamic-preview__avatar-fallback dynamic-preview__avatar-fallback--sm">
+                    <app-icon [name]="field.fallbackIcon ?? 'user'" [size]="16" />
+                  </span>
+                }
+              }
+              @case ('custom') {
+                <ng-container [ngTemplateOutlet]="field.cellTemplate" [ngTemplateOutletContext]="{ $implicit: data() }" />
+              }
+              @default {
+                {{ textValue(field, data()) }}
+              }
+            }
+          </span>
+        </div>
+      }
+    </div>
+  </div>
+}
