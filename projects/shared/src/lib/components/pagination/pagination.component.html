@@ -10,7 +10,7 @@
     <div class="page-size">
       <label for="pagination-page-size">Show</label>
       <select id="pagination-page-size" [value]="pageSize()" (change)="onPageSizeSelect($event)">
-        @for (option of pageSizeOptions(); track option) {
+        @for (option of displayPageSizeOptions(); track option) {
           <option [value]="option">{{ option }}</option>
         }
       </select>

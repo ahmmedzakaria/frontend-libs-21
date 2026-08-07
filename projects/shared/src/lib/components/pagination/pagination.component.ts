@@ -25,6 +25,13 @@ export class PaginationComponent {
     readonly pageChange = output<number>();
     readonly pageSizeChange = output<number>();
 
+    /** `pageSizeOptions()` plus the current `pageSize()` if it isn't already in the list, so the selector never silently shows the wrong value for a caller-chosen initial size (e.g. a demo using 3 per page). */
+    protected readonly displayPageSizeOptions = computed(() => {
+        const options = this.pageSizeOptions();
+        const current = this.pageSize();
+        return options.length && !options.includes(current) ? [...options, current].sort((a, b) => a - b) : options;
+    });
+
     protected readonly totalPages = computed(() => Math.max(1, Math.ceil(this.total() / Math.max(1, this.pageSize()))));
     protected readonly canPrev = computed(() => this.page() > 1);
     protected readonly canNext = computed(() => this.page() < this.totalPages());
