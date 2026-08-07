@@ -57,10 +57,12 @@ export class DataTableComponent<T> {
     readonly page = input<number | null>(null);
     readonly pageSize = input(10);
     readonly total = input<number | null>(null);
+    readonly pageSizeOptions = input<number[]>([]);
 
     readonly rowClick = output<T>();
     readonly sortChange = output<SortState>();
     readonly pageChange = output<number>();
+    readonly pageSizeChange = output<number>();
 
     protected readonly showPagination = computed(() => this.page() !== null && this.total() !== null);
 

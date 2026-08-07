@@ -20,7 +20,10 @@ export class PaginationComponent {
     readonly page = input.required<number>();
     readonly pageSize = input.required<number>();
     readonly total = input.required<number>();
+    /** Page-size choices to offer in a selector next to the range label. Empty (the default) renders no selector. */
+    readonly pageSizeOptions = input<number[]>([]);
     readonly pageChange = output<number>();
+    readonly pageSizeChange = output<number>();
 
     protected readonly totalPages = computed(() => Math.max(1, Math.ceil(this.total() / Math.max(1, this.pageSize()))));
     protected readonly canPrev = computed(() => this.page() > 1);
@@ -39,6 +42,13 @@ export class PaginationComponent {
     }
     last(): void {
         this.goTo(this.totalPages());
+    }
+
+    onPageSizeSelect(event: Event): void {
+        const size = Number((event.target as HTMLSelectElement).value);
+        if (size !== this.pageSize()) {
+            this.pageSizeChange.emit(size);
+        }
     }
 
     private goTo(page: number): void {

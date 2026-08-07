@@ -6,6 +6,17 @@
       No records
     }
   </div>
+  @if (pageSizeOptions().length) {
+    <div class="page-size">
+      <label for="pagination-page-size">Show</label>
+      <select id="pagination-page-size" [value]="pageSize()" (change)="onPageSizeSelect($event)">
+        @for (option of pageSizeOptions(); track option) {
+          <option [value]="option">{{ option }}</option>
+        }
+      </select>
+      <span>per page</span>
+    </div>
+  }
   <div class="controls">
     <button type="button" class="page-btn" aria-label="First page" [disabled]="!canPrev()" (click)="first()">
       <app-icon name="chevrons-left" [size]="15" />

@@ -64,6 +64,8 @@ export class DynamicListComponent<T> {
     readonly columns = input.required<ListColumnConfig<T>[]>();
     readonly loadItems = input.required<DynamicListLoader<T>>();
     readonly pageSize = input(10);
+    /** Choices offered in the pagination's page-size selector; empty renders no selector. */
+    readonly pageSizeOptions = input<number[]>([10, 25, 50, 100]);
     readonly searchTypes = input<SearchTypeOption[]>([]);
     readonly searchPlaceholder = input('Search…');
     readonly exportColumns = input<ExportColumn<T>[] | null>(null);
@@ -77,6 +79,10 @@ export class DynamicListComponent<T> {
     readonly total = signal(0);
     readonly page = signal(1);
     readonly loading = signal(false);
+
+    /** User-selected page size, overriding the `pageSize` input once they pick one from the selector. */
+    private readonly pageSizeOverride = signal<number | null>(null);
+    protected readonly effectivePageSize = computed(() => this.pageSizeOverride() ?? this.pageSize());
 
     private searchQuery = '';
     private searchType: string | null = null;
@@ -119,6 +125,11 @@ export class DynamicListComponent<T> {
         this.fetch(page);
     }
 
+    onPageSizeChange(size: number): void {
+        this.pageSizeOverride.set(size);
+        this.fetch(1);
+    }
+
     /** Re-fetches the current page — for a consumer to call after e.g. a delete action completes. */
     reload(): void {
         this.fetch(this.page());
@@ -130,7 +141,7 @@ export class DynamicListComponent<T> {
             query: this.searchQuery,
             searchType: this.searchType,
             page,
-            pageSize: this.pageSize()
+            pageSize: this.effectivePageSize()
         };
         this.loadItems()(params).subscribe({
             next: (result) => {

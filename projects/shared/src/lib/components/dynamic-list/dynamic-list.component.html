@@ -76,10 +76,12 @@
   [data]="rows()"
   [loading]="loading()"
   [page]="page()"
-  [pageSize]="pageSize()"
+  [pageSize]="effectivePageSize()"
+  [pageSizeOptions]="pageSizeOptions()"
   [total]="total()"
   [emptyTitle]="emptyTitle()"
   [emptyMessage]="emptyMessage()"
   (rowClick)="rowClick.emit($event)"
   (pageChange)="onPageChange($event)"
+  (pageSizeChange)="onPageSizeChange($event)"
 />

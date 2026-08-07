@@ -67,7 +67,14 @@
   </div>
   @if (showPagination()) {
     <div class="table-footer">
-      <app-pagination [page]="page()!" [pageSize]="pageSize()" [total]="total()!" (pageChange)="pageChange.emit($event)" />
+      <app-pagination
+        [page]="page()!"
+        [pageSize]="pageSize()"
+        [total]="total()!"
+        [pageSizeOptions]="pageSizeOptions()"
+        (pageChange)="pageChange.emit($event)"
+        (pageSizeChange)="pageSizeChange.emit($event)"
+      />
     </div>
   }
 </div>

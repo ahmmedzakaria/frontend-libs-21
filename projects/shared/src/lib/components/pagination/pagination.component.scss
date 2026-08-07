@@ -20,6 +20,31 @@
   }
 }
 
+.page-size {
+  display: flex;
+  align-items: center;
+  gap: var(--layout-space-1);
+  font-size: var(--layout-font-size-sm);
+  color: var(--text-muted);
+  white-space: nowrap;
+
+  select {
+    height: var(--layout-control-4xl);
+    border: var(--layout-border-width) solid var(--border);
+    border-radius: var(--layout-radius-sm);
+    background: var(--card);
+    color: var(--text);
+    font: inherit;
+    padding: 0 var(--layout-space-15);
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: var(--layout-border-width-strong) solid var(--focus);
+      outline-offset: var(--layout-focus-ring-offset);
+    }
+  }
+}
+
 .controls {
   display: flex;
   align-items: center;
