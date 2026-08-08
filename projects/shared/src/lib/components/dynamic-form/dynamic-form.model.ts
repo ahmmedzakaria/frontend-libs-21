@@ -92,6 +92,10 @@ export interface FileUploadFieldConfig extends BaseFieldConfig {
     multiple?: boolean;
     maxSizeMB?: number;
     hint?: string;
+    /** Shown when the control has no freshly-picked file yet — e.g. an already-uploaded
+     * photo in an edit form. Separate from the field's own File[] value; see FileUploadComponent. */
+    existingPreviewUrl?: string;
+    existingPreviewTitle?: string;
 }
 
 export interface PasswordFieldConfig extends BaseFieldConfig {

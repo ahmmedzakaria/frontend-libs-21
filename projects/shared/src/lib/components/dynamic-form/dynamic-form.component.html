@@ -89,6 +89,8 @@
                 [accept]="field.accept ?? '*/*'"
                 [multiple]="!!field.multiple"
                 [maxSizeMB]="field.maxSizeMB ?? 10"
+                [existingPreviewUrl]="field.existingPreviewUrl ?? ''"
+                [existingPreviewTitle]="field.existingPreviewTitle ?? 'Current Photo'"
               />
             }
             @case ('password') {
