@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, effect, inject, input, output, signal } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { ProfilePhotoUploadComponent } from '../profile-photo-upload/profile-photo-upload.component';
 import { CardSelectorComponent } from '../card-selector/card-selector.component';
 import { CheckboxComponent } from '../checkbox/checkbox.component';
 import { DatePickerComponent } from '../date-picker/date-picker.component';
@@ -22,6 +23,7 @@ function defaultValueFor(field: FieldConfig): unknown {
         case 'checkbox':
             return false;
         case 'file-upload':
+        case 'profile-photo':
             return [];
         case 'date-range':
             return { start: null, end: null };
@@ -40,7 +42,7 @@ function validatorsFor(field: FieldConfig): ValidatorFn[] {
     if (field.required) {
         if (field.type === 'checkbox') {
             validators.push(Validators.requiredTrue);
-        } else if (field.type === 'file-upload') {
+        } else if (field.type === 'file-upload' || field.type === 'profile-photo') {
             validators.push(requiredArray);
         } else {
             validators.push(Validators.required);
@@ -83,6 +85,7 @@ function validatorsFor(field: FieldConfig): ValidatorFn[] {
         DatePickerComponent,
         CardSelectorComponent,
         FileUploadComponent,
+        ProfilePhotoUploadComponent,
         PasswordGroupComponent
     ],
     exportAs: 'dynamicForm',

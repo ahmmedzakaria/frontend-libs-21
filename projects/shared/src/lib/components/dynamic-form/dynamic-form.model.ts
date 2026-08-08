@@ -104,6 +104,16 @@ export interface PasswordFieldConfig extends BaseFieldConfig {
     showStrength?: boolean;
 }
 
+/** Circular single-photo picker (profile photo) — see ProfilePhotoUploadComponent.
+ * Same File[] value shape as `file-upload`, distinct presentation only. */
+export interface ProfilePhotoFieldConfig extends BaseFieldConfig {
+    type: 'profile-photo';
+    accept?: string;
+    maxSizeMB?: number;
+    existingPreviewUrl?: string;
+    existingPreviewTitle?: string;
+}
+
 export type FieldConfig =
     | TextFieldConfig
     | TextareaFieldConfig
@@ -115,4 +125,5 @@ export type FieldConfig =
     | DateRangeFieldConfig
     | CardSelectorFieldConfig
     | FileUploadFieldConfig
+    | ProfilePhotoFieldConfig
     | PasswordFieldConfig;

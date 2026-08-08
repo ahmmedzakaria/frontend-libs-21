@@ -1,0 +1,98 @@
+@use '../../styles/field-shell' as shell;
+
+:host {
+  display: block;
+  padding-bottom: var(--layout-space-4);
+  margin-bottom: var(--layout-space-2);
+  border-bottom: var(--layout-border-width) solid var(--border);
+}
+
+.profile-photo-upload__label {
+  @include shell.field-label;
+  display: block;
+  margin-bottom: var(--layout-space-2);
+}
+
+.profile-photo-upload {
+  display: flex;
+  align-items: center;
+  gap: var(--layout-space-4);
+
+  &__preview {
+    flex-shrink: 0;
+    width: 5.5rem;
+    height: 5.5rem;
+    border-radius: 50%;
+    border: var(--layout-border-width) solid var(--border);
+    background: var(--surface-2);
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  &__controls {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--layout-space-15);
+  }
+
+  &__buttons {
+    display: flex;
+    align-items: center;
+    gap: var(--layout-space-2);
+  }
+
+  &__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--layout-space-15);
+    padding: var(--layout-space-15) var(--layout-space-3);
+    border: var(--layout-border-width) solid var(--border);
+    border-radius: var(--layout-radius-pill);
+    background: var(--card);
+    color: var(--text);
+    font-size: var(--layout-font-size-sm);
+    font-weight: var(--layout-font-weight-semibold);
+    cursor: pointer;
+    transition:
+      background var(--layout-transition-fast),
+      border-color var(--layout-transition-fast);
+
+    &:hover {
+      background: var(--surface-2);
+      border-color: var(--accent);
+    }
+    &:focus-visible {
+      outline: var(--layout-border-width-strong) solid var(--focus);
+      outline-offset: var(--layout-focus-ring-offset-flush);
+    }
+    &.disabled {
+      opacity: var(--layout-disabled-opacity);
+      pointer-events: none;
+    }
+
+    &--ghost {
+      background: transparent;
+      color: var(--text-muted);
+
+      &:hover {
+        background: var(--red-soft);
+        border-color: var(--layout-error-color);
+        color: var(--layout-error-color);
+      }
+    }
+  }
+
+  &__hint {
+    font-size: var(--layout-font-size-xs);
+    color: var(--text-muted);
+  }
+
+  &__error {
+    @include shell.field-error;
+  }
+}

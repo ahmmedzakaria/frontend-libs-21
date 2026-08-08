@@ -93,6 +93,16 @@
                 [existingPreviewTitle]="field.existingPreviewTitle ?? 'Current Photo'"
               />
             }
+            @case ('profile-photo') {
+              <app-profile-photo-upload
+                [formControlName]="field.key"
+                [label]="field.label ?? 'Profile Photo'"
+                [accept]="field.accept ?? 'image/*'"
+                [maxSizeMB]="field.maxSizeMB ?? 5"
+                [existingPreviewUrl]="field.existingPreviewUrl ?? ''"
+                [existingPreviewTitle]="field.existingPreviewTitle ?? 'Current Photo'"
+              />
+            }
             @case ('password') {
               <app-password-group
                 [formControlName]="field.key"

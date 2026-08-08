@@ -24,6 +24,7 @@ export * from './lib/components/modal/modal.component';
 export * from './lib/components/pagination/pagination.component';
 export * from './lib/components/password-group/password-group.component';
 export * from './lib/components/pill/pill.component';
+export * from './lib/components/profile-photo-upload/profile-photo-upload.component';
 export * from './lib/components/radio-group/radio-group.component';
 export * from './lib/components/search-toolbar/search-toolbar.component';
 export * from './lib/components/smart-dropdown/smart-dropdown.component';

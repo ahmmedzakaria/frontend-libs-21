@@ -1,0 +1,41 @@
+<span class="profile-photo-upload__label">{{ label() }}</span>
+
+<div class="profile-photo-upload">
+  <div class="profile-photo-upload__preview">
+    @if (previewSrc(); as src) {
+      <app-image-preview
+        [src]="src"
+        alt="Profile photo"
+        [title]="existingPreviewTitle()"
+        fallbackIcon="user"
+        shape="circle"
+        [width]="88"
+        [height]="88"
+        [previewOnClick]="false"
+        [disabled]="false"
+      />
+    } @else {
+      <app-icon name="user" [size]="32" />
+    }
+  </div>
+
+  <div class="profile-photo-upload__controls">
+    <div class="profile-photo-upload__buttons">
+      <label class="profile-photo-upload__btn" [class.disabled]="disabled()" tabindex="0">
+        <app-icon name="camera" [size]="14" />
+        {{ hasStagedFile() || existingPreviewUrl() ? 'Change' : 'Upload' }}
+        <input type="file" [accept]="accept()" [disabled]="disabled()" (change)="onFileSelected($event)" hidden />
+      </label>
+      @if (hasStagedFile()) {
+        <button type="button" class="profile-photo-upload__btn profile-photo-upload__btn--ghost" [disabled]="disabled()" (click)="remove()">
+          <app-icon name="trash" [size]="14" />
+          Remove
+        </button>
+      }
+    </div>
+    <span class="profile-photo-upload__hint">JPG or PNG, up to {{ maxSizeMB() }}MB</span>
+    @if (errorMessage(); as message) {
+      <span class="profile-photo-upload__error">{{ message }}</span>
+    }
+  </div>
+</div>
