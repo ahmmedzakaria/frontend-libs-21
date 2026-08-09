@@ -64,6 +64,13 @@ export interface SmartDropdownFieldConfig extends BaseFieldConfig {
     loadOptions?: SmartDropdownLoader<unknown>;
     placeholder?: string;
     searchable?: boolean;
+    /** Defaults to reference equality (`a === b`) — see SmartDropdownComponent. */
+    compareWith?: (a: unknown, b: unknown) => boolean;
+    /** Known label for the current value at load time (async modes) — avoids a fetch just to display it. */
+    initialOption?: DropdownOption<unknown> | null;
+    /** Last-resort label fallback for a value written onto the control from
+     * outside the picker (e.g. copied in from another field programmatically). */
+    displayWith?: (value: unknown) => string;
 }
 
 export interface DateFieldConfig extends BaseFieldConfig {

@@ -55,6 +55,9 @@
                 [searchable]="field.searchable ?? true"
                 [required]="!!field.required"
                 [errorMessage]="errorFor(field.key)"
+                [compareWith]="field.compareWith ?? defaultCompareWith"
+                [initialOption]="field.initialOption ?? null"
+                [displayWith]="field.displayWith ?? null"
               />
             }
             @case ('date') {

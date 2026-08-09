@@ -96,6 +96,12 @@ function validatorsFor(field: FieldConfig): ValidatorFn[] {
 export class DynamicFormComponent {
     private readonly messages = inject(ValidationMessageService);
 
+    /** Bound to `app-smart-dropdown`'s `compareWith` when a field doesn't supply
+     * its own — binding an `input()` to an explicit `undefined` overrides the
+     * component's own declared default instead of falling back to it, so this
+     * has to be a real fallback value, not `field.compareWith ?? undefined`. */
+    protected readonly defaultCompareWith = (a: unknown, b: unknown) => a === b;
+
     readonly fields = input.required<FieldConfig[]>();
     readonly initialValue = input<Record<string, unknown>>({});
     readonly columns = input(1);

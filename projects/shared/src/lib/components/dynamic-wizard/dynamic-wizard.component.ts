@@ -1,14 +1,17 @@
 import { ChangeDetectionStrategy, Component, effect, input, output, signal } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { DynamicFormComponent } from '../dynamic-form/dynamic-form.component';
+import { DynamicPreviewComponent } from '../dynamic-preview/dynamic-preview.component';
 import { WizardComponent } from '../wizard/wizard.component';
 import { WizardStepComponent } from '../wizard/wizard-step.component';
-import { DynamicWizardStepConfig } from './dynamic-wizard.model';
+import { DynamicWizardReviewStepConfig, DynamicWizardStepConfig } from './dynamic-wizard.model';
 
 /**
  * Config-driven multi-step form: composes the existing `DynamicFormComponent`
- * (one instance per step, each building its own `FormGroup`) inside the
- * existing `WizardComponent`/`WizardStepComponent` — neither is modified.
+ * (one instance per step, each building its own `FormGroup`) and the existing
+ * `DynamicPreviewComponent` (for a formless review/summary step) inside the
+ * existing `WizardComponent`/`WizardStepComponent` — none of the three are
+ * modified.
  *
  * `WizardComponent`'s own `finished` output only checks the *current* (last)
  * step's validity, so `onFinished()` here re-checks every step before
@@ -18,7 +21,7 @@ import { DynamicWizardStepConfig } from './dynamic-wizard.model';
 @Component({
     selector: 'app-dynamic-wizard',
     standalone: true,
-    imports: [WizardComponent, WizardStepComponent, DynamicFormComponent],
+    imports: [WizardComponent, WizardStepComponent, DynamicFormComponent, DynamicPreviewComponent],
     templateUrl: './dynamic-wizard.component.html',
     styleUrl: './dynamic-wizard.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -30,8 +33,8 @@ export class DynamicWizardComponent {
     readonly finishLabel = input('Save');
 
     readonly stepIndexChange = output<number>();
-    /** The merged, flat value across every step — only emitted once every
-     * step's own form is valid. */
+    /** The merged, flat value across every fields-driven step — only emitted
+     * once every such step is valid. */
     readonly submitted = output<Record<string, unknown>>();
 
     readonly stepForms = signal<(FormGroup | null)[]>([]);
@@ -40,6 +43,19 @@ export class DynamicWizardComponent {
         effect(() => {
             this.stepForms.set(this.steps().map(() => null));
         });
+    }
+
+    /** Type guard so the template can narrow before reading `reviewSections` — mirrors DynamicFormComponent.isTextField. */
+    protected isReviewStep(step: DynamicWizardStepConfig): step is DynamicWizardReviewStepConfig {
+        return 'reviewSections' in step;
+    }
+
+    /** Merges every step's live values up to (not including) `index` — feeds a
+     * review step's read-only summary from whatever's been entered so far. */
+    protected mergedValuesUpTo(index: number): Record<string, unknown> {
+        return this.stepForms()
+            .slice(0, index)
+            .reduce<Record<string, unknown>>((acc, group) => ({ ...acc, ...(group?.getRawValue() ?? {}) }), {});
     }
 
     protected setStepForm(index: number, group: FormGroup): void {
@@ -53,7 +69,10 @@ export class DynamicWizardComponent {
     protected onFinished(): void {
         const forms = this.stepForms();
         forms.forEach((group) => group?.markAllAsTouched());
-        if (forms.some((group) => !group || group.invalid)) {
+        // A null entry means that step has no form of its own (a review step) —
+        // always valid, the same rule WizardStepComponent documents for its own
+        // `form` input; only a *present* invalid form should block Finish.
+        if (forms.some((group) => group != null && group.invalid)) {
             return;
         }
         const merged = forms.reduce<Record<string, unknown>>(

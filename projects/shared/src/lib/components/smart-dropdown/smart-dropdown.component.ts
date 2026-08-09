@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, input, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, computed, input, signal, viewChild } from '@angular/core';
 import { NG_VALIDATORS, NG_VALUE_ACCESSOR, ValidationErrors, Validator } from '@angular/forms';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -53,6 +53,10 @@ export class SmartDropdownComponent<T = string> extends BaseValueAccessor<T> imp
     readonly compareWith = input<(a: T, b: T) => boolean>((a, b) => a === b);
     /** Known label for the current value at load time (async modes; e.g. editing a record) — avoids a fetch just to display it. */
     readonly initialOption = input<DropdownOption<T> | null>(null);
+    /** Last-resort label fallback for a value written onto the control from
+     * outside `selectOption()`/`initialOption` — e.g. a value copied in from
+     * another control programmatically. */
+    readonly displayWith = input<((value: T) => string) | null>(null);
 
     protected readonly uid = `sd-${nextUid++}`;
     protected readonly open = signal(false);
@@ -60,7 +64,11 @@ export class SmartDropdownComponent<T = string> extends BaseValueAccessor<T> imp
     protected readonly loading = signal(false);
     protected readonly loadingMore = signal(false);
     protected readonly activeIndex = signal(-1);
-    protected readonly selectedLabel = signal<string | null>(null);
+    /** Set only from `selectOption()` (a real user pick) — `triggerLabel` falls
+     * back through `displayOptions()`/`initialOption()`/`displayWith()` for any
+     * value that didn't come from a pick, so this alone is never the sole
+     * source of truth for what's displayed. */
+    private readonly lastPicked = signal<{ value: T; label: string } | null>(null);
     /** Matched to the trigger's live width right before opening, so the
      * overlay panel lines up with its parent field instead of falling back
      * to `$panel-min-width`. */
@@ -93,20 +101,32 @@ export class SmartDropdownComponent<T = string> extends BaseValueAccessor<T> imp
         return pool.find((o) => cmp(o.value, value)) ?? null;
     });
 
-    protected readonly triggerLabel = computed(() =>
-        this.mode() === 'static' ? (this.selectedOption()?.label ?? null) : this.selectedLabel()
-    );
+    protected readonly triggerLabel = computed(() => {
+        if (this.mode() === 'static') {
+            return this.selectedOption()?.label ?? null;
+        }
+        const value = this.value();
+        if (value === null) {
+            return null;
+        }
+        const cmp = this.compareWith();
+        const picked = this.lastPicked();
+        if (picked && cmp(picked.value, value)) {
+            return picked.label;
+        }
+        const inPool = this.displayOptions().find((o) => cmp(o.value, value));
+        if (inPool) {
+            return inPool.label;
+        }
+        const init = this.initialOption();
+        if (init && cmp(init.value, value)) {
+            return init.label;
+        }
+        return this.displayWith()?.(value) ?? null;
+    });
 
     constructor() {
         super();
-
-        effect(() => {
-            const init = this.initialOption();
-            const value = this.value();
-            if (init && value !== null && this.compareWith()(init.value, value)) {
-                this.selectedLabel.set(init.label);
-            }
-        });
 
         this.search$
             .pipe(
@@ -184,7 +204,7 @@ export class SmartDropdownComponent<T = string> extends BaseValueAccessor<T> imp
             return;
         }
         this.emitValue(option.value);
-        this.selectedLabel.set(option.label);
+        this.lastPicked.set({ value: option.value, label: option.label });
         this.close();
     }
 

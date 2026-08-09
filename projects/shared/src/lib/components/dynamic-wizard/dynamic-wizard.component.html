@@ -7,11 +7,21 @@
 >
   @for (step of steps(); track step.key; let i = $index) {
     <app-wizard-step [label]="step.label" [disabled]="!!step.disabled" [form]="stepForms()[i]">
-      <app-dynamic-form
-        [fields]="step.fields"
-        [initialValue]="step.initialValue ?? {}"
-        (formReady)="setStepForm(i, $event)"
-      />
+      @if (isReviewStep(step)) {
+        <app-dynamic-preview
+          [sections]="step.reviewSections"
+          [data]="mergedValuesUpTo(i)"
+          [heading]="step.reviewHeading ?? ''"
+          [subheading]="step.reviewSubheading ?? ''"
+        />
+      } @else {
+        <app-dynamic-form
+          [fields]="step.fields"
+          [initialValue]="step.initialValue ?? {}"
+          [columns]="step.columns ?? 1"
+          (formReady)="setStepForm(i, $event)"
+        />
+      }
     </app-wizard-step>
   }
 </app-wizard>
