@@ -1,3 +1,26 @@
 :host {
   display: block;
 }
+
+.dynamic-tab__filter-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--layout-space-2);
+  margin-bottom: var(--layout-space-3);
+}
+
+.dynamic-tab__filter-label {
+  font-size: var(--layout-font-size-sm);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.dynamic-tab__filter-field {
+  min-width: 220px;
+}
+
+.dynamic-tab__hint {
+  color: var(--text-muted);
+  font-size: var(--layout-font-size-sm);
+}

@@ -1,10 +1,18 @@
 import { ChangeDetectionStrategy, Component, computed, effect, input, output, signal, viewChildren } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { DropdownComponent } from '../dropdown/dropdown.component';
 import { DynamicFormComponent } from '../dynamic-form/dynamic-form.component';
 import { DynamicListComponent } from '../dynamic-list/dynamic-list.component';
 import { DynamicPreviewComponent } from '../dynamic-preview/dynamic-preview.component';
 import { TabBarComponent } from '../tab-bar/tab-bar.component';
 import { TabDef } from '../tab-bar/tab-bar.model';
-import { DynamicTabConfig, DynamicTabFieldConfig, DynamicTabListConfig, DynamicTabPreviewConfig } from './dynamic-tab.model';
+import {
+    DynamicTabConfig,
+    DynamicTabFieldConfig,
+    DynamicTabFilteredListConfig,
+    DynamicTabListConfig,
+    DynamicTabPreviewConfig
+} from './dynamic-tab.model';
 
 let nextUid = 0;
 
@@ -24,7 +32,7 @@ let nextUid = 0;
 @Component({
     selector: 'app-dynamic-tab',
     standalone: true,
-    imports: [TabBarComponent, DynamicFormComponent, DynamicPreviewComponent, DynamicListComponent],
+    imports: [TabBarComponent, DynamicFormComponent, DynamicPreviewComponent, DynamicListComponent, DropdownComponent, FormsModule],
     templateUrl: './dynamic-tab.component.html',
     styleUrl: './dynamic-tab.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -76,18 +84,25 @@ export class DynamicTabComponent {
     }
 
     protected isListTab(tab: DynamicTabConfig): tab is DynamicTabListConfig {
-        return 'loadItems' in tab;
+        return 'loadItems' in tab && !('filters' in tab);
+    }
+
+    protected isFilteredListTab(tab: DynamicTabConfig): tab is DynamicTabFilteredListConfig {
+        return 'filters' in tab;
     }
 
     private readonly dynamicLists = viewChildren(DynamicListComponent);
 
     /** List-tab keys currently mounted, in the same order `<app-dynamic-list>`
      * instances appear in the DOM — lets `reloadTab()` correlate a key to its
-     * position in `dynamicLists()` without needing a directive/id lookup. */
+     * position in `dynamicLists()` without needing a directive/id lookup.
+     * Filtered-list tabs only mount their `<app-dynamic-list>` once `ready`
+     * is true, so they must be excluded here until then or the positional
+     * mapping drifts against a later, actually-mounted list. */
     private readonly mountedListTabKeys = computed(() =>
         this.tabs()
             .map((tab, i) => ({ tab, i }))
-            .filter(({ tab, i }) => this.isListTab(tab) && this.visited().has(i))
+            .filter(({ tab, i }) => this.visited().has(i) && (this.isListTab(tab) || (this.isFilteredListTab(tab) && tab.ready)))
             .map(({ tab }) => tab.key)
     );
 

@@ -33,6 +33,35 @@
           [emptyTitle]="tab.emptyTitle ?? 'No records yet'"
           [emptyMessage]="tab.emptyMessage ?? 'There is nothing to show here.'"
         />
+      } @else if (isFilteredListTab(tab)) {
+        <div class="dynamic-tab__filter-row">
+          @for (filter of tab.filters; track filter.key) {
+            <div class="dynamic-tab__filter-field">
+              @if (filter.label) {
+                <label class="dynamic-tab__filter-label">{{ filter.label }}</label>
+              }
+              <app-dropdown
+                [options]="filter.options"
+                [placeholder]="filter.placeholder ?? 'Select…'"
+                [ngModel]="filter.value"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="filter.onChange($event)"
+              />
+            </div>
+          }
+        </div>
+        @if (tab.ready) {
+          <app-dynamic-list
+            [columns]="tab.columns"
+            [loadItems]="tab.loadItems"
+            [pageSize]="tab.pageSize ?? 10"
+            [searchPlaceholder]="tab.searchPlaceholder ?? 'Search…'"
+            [emptyTitle]="tab.emptyTitle ?? 'No records yet'"
+            [emptyMessage]="tab.emptyMessage ?? 'There is nothing to show here.'"
+          />
+        } @else {
+          <p class="dynamic-tab__hint">{{ tab.emptyFilterHint }}</p>
+        }
       }
     </div>
   }
