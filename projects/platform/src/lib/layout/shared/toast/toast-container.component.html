@@ -1,0 +1,11 @@
+<div class="toast-container" role="status" aria-live="polite">
+    @for (toast of notifications.toasts(); track toast.id) {
+        <div class="toast" [class]="'toast--' + toast.level">
+            <app-icon class="toast-icon" [name]="icon(toast.level)" [size]="16" />
+            <span class="toast-text">{{ toast.text }}</span>
+            <button type="button" class="toast-dismiss" aria-label="Dismiss" (click)="notifications.dismiss(toast.id)">
+                <app-icon name="times" [size]="12" />
+            </button>
+        </div>
+    }
+</div>

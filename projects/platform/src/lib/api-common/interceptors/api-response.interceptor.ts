@@ -7,9 +7,12 @@ import { throwError } from 'rxjs';
 import { ApiResponse } from '../model/api-response.model';
 import { ResponseMessage } from '../model/response-message.model';
 import { NotificationService } from '../notification.service';
+import { ActionTypes } from '../model/action-types';
+import { ACTION_TYPE_CONTEXT } from '../model/action-type-context';
 
 const AUTHENTICATION_REQUIRED_CODE = 'AUTHENTICATION_REQUIRED';
 const TRACE_ID_HEADER = 'X-Trace-Id';
+const MUTATING_ACTION_TYPES: ReadonlySet<ActionTypes> = new Set([ActionTypes.CREATE, ActionTypes.UPDATE, ActionTypes.DELETE]);
 
 function notifyMessages(notifications: NotificationService, messages: ResponseMessage[] | undefined, fallbackText: string): void {
     if (messages?.length) {
@@ -23,6 +26,9 @@ export const apiResponseInterceptor: HttpInterceptorFn = (req, next) => {
     const notifications = inject(NotificationService);
     const router = inject(Router);
     const silent = req.headers.get('X-Silent') === 'true';
+    // Only auto-toast success for mutating calls (Create/Update/Delete) — a
+    // plain list/search fetch shouldn't pop a "success" toast every time.
+    const isMutating = MUTATING_ACTION_TYPES.has(req.context.get(ACTION_TYPE_CONTEXT) as ActionTypes);
 
     return next(req).pipe(
         map(event => {
@@ -33,18 +39,17 @@ export const apiResponseInterceptor: HttpInterceptorFn = (req, next) => {
                         console.log(body);
                     }
                     if (body.status === 'SUCCESS') {
-                        if (!silent) {
+                        if (!silent && isMutating) {
                             notifications.notifyApiMessages(body.message);
                         }
                         return event.clone({ body: body.data });
                     } else {
-                        if (!silent) {
-                            notifications.notifyApiMessages(body.message);
-                        }
                         // Preserve the full structured body (statusCode + message[] with
                         // their codes, e.g. USER_PRIVILEGE_NOT_ALLOWED) on `.error` instead
                         // of flattening it to a string, so the catchError branch below can
-                        // read it the same way it reads a genuine non-2xx transport error.
+                        // read — and notify — it the same way it does a genuine non-2xx
+                        // transport error. Notification itself happens once, in catchError,
+                        // not here, to avoid double-toasting this synthetic error.
                         throw new HttpErrorResponse({ status: body.statusCode, error: body });
                     }
                 }
@@ -77,6 +82,10 @@ export const apiResponseInterceptor: HttpInterceptorFn = (req, next) => {
                 if (!silent) {
                     notifyMessages(notifications, messages, 'You do not have permission to perform this action.');
                 }
+            } else if (!silent) {
+                // Every other non-2xx status (500, 503, 400, ...) previously fell
+                // through with just the console.error above — nothing visible.
+                notifyMessages(notifications, messages, `Something went wrong (${error.status}).`);
             }
 
             return throwError(() => error);

@@ -5,6 +5,7 @@ export * from './interceptors/api-response.interceptor';
 export * from './interceptors/jwt.interceptor';
 export * from './interceptors/language.interceptor';
 export * from './model/action-types';
+export * from './model/action-type-context';
 export * from './model/api-response.model';
 export * from './model/auth-response';
 export * from './model/auth-config';

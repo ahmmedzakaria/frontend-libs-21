@@ -24,3 +24,4 @@ export * from './core/services/layout-config.service';
 export * from './core/services/transloco-loader';
 export * from './shared/icon/icon.component';
 export * from './shared/icon/icon-registry';
+export * from './shared/toast/toast-container.component';

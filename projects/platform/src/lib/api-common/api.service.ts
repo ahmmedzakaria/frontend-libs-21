@@ -1,10 +1,12 @@
 import { Inject, Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpErrorResponse, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpHeaders, HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { ActionTypes } from './model/action-types';
 import { API_ENVIRONMENT, NexacoreEnvironment } from './environment';
 import { ApiEndpoint } from './model/endpoint';
+import { ApiResponse } from './model/api-response.model';
+import { ACTION_TYPE_CONTEXT } from './model/action-type-context';
 
 
 @Injectable({
@@ -48,6 +50,7 @@ export class ApiService {
         body: any = {},
         options: {
             headers?: HttpHeaders;
+            context?: HttpContext;
             responseType?: 'json' | 'arraybuffer';
             observe?: 'body' | 'response';
         } = {}
@@ -63,9 +66,14 @@ export class ApiService {
         const basePath = this.resolveBasePath(apiInfo.actionType);
 
         const headers = this.buildHeaders(apiInfo.isMultiPart, options.headers);
+        // Lets apiResponseInterceptor read the ActionTypes for this request
+        // (it only sees the raw HttpRequest) so it can auto-toast success
+        // only for CREATE/UPDATE/DELETE, not every SEARCH/LOGIN.
+        const context = (options.context ?? new HttpContext()).set(ACTION_TYPE_CONTEXT, apiInfo.actionType);
         const requestOptions = {
             ...options,
             headers,
+            context,
         } as any;
 
         return this.http.post(`${basePath}/${apiInfo.apiPath}`, body, requestOptions).pipe(
@@ -172,7 +180,15 @@ export class ApiService {
         if (error.error instanceof ErrorEvent) {
             errorMsg = `Client error: ${error.error.message}`;
         } else {
-            errorMsg = `Server error (${error.status}): ${error.message}`;
+            // error.message is Angular's generic transport-level string (e.g.
+            // "Http failure response for ...: 503 Service Unavailable") — the
+            // backend's actual human-readable text lives in error.error.message,
+            // an ApiResponse's ResponseMessage[]. Prefer that when present.
+            const apiError = error.error as ApiResponse<unknown> | null | undefined;
+            const backendMessages = apiError?.message?.map((m) => m.message).filter(Boolean);
+            errorMsg = backendMessages?.length
+                ? backendMessages.join(' ')
+                : `Server error (${error.status}): ${error.message}`;
         }
         return throwError(() => new Error(errorMsg));
     }
