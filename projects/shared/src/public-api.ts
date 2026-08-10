@@ -11,6 +11,7 @@ export * from './lib/components/dynamic-form/dynamic-form.component';
 export * from './lib/components/dynamic-form/dynamic-form.model';
 export * from './lib/components/dynamic-list/dynamic-list.component';
 export * from './lib/components/dynamic-list/dynamic-list.model';
+export * from './lib/components/dynamic-modal/dynamic-modal.component';
 export * from './lib/components/dynamic-preview/dynamic-preview.component';
 export * from './lib/components/dynamic-preview/dynamic-preview.model';
 export * from './lib/components/dynamic-tab/dynamic-tab.component';
