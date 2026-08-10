@@ -1,0 +1,13 @@
+<app-modal [open]="open()" [title]="title()" [width]="width()" (closed)="closed.emit()">
+  <app-dynamic-form
+    #form="dynamicForm"
+    [fields]="fields()"
+    [initialValue]="initialValue()"
+    [columns]="columns()"
+    (submitted)="submitted.emit($event)"
+  />
+  <div class="modal-actions">
+    <app-button [label]="cancelLabel()" variant="ghost" (clicked)="closed.emit()" />
+    <app-button [label]="saveLabel()" [icon]="saveIcon()" (clicked)="form.submit()" />
+  </div>
+</app-modal>
