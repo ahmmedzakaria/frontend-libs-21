@@ -1,0 +1,21 @@
+<div class="tablist" role="tablist">
+  @for (tab of tabs(); track tab.key; let i = $index) {
+    <button
+      #tabBtn
+      type="button"
+      role="tab"
+      class="tab"
+      [id]="idPrefix() + '-tab-' + i"
+      [attr.aria-selected]="activeIndex() === i"
+      [attr.aria-controls]="idPrefix() + '-panel-' + i"
+      [attr.aria-disabled]="tab.disabled || null"
+      [tabindex]="activeIndex() === i ? 0 : -1"
+      [class.active]="activeIndex() === i"
+      [class.disabled]="tab.disabled"
+      (click)="select(i)"
+      (keydown)="onKeydown($event, i)"
+    >
+      {{ tab.label }}
+    </button>
+  }
+</div>

@@ -1,0 +1,39 @@
+<app-tab-bar
+  [tabs]="tabDefs()"
+  [activeIndex]="currentIndex()"
+  [idPrefix]="uid"
+  (tabChange)="select($event)"
+/>
+
+@for (tab of tabs(); track tab.key; let i = $index) {
+  @if (visited().has(i)) {
+    <div
+      class="dynamic-tab__panel"
+      role="tabpanel"
+      [id]="uid + '-panel-' + i"
+      [attr.aria-labelledby]="uid + '-tab-' + i"
+      [style.display]="currentIndex() === i ? '' : 'none'"
+    >
+      @if (isFieldTab(tab)) {
+        <app-dynamic-form [fields]="tab.fields" [initialValue]="tab.initialValue ?? {}" [columns]="tab.columns ?? 1" />
+      } @else if (isPreviewTab(tab)) {
+        <app-dynamic-preview
+          [sections]="tab.sections"
+          [data]="tab.data ?? {}"
+          [heading]="tab.heading ?? ''"
+          [subheading]="tab.subheading ?? ''"
+        />
+      } @else if (isListTab(tab)) {
+        <app-dynamic-list
+          [columns]="tab.columns"
+          [loadItems]="tab.loadItems"
+          [pageSize]="tab.pageSize ?? 10"
+          [pageSizeOptions]="tab.pageSizeOptions ?? [10, 25, 50, 100]"
+          [searchPlaceholder]="tab.searchPlaceholder ?? 'Search…'"
+          [emptyTitle]="tab.emptyTitle ?? 'No records yet'"
+          [emptyMessage]="tab.emptyMessage ?? 'There is nothing to show here.'"
+        />
+      }
+    </div>
+  }
+}
