@@ -27,7 +27,7 @@ export class ApiService {
 
         const { clientCode, apiKey } = this.environment;
 
-        if (clientCode && apiKey && !headers.has('X-Client-Code')) {
+        if (clientCode && !headers.has('X-Client-Code')) {
             headers = headers.set('X-Client-Code', clientCode);
         }
 
