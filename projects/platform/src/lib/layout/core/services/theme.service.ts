@@ -1,20 +1,13 @@
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
-import { THEMES, ThemeDef, ThemeId } from '../models/theme.model';
+import { THEME_COLOR_ROLES, THEMES, ThemeDef, ThemeId } from '../models/theme.model';
 import { LayoutConfigService } from './layout-config.service';
 
 const STORAGE_KEY = 'sentinel-kyc.theme';
 
-/** Backend `primaries` field → the CSS custom property it overrides. */
-const PRIMITIVE_VAR_MAP: Record<string, string> = {
-  text: '--layout-theme-text',
-  paper: '--layout-theme-bg',
-  card: '--layout-theme-surface',
-  accent: '--layout-theme-primary',
-  amber: '--layout-theme-warning',
-  red: '--layout-theme-danger',
-  success: '--layout-theme-success',
-  info: '--layout-theme-focus'
-};
+/** Backend `primaries` field → the CSS custom property it overrides, derived from THEME_COLOR_ROLES. */
+const PRIMITIVE_VAR_MAP: Record<string, string> = Object.fromEntries(
+  THEME_COLOR_ROLES.map((role) => [role.key, role.cssVar])
+);
 
 /** Backend `chromeOverrides` field → the CSS custom property it overrides. */
 const CHROME_VAR_MAP: Record<string, string> = {
@@ -57,6 +50,13 @@ export class ThemeService {
     () => this.themes().find((t) => t.id === this.themeId()) ?? this.themes()[0]
   );
 
+  /**
+   * Session-only per-role color overrides (e.g. from a live color-palette editor) —
+   * layered on top of the selected theme's primaries, never persisted, cleared by
+   * clearCustomColors() or naturally lost on reload.
+   */
+  private readonly customColors = signal<Record<string, string> | null>(null);
+
   constructor() {
     // Reflect the active theme onto <body> as a data attribute + structural class,
     // exactly like the `data-theme` / `.dark` mechanism in the original CSS tokens —
@@ -64,16 +64,40 @@ export class ThemeService {
     // property overrides (highest specificity, wins over the SCSS defaults).
     effect(() => {
       const theme = this.current();
+      const custom = this.customColors();
       const body = document.body;
       body.dataset['theme'] = theme.id;
       body.classList.toggle('dark', theme.base === 'dark');
       localStorage.setItem(STORAGE_KEY, theme.id);
       this.applyBackendOverrides(body, theme);
+      this.applyCustomOverrides(body, custom);
     });
   }
 
   select(id: ThemeId): void {
     this.themeId.set(id);
+  }
+
+  /** Live-applies a single color-role override (e.g. from a color-palette editor). */
+  setCustomColor(key: string, value: string): void {
+    this.customColors.update((prev) => ({ ...(prev ?? {}), [key]: value }));
+  }
+
+  /** Drops all session color overrides, reverting to the selected theme's own colors. */
+  clearCustomColors(): void {
+    this.customColors.set(null);
+  }
+
+  private applyCustomOverrides(body: HTMLElement, custom: Record<string, string> | null): void {
+    if (!custom) {
+      return;
+    }
+    for (const [key, value] of Object.entries(custom)) {
+      const cssVar = PRIMITIVE_VAR_MAP[key];
+      if (cssVar && value) {
+        body.style.setProperty(cssVar, value);
+      }
+    }
   }
 
   private applyBackendOverrides(body: HTMLElement, theme: ThemeDef): void {
