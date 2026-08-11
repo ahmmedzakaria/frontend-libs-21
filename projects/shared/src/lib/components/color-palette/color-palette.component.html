@@ -1,0 +1,22 @@
+<div class="palette">
+    <div class="palette-header">
+        <h4 class="palette-title">Layout Colors</h4>
+        <app-button label="Reset to Theme Defaults" variant="ghost" size="sm" (clicked)="reset()" />
+    </div>
+    <div class="palette-grid">
+        @for (role of roles; track role.key) {
+            <label class="palette-item">
+                <input
+                    type="color"
+                    class="palette-swatch"
+                    [value]="colors()[role.key]"
+                    (input)="onColorInput(role.key, $event)"
+                />
+                <span class="palette-text">
+                    <span class="palette-label">{{ role.label }}</span>
+                    <span class="palette-hex">{{ colors()[role.key] }}</span>
+                </span>
+            </label>
+        }
+    </div>
+</div>

@@ -3,6 +3,7 @@ export * from './lib/components/approval-actions/approval-actions.component';
 export * from './lib/components/button/button.component';
 export * from './lib/components/card-selector/card-selector.component';
 export * from './lib/components/checkbox/checkbox.component';
+export * from './lib/components/color-palette/color-palette.component';
 export * from './lib/components/confirm-dialog/confirm-dialog.component';
 export * from './lib/components/data-table/data-table.component';
 export * from './lib/components/date-picker/date-picker.component';
