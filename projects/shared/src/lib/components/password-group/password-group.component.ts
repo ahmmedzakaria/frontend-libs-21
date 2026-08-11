@@ -106,6 +106,12 @@ export class PasswordGroupComponent extends BaseValueAccessor<string> implements
 
     onConfirmInput(event: Event): void {
         this.confirmValue.set((event.target as HTMLInputElement).value);
+        // Re-emit the unchanged password value so Angular re-runs this
+        // component's own Validator.validate() — confirmValue is local
+        // component state, not the emitted CVA value, so without this the
+        // outer FormControl's cached validity never reflects a mismatch or
+        // resolved match typed into the confirm field after the password.
+        this.emitValue(this.value());
     }
 
     onBlur(): void {
