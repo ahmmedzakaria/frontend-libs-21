@@ -138,34 +138,48 @@ $space-16: calc(var(--layout-size-unit) * 16);
     --mega-item-columns: 3;
   }
 }
+// Underline sweep + color/weight shift — quiet, text-led hover: no
+// background or motion, just the label's own color/weight lifting and a
+// thin accent rule growing in underneath it from the left.
 .mega-subitem {
   display: flex;
   align-items: center;
   padding: var(--layout-space-3) var(--layout-space-4);
-  border-radius: var(--radius);
-  border-inline-start: var(--layout-border-width-accent) solid transparent;
   color: var(--text-muted);
   font-size: var(--layout-font-size-base);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-weight: var(--layout-font-weight-normal);
   cursor: pointer;
   transition:
-    background var(--layout-transition-fast) var(--layout-transition-emphasized),
     color var(--layout-transition-fast) var(--layout-transition-emphasized),
-    border-color var(--layout-transition-fast) var(--layout-transition-emphasized),
-    transform var(--layout-transition-fast) var(--layout-transition-emphasized);
+    font-weight var(--layout-transition-fast) var(--layout-transition-emphasized);
 
-  &:hover {
-    background: var(--surface-2);
-    border-inline-start-color: var(--accent);
-    color: var(--text);
-    transform: translateX(2px);
+  .label {
+    position: relative;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+
+    &::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 100%;
+      bottom: -3px;
+      height: var(--layout-border-width-accent);
+      background: var(--accent);
+      transition: right var(--layout-transition-base) var(--layout-transition-emphasized);
+    }
   }
+
+  &:hover,
   &.active {
-    background: var(--accent-soft);
-    border-inline-start-color: var(--accent);
-    color: var(--text);
+    color: var(--accent);
+    font-weight: var(--layout-font-weight-medium);
+  }
+  &:hover .label::after,
+  &.active .label::after {
+    right: 0;
   }
 }
 
