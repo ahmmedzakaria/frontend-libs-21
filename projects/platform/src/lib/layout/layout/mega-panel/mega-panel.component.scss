@@ -108,14 +108,22 @@ $space-16: calc(var(--layout-size-unit) * 16);
   overflow: hidden;
   text-overflow: ellipsis;
 }
+// Feature links flow left-to-right and wrap, instead of stacking as a
+// top-down list — each link is auto-width (not a full-width row).
+.mega-list-items {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--layout-space-2) var(--layout-space-5);
+}
 .mega-subitem {
-  min-height: #{$space-16};
   display: flex;
   align-items: center;
-  padding: var(--layout-space-4) var(--layout-space-5);
+  padding: var(--layout-space-3) var(--layout-space-4);
   border-radius: var(--radius);
   color: var(--text-muted);
   font-size: var(--layout-font-size-base);
+  white-space: nowrap;
   cursor: pointer;
 
   &:hover,

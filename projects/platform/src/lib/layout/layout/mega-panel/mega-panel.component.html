@@ -16,16 +16,18 @@
           @for (fg of content.featureGroups; track fg.label; let gi = $index) {
             <div class="mega-list">
               <div class="mega-list-title">{{ fg.label }}</div>
-              @for (f of fg.children; track f.code; let fi = $index) {
-                <div
-                  class="mega-subitem focus-ring"
-                  tabindex="0"
-                  (click)="selectFeature(content.path, gi, fi, f)"
-                  (keydown.enter)="selectFeature(content.path, gi, fi, f)"
-                >
-                  {{ f.label }}
-                </div>
-              }
+              <div class="mega-list-items">
+                @for (f of fg.children; track f.code; let fi = $index) {
+                  <div
+                    class="mega-subitem focus-ring"
+                    tabindex="0"
+                    (click)="selectFeature(content.path, gi, fi, f)"
+                    (keydown.enter)="selectFeature(content.path, gi, fi, f)"
+                  >
+                    {{ f.label }}
+                  </div>
+                }
+              </div>
             </div>
           }
         } @else {
