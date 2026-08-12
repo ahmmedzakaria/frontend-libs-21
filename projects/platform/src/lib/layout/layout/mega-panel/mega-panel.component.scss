@@ -9,6 +9,13 @@ $rail-clearance-desktop: 330px;
 $context-column-width: 180px;
 $feature-column-min-width: 165px;
 $context-art-size: 56px;
+// Column count for `.mega-list-items` steps 1 → 2 → 3 as the panel itself
+// (not the viewport) grows past these inline-size thresholds — sized against
+// the panel's own width range (~400-790px, see `$panel-width-desktop` above)
+// so a group's links land in clean, ruled-up columns instead of an
+// unpredictable number of columns.
+$item-columns-2-at: 460px;
+$item-columns-3-at: 620px;
 // Beyond `--layout-space-5`, the shared scale (in _tokens.scss) doesn't define
 // a step — same `size-unit * N` formula, just not promoted to a global token
 // since nothing else reuses these particular multiples.
@@ -28,6 +35,10 @@ $space-16: calc(var(--layout-size-unit) * 16);
   max-height: 92vh;
   overflow-y: auto;
   padding: #{$space-11};
+  // Query container for `.mega-list-items`' column-count breakpoints below —
+  // keys the grid off the panel's own rendered width, not the viewport.
+  container-type: inline-size;
+  container-name: mega-panel;
 }
 
 .mega-layout {
@@ -108,27 +119,52 @@ $space-16: calc(var(--layout-size-unit) * 16);
   overflow: hidden;
   text-overflow: ellipsis;
 }
-// Feature links flow left-to-right and wrap, instead of stacking as a
-// top-down list — each link is auto-width (not a full-width row).
+// Feature links flow left-to-right in a fixed-column grid, instead of
+// stacking as a top-down list. A real grid (not flex-wrap) keeps every
+// link's edges ruled up into clean columns; the column count itself steps
+// 1 → 2 → 3 with the panel's own width via the container queries below.
 .mega-list-items {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(var(--mega-item-columns, 1), minmax(0, 1fr));
   gap: var(--layout-space-2) var(--layout-space-5);
+}
+@container mega-panel (min-width: #{$item-columns-2-at}) {
+  .mega-list-items {
+    --mega-item-columns: 2;
+  }
+}
+@container mega-panel (min-width: #{$item-columns-3-at}) {
+  .mega-list-items {
+    --mega-item-columns: 3;
+  }
 }
 .mega-subitem {
   display: flex;
   align-items: center;
   padding: var(--layout-space-3) var(--layout-space-4);
   border-radius: var(--radius);
+  border-inline-start: var(--layout-border-width-accent) solid transparent;
   color: var(--text-muted);
   font-size: var(--layout-font-size-base);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   cursor: pointer;
+  transition:
+    background var(--layout-transition-fast) var(--layout-transition-emphasized),
+    color var(--layout-transition-fast) var(--layout-transition-emphasized),
+    border-color var(--layout-transition-fast) var(--layout-transition-emphasized),
+    transform var(--layout-transition-fast) var(--layout-transition-emphasized);
 
-  &:hover,
-  &.active {
+  &:hover {
     background: var(--surface-2);
+    border-inline-start-color: var(--accent);
+    color: var(--text);
+    transform: translateX(2px);
+  }
+  &.active {
+    background: var(--accent-soft);
+    border-inline-start-color: var(--accent);
     color: var(--text);
   }
 }
