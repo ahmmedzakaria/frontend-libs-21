@@ -1,6 +1,7 @@
 import { InjectionToken } from '@angular/core';
 
 export interface NexacoreEnvironment {
+  production: boolean;
   backendOrigin: string;
   loginUrl: string;
   apiBaseUrl: string;
@@ -9,6 +10,7 @@ export interface NexacoreEnvironment {
 }
 
 export const Environment: NexacoreEnvironment = {
+  production: false,
   backendOrigin: 'http://localhost:9100',
   // Every backend route lives under /api/v1 (Spring's @RequestMapping on
   // each controller, no global context-path) — including auth, which is
