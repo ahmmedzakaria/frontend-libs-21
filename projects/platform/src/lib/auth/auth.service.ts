@@ -258,7 +258,6 @@ export class AuthService {
     private decodeAndSetUser(token: string) {
         try {
             const decoded: DecodedToken = jwtDecode(token);
-            console.log('decoded',decoded)
             this.currentUserSubject.next(decoded);
             sessionStorage.removeItem(LAST_LOGOUT_USERNAME_KEY);
             this.scheduleAutoLogout(decoded.exp);
@@ -316,8 +315,7 @@ export class AuthService {
     }
 
     hasPrivilege(privilegeCode: string): boolean {
-        const privilegeCodes = JSON.parse(localStorage.getItem('privilegeCodes') || '[]') as string[];
-        return privilegeCodes.includes(privilegeCode);
+        return this.applicationContextService.hasPrivilege(privilegeCode);
     }
 
     private isTokenExpired(token: string): boolean {
@@ -473,8 +471,6 @@ export class AuthService {
     private clearApplicationContextStorage(): void {
         localStorage.removeItem('clientCode');
         localStorage.removeItem('clientType');
-        localStorage.removeItem('privilegeCodes');
-        localStorage.removeItem('layoutConfig');
         // Reset in-memory state too, not just localStorage — otherwise a
         // guard's `ensureLoaded()` would see the previous user's still-cached
         // `layoutConfig` signal and skip fetching fresh privilege codes for

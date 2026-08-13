@@ -41,6 +41,8 @@ function stubApplicationContextService(
     setLayoutConfig: (config) => layoutConfigSignal.set(config),
     load: () =>
       of({
+        clientCode: 'WEB',
+        clientType: 'WEB',
         privilegeCodes: [],
         routePolicies: [],
         uiPolicies: [],

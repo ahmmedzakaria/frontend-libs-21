@@ -1,6 +1,7 @@
 export * from './api.service';
 export * from './environment';
 export * from './notification.service';
+export * from './authorization-denial.service';
 export * from './interceptors/api-response.interceptor';
 export * from './interceptors/jwt.interceptor';
 export * from './interceptors/language.interceptor';

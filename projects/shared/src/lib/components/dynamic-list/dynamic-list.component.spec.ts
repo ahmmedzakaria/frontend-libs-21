@@ -36,7 +36,11 @@ function createComponent(
     TestBed.configureTestingModule({
         imports: [DynamicListComponent],
         providers: [
-            { provide: ApplicationContextService, useValue: { uiPolicies: signal(policies) } },
+            { provide: ApplicationContextService, useValue: {
+                uiPolicies: signal(policies),
+                privilegeCodes: signal([...granted]),
+                hasPrivilege: (code: string) => granted.has(code)
+            } },
             { provide: AuthService, useValue: { hasPrivilege: (code: string) => granted.has(code) } }
         ]
     });

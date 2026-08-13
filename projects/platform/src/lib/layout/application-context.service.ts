@@ -1,16 +1,19 @@
-import { Injectable, signal } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { map, shareReplay, tap } from 'rxjs/operators';
+import { Injectable, computed, signal } from '@angular/core';
+import { Observable, finalize, map, shareReplay, tap } from 'rxjs';
 import { ActionTypes, ApiEndpoint, ApiService } from '../api-common/index';
 import { BackendLayoutConfig, NavTreeItem } from './core/models/layout-config.model';
 
-export interface ApplicationContext {
-    clientCode?: string;
-    clientType?: string;
-    privilegeCodes: string[];
-    routePolicies: RoutePrivilegePolicy[];
-    uiPolicies: UiPrivilegePolicy[];
-    layout?: BackendLayoutConfig;
+export interface EffectiveScopeAssignment {
+    tenantId: number;
+    businessId: number | null;
+    branchId: number | null;
+}
+
+export interface EffectiveTenantContext {
+    tenantId: number;
+    tenantCode: string;
+    hostname: string;
+    scopeAssignments: EffectiveScopeAssignment[];
 }
 
 export interface RoutePrivilegePolicy {
@@ -25,8 +28,23 @@ export interface UiPrivilegePolicy {
     privilegeCodes: string[];
 }
 
+export interface ApplicationAuthorizationContext {
+    clientCode: string;
+    clientType: string;
+    /** Required when the Phase 3 backend contract is deployed. */
+    effectiveTenant?: EffectiveTenantContext;
+    privilegeCodes: string[];
+    routePolicies: RoutePrivilegePolicy[];
+    uiPolicies: UiPrivilegePolicy[];
+    authorizationVersion?: string;
+    layout?: BackendLayoutConfig;
+}
+
+/** Backward-compatible public name used by existing layout consumers. */
+export type ApplicationContext = ApplicationAuthorizationContext;
+
 interface WrappedApplicationContext {
-    data?: ApplicationContext;
+    data?: unknown;
 }
 
 const PRIVILEGE_CONTEXT_ENDPOINT: ApiEndpoint = {
@@ -34,67 +52,50 @@ const PRIVILEGE_CONTEXT_ENDPOINT: ApiEndpoint = {
     actionType: ActionTypes.AUTH,
 };
 
+const STORAGE_KEYS = [
+    'clientCode', 'clientType', 'privilegeCodes', 'routePolicies', 'uiPolicies',
+    'layoutConfig', 'effectiveTenant', 'authorizationVersion'
+] as const;
+
 @Injectable({ providedIn: 'root' })
 export class ApplicationContextService {
-    /** Reactive copy of the effective layout. Unlike localStorage, this also
-     * updates services that were instantiated before login completed. */
-    readonly layoutConfig = signal<BackendLayoutConfig | null>(this.readCachedLayoutConfig());
-    readonly routePolicies = signal<RoutePrivilegePolicy[]>(this.readCachedRoutePolicies());
-    readonly uiPolicies = signal<UiPrivilegePolicy[]>(this.readCachedUiPolicies());
+    private readonly liveContext = signal<ApplicationAuthorizationContext | null>(null);
 
-    /** True once a live `load()` call has completed this session (success or
-     * failure) — distinct from `layoutConfig` being non-null, which can just
-     * mean a (possibly stale) localStorage cache was seeded synchronously on
-     * construction. Guards that need to know "has a real network round-trip
-     * happened yet" (e.g. `routePrivilegeGuard`'s fail-closed check) should
-     * read this instead of inferring readiness from cache presence alone. */
-    readonly loaded = signal(
-        this.readCachedLayoutConfig() !== null
-        && localStorage.getItem('routePolicies') !== null
-        && localStorage.getItem('uiPolicies') !== null
-    );
+    readonly context = this.liveContext.asReadonly();
+    readonly privilegeCodes = computed(() => this.liveContext()?.privilegeCodes ?? []);
+    readonly effectiveTenant = computed(() => this.liveContext()?.effectiveTenant ?? null);
+    readonly layoutConfig = computed(() => this.liveContext()?.layout ?? null);
+    readonly routePolicies = computed(() => this.liveContext()?.routePolicies ?? []);
+    readonly uiPolicies = computed(() => this.liveContext()?.uiPolicies ?? []);
+    readonly loaded = computed(() => this.liveContext() !== null);
 
-    private inFlight: Observable<ApplicationContext> | null = null;
+    private inFlight: Observable<ApplicationAuthorizationContext> | null = null;
 
-    constructor(private apiService: ApiService) {}
+    constructor(private readonly apiService: ApiService) {}
 
-    load(): Observable<ApplicationContext> {
-        return this.apiService.post<ApplicationContext | WrappedApplicationContext>(PRIVILEGE_CONTEXT_ENDPOINT, {}).pipe(
-            map(response => this.unwrap(response)),
-            tap(context => {
-                localStorage.setItem('clientCode', context.clientCode || '');
-                localStorage.setItem('clientType', context.clientType || '');
-                localStorage.setItem('privilegeCodes', JSON.stringify(context.privilegeCodes));
-                localStorage.setItem('routePolicies', JSON.stringify(context.routePolicies));
-                localStorage.setItem('uiPolicies', JSON.stringify(context.uiPolicies));
-                localStorage.setItem('layoutConfig', JSON.stringify(context.layout || null));
-                this.setLayoutConfig(context.layout ?? null);
-                this.routePolicies.set(context.routePolicies);
-                this.uiPolicies.set(context.uiPolicies);
-                this.loaded.set(true);
-            })
-        );
+    load(): Observable<ApplicationAuthorizationContext> {
+        return this.refresh();
     }
 
-    /**
-     * Guarantees `getCachedNavTree()`/`hasPrivilege()`-backed checks see real
-     * data before a guard evaluates them, without re-fetching on every route
-     * activation. Concurrent callers (e.g. multiple `canActivateChild`
-     * evaluations firing off one navigation) share the same in-flight
-     * request via `shareReplay`.
-     */
-    ensureLoaded(): Observable<ApplicationContext | null> {
-        if (this.loaded()) {
-            return of(null);
-        }
-        if (!this.inFlight) {
-            this.inFlight = this.load().pipe(shareReplay({ bufferSize: 1, refCount: false }));
-        }
-        return this.inFlight;
+    ensureLoaded(): Observable<ApplicationAuthorizationContext> {
+        return this.liveContext() ? new Observable(subscriber => {
+            subscriber.next(this.liveContext()!);
+            subscriber.complete();
+        }) : this.singleFlightRequest();
+    }
+
+    refresh(): Observable<ApplicationAuthorizationContext> {
+        this.liveContext.set(null);
+        return this.singleFlightRequest();
+    }
+
+    hasPrivilege(code: string): boolean {
+        const normalized = code.trim();
+        return normalized.length > 0 && this.privilegeCodes().includes(normalized);
     }
 
     getCachedNavTree(): NavTreeItem[] {
-        return this.getCachedLayoutConfig()?.navTree ?? [];
+        return this.layoutConfig()?.navTree ?? [];
     }
 
     getCachedRoutePolicies(): RoutePrivilegePolicy[] {
@@ -106,73 +107,155 @@ export class ApplicationContextService {
     }
 
     setLayoutConfig(config: BackendLayoutConfig | null): void {
-        this.layoutConfig.set(config);
+        const current = this.liveContext();
+        if (current) this.liveContext.set({ ...current, layout: config ?? undefined });
     }
 
-    /**
-     * Resets in-memory + cached context on login/logout so the next
-     * `ensureLoaded()` call always does a fresh network round-trip instead of
-     * treating a previous (possibly different-user) session's cache as
-     * already loaded — call alongside `localStorage.removeItem('layoutConfig')`.
-     */
     clear(): void {
-        this.layoutConfig.set(null);
-        this.routePolicies.set([]);
-        this.uiPolicies.set([]);
-        localStorage.removeItem('routePolicies');
-        localStorage.removeItem('uiPolicies');
-        this.loaded.set(false);
+        this.liveContext.set(null);
         this.inFlight = null;
+        STORAGE_KEYS.forEach(key => localStorage.removeItem(key));
     }
 
-    private readCachedLayoutConfig(): BackendLayoutConfig | null {
-        const raw = localStorage.getItem('layoutConfig');
-        if (!raw) {
-            return null;
+    private singleFlightRequest(): Observable<ApplicationAuthorizationContext> {
+        if (!this.inFlight) {
+            this.inFlight = this.requestContext().pipe(
+                finalize(() => this.inFlight = null),
+                shareReplay({ bufferSize: 1, refCount: false })
+            );
         }
-
-        try {
-            return JSON.parse(raw) as BackendLayoutConfig;
-        } catch {
-            return null;
-        }
+        return this.inFlight;
     }
 
-    private unwrap(response: ApplicationContext | WrappedApplicationContext): ApplicationContext {
-        const context = (response as WrappedApplicationContext)?.data || response as ApplicationContext;
+    private requestContext(): Observable<ApplicationAuthorizationContext> {
+        return this.apiService.post<unknown>(PRIVILEGE_CONTEXT_ENDPOINT, {}).pipe(
+            map(response => this.validateAndNormalize(this.unwrap(response))),
+            tap(context => {
+                this.liveContext.set(context);
+                this.persist(context);
+            })
+        );
+    }
+
+    private unwrap(response: unknown): unknown {
+        if (this.isRecord(response) && 'data' in response) {
+            return (response as WrappedApplicationContext).data;
+        }
+        return response;
+    }
+
+    private validateAndNormalize(value: unknown): ApplicationAuthorizationContext {
+        if (!this.isRecord(value)
+            || !this.isNonBlankString(value['clientCode'])
+            || !this.isNonBlankString(value['clientType'])
+            || !this.isStringArray(value['privilegeCodes'])
+            || !this.isRoutePolicies(value['routePolicies'])
+            || !this.isUiPolicies(value['uiPolicies'])) {
+            this.clear();
+            throw new Error('Authorization context is missing or malformed');
+        }
+
+        const effectiveTenant = value['effectiveTenant'] == null
+            ? undefined
+            : this.normalizeEffectiveTenant(value['effectiveTenant']);
+
         return {
-            clientCode: context?.clientCode || '',
-            clientType: context?.clientType || '',
-            privilegeCodes: context?.privilegeCodes || [],
-            routePolicies: context?.routePolicies || [],
-            uiPolicies: context?.uiPolicies || [],
-            layout: context?.layout,
+            clientCode: value['clientCode'].trim(),
+            clientType: value['clientType'].trim(),
+            effectiveTenant,
+            privilegeCodes: [...new Set(value['privilegeCodes'])],
+            routePolicies: value['routePolicies'].map(policy => ({
+                routeUrl: policy.routeUrl.trim(),
+                matchMode: policy.matchMode,
+                privilegeCodes: [...new Set(policy.privilegeCodes)]
+            })),
+            uiPolicies: value['uiPolicies'].map(policy => ({
+                actionCode: policy.actionCode.trim().toLowerCase(),
+                matchMode: policy.matchMode,
+                privilegeCodes: [...new Set(policy.privilegeCodes)]
+            })),
+            authorizationVersion: this.isNonBlankString(value['authorizationVersion'])
+                ? value['authorizationVersion'].trim() : undefined,
+            layout: value['layout'] as BackendLayoutConfig | undefined,
         };
     }
 
-    private readCachedRoutePolicies(): RoutePrivilegePolicy[] {
-        const raw = localStorage.getItem('routePolicies');
-        if (!raw) {
-            return [];
+    private normalizeEffectiveTenant(value: unknown): EffectiveTenantContext {
+        if (!this.isRecord(value)
+            || !this.isPositiveId(value['tenantId'])
+            || !this.isNonBlankString(value['tenantCode'])
+            || !this.isNonBlankString(value['hostname'])
+            || !Array.isArray(value['scopeAssignments'])) {
+            this.clear();
+            throw new Error('Effective tenant context is malformed');
         }
-        try {
-            const policies = JSON.parse(raw);
-            return Array.isArray(policies) ? policies as RoutePrivilegePolicy[] : [];
-        } catch {
-            return [];
+        const scopeAssignments = value['scopeAssignments'].map(scope => this.normalizeScope(scope));
+        if (!scopeAssignments.length || scopeAssignments.some(scope => scope.tenantId !== value['tenantId'])) {
+            this.clear();
+            throw new Error('Effective tenant scope assignments are missing or contradictory');
         }
+        return {
+            tenantId: value['tenantId'],
+            tenantCode: value['tenantCode'].trim(),
+            hostname: value['hostname'].trim().toLowerCase(),
+            scopeAssignments,
+        };
     }
 
-    private readCachedUiPolicies(): UiPrivilegePolicy[] {
-        const raw = localStorage.getItem('uiPolicies');
-        if (!raw) {
-            return [];
+    private normalizeScope(value: unknown): EffectiveScopeAssignment {
+        if (!this.isRecord(value) || !this.isPositiveId(value['tenantId'])) {
+            this.clear();
+            throw new Error('Authorization scope assignment is malformed');
         }
-        try {
-            const policies = JSON.parse(raw);
-            return Array.isArray(policies) ? policies as UiPrivilegePolicy[] : [];
-        } catch {
-            return [];
+        const businessId = value['businessId'] == null ? null : value['businessId'];
+        const branchId = value['branchId'] == null ? null : value['branchId'];
+        if ((businessId !== null && !this.isPositiveId(businessId))
+            || (branchId !== null && !this.isPositiveId(branchId))
+            || (branchId !== null && businessId === null)) {
+            this.clear();
+            throw new Error('Authorization scope hierarchy is malformed');
         }
+        return { tenantId: value['tenantId'], businessId, branchId };
+    }
+
+    private persist(context: ApplicationAuthorizationContext): void {
+        localStorage.setItem('clientCode', context.clientCode);
+        localStorage.setItem('clientType', context.clientType);
+        localStorage.setItem('privilegeCodes', JSON.stringify(context.privilegeCodes));
+        localStorage.setItem('routePolicies', JSON.stringify(context.routePolicies));
+        localStorage.setItem('uiPolicies', JSON.stringify(context.uiPolicies));
+        localStorage.setItem('layoutConfig', JSON.stringify(context.layout ?? null));
+        if (context.effectiveTenant) localStorage.setItem('effectiveTenant', JSON.stringify(context.effectiveTenant));
+        if (context.authorizationVersion) localStorage.setItem('authorizationVersion', context.authorizationVersion);
+    }
+
+    private isRecord(value: unknown): value is Record<string, any> {
+        return typeof value === 'object' && value !== null && !Array.isArray(value);
+    }
+
+    private isNonBlankString(value: unknown): value is string {
+        return typeof value === 'string' && value.trim().length > 0;
+    }
+
+    private isStringArray(value: unknown): value is string[] {
+        return Array.isArray(value) && value.every(item => this.isNonBlankString(item));
+    }
+
+    private isPositiveId(value: unknown): value is number {
+        return Number.isSafeInteger(value) && (value as number) > 0;
+    }
+
+    private isRoutePolicies(value: unknown): value is RoutePrivilegePolicy[] {
+        return Array.isArray(value) && value.every(policy => this.isRecord(policy)
+            && this.isNonBlankString(policy['routeUrl'])
+            && (policy['matchMode'] === 'ANY' || policy['matchMode'] === 'ALL')
+            && this.isStringArray(policy['privilegeCodes']));
+    }
+
+    private isUiPolicies(value: unknown): value is UiPrivilegePolicy[] {
+        return Array.isArray(value) && value.every(policy => this.isRecord(policy)
+            && this.isNonBlankString(policy['actionCode'])
+            && (policy['matchMode'] === 'ANY' || policy['matchMode'] === 'ALL')
+            && this.isStringArray(policy['privilegeCodes']));
     }
 }

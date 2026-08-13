@@ -23,7 +23,11 @@ describe('AuthorizedUiDirective', () => {
         TestBed.configureTestingModule({
             imports: [HostComponent],
             providers: [
-                { provide: ApplicationContextService, useValue: { uiPolicies: policies } },
+                { provide: ApplicationContextService, useValue: {
+                    uiPolicies: policies,
+                    privilegeCodes: signal<string[]>([]),
+                    hasPrivilege: (code: string) => granted.has(code)
+                } },
                 { provide: AuthService, useValue: { hasPrivilege: (code: string) => granted.has(code) } }
             ]
         });

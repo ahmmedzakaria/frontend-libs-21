@@ -9,8 +9,8 @@ import { ResponseMessage } from '../model/response-message.model';
 import { NotificationService } from '../notification.service';
 import { ActionTypes } from '../model/action-types';
 import { ACTION_TYPE_CONTEXT } from '../model/action-type-context';
+import { AuthorizationDenialService } from '../authorization-denial.service';
 
-const AUTHENTICATION_REQUIRED_CODE = 'AUTHENTICATION_REQUIRED';
 const TRACE_ID_HEADER = 'X-Trace-Id';
 const MUTATING_ACTION_TYPES: ReadonlySet<ActionTypes> = new Set([ActionTypes.CREATE, ActionTypes.UPDATE, ActionTypes.DELETE]);
 
@@ -25,6 +25,7 @@ function notifyMessages(notifications: NotificationService, messages: ResponseMe
 export const apiResponseInterceptor: HttpInterceptorFn = (req, next) => {
     const notifications = inject(NotificationService);
     const router = inject(Router);
+    const denialService = inject(AuthorizationDenialService);
     const silent = req.headers.get('X-Silent') === 'true';
     // Only auto-toast success for mutating calls (Create/Update/Delete) — a
     // plain list/search fetch shouldn't pop a "success" toast every time.
@@ -60,21 +61,25 @@ export const apiResponseInterceptor: HttpInterceptorFn = (req, next) => {
             const traceId = error.headers?.get?.(TRACE_ID_HEADER) ?? undefined;
             const apiError = error.error as ApiResponse<unknown> | undefined;
             const messages = apiError?.message;
+            const denial = denialService.handle(error);
 
             if (isDevMode()) {
-                console.error('API Error Interceptor:', { traceId, status: error.status, statusCode: apiError?.statusCode, error });
+                console.error('API request failed', {
+                    traceId,
+                    status: error.status,
+                    statusCode: apiError?.statusCode,
+                    codes: messages?.map(message => message.code).filter(Boolean)
+                });
             }
 
             if (error.status === 401) {
-                const hasAuthRequiredCode = messages?.some((m) => m.code === AUTHENTICATION_REQUIRED_CODE) ?? false;
-                // No matched code still means "not authenticated" from the caller's
-                // perspective — redirect unless the body explicitly says otherwise via a
-                // different, unrecognized 401 code.
-                if (hasAuthRequiredCode || !messages?.length) {
+                if (!denial && !messages?.length) {
                     if (!silent) {
                         notifyMessages(notifications, messages, 'Your session has expired. Please log in again.');
                     }
                     router.navigate(['/login']);
+                } else if (!silent) {
+                    notifyMessages(notifications, messages, 'Authentication is required.');
                 }
             } else if (error.status === 403) {
                 // Stay on the current page — a 403 means the user is authenticated but

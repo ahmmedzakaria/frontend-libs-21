@@ -55,12 +55,13 @@ export class ApiService {
             observe?: 'body' | 'response';
         } = {}
     ): Observable<T> {
+        let requestBody = body;
         if (body instanceof FormData) {
             if (!body.has('source')) {
                 body.append('source', 'NEXACORE_APP');
             }
-        } else {
-            body.source = "NEXACORE_APP";
+        } else if (body !== null && typeof body === 'object' && !Array.isArray(body)) {
+            requestBody = { ...body, source: body.source ?? 'NEXACORE_APP' };
         }
 
         const basePath = this.resolveBasePath(apiInfo.actionType);
@@ -76,7 +77,7 @@ export class ApiService {
             context,
         } as any;
 
-        return this.http.post(`${basePath}/${apiInfo.apiPath}`, body, requestOptions).pipe(
+        return this.http.post(`${basePath}/${apiInfo.apiPath}`, requestBody, requestOptions).pipe(
             catchError(this.handleError)
         ) as Observable<T>;
     }
@@ -98,12 +99,7 @@ export class ApiService {
     }
 
     private shouldUseLocalBackendOrigin(): boolean {
-        if (!this.environment.backendOrigin || typeof window === 'undefined') {
-            return false;
-        }
-
-        return window.location.hostname === 'localhost'
-            && ['4200', '4300', '5300'].includes(window.location.port);
+        return !!this.environment.backendOrigin;
     }
 
     private joinUrl(origin: string, path: string): string {
@@ -123,14 +119,6 @@ export class ApiService {
     ): Observable<{ blob: Blob; filename: string; contentType: string | null }> {
         if (!apiInfo) {
             return throwError(() => new Error('Api information is missing'));
-        }
-
-        if (body instanceof FormData) {
-            if (!body.has('source')) {
-                body.append('source', 'NEXACORE_APP');
-            }
-        } else {
-            body.source = 'NEXACORE_APP';
         }
 
         const requestOptions = {
@@ -175,7 +163,6 @@ export class ApiService {
      * Error handler
      */
     private handleError(error: HttpErrorResponse) {
-        console.error('API Error:', error);
         let errorMsg = 'An unknown error occurred';
         if (error.error instanceof ErrorEvent) {
             errorMsg = `Client error: ${error.error.message}`;

@@ -13,4 +13,9 @@ export const AUTH_ROUTES: Routes = [
         loadComponent: () =>
             import('./sso-callback/sso-callback.component').then(m => m.SsoCallbackComponent),
     },
+    {
+        path: 'access-denied',
+        loadComponent: () =>
+            import('./access-denied.component').then(m => m.AccessDeniedComponent),
+    },
 ];
