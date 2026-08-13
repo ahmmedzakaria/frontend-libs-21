@@ -10,6 +10,7 @@ export * from './layout/status-bar/status-bar.component';
 export * from './layout/breadcrumb/breadcrumb.component';
 export * from './core/models/theme.model';
 export * from './core/models/layout-config.model';
+export * from './core/models/header-options.model';
 export * from './core/models/nav-icon.util';
 export * from './core/services/direction.service';
 export * from './core/services/header-menu.service';

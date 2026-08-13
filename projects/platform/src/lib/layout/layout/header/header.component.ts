@@ -17,26 +17,13 @@ import { BreadcrumbService } from '../../core/services/breadcrumb.service';
 import { QuickNavItem, QuickNavService } from '../../core/services/quick-nav.service';
 import { FavoriteNavService } from '../../core/services/favorite-nav.service';
 import { NotificationService } from '../../../api-common/notification.service';
-
-interface AppTile {
-  name: string;
-  icon: string;
-}
-
-const SSO_APPS: AppTile[] = [
-  { name: 'Case Management', icon: 'folder' },
-  { name: 'Document Vault', icon: 'document' },
-  { name: 'Risk Analytics', icon: 'bar-chart' },
-  { name: 'HR Portal', icon: 'users' },
-  { name: 'Loan Origination', icon: 'percent' },
-  { name: 'Audit Console', icon: 'search' },
-  { name: 'Reporting Suite', icon: 'trend' },
-  { name: 'Admin Portal', icon: 'gear' },
-  { name: 'Helpdesk', icon: 'help' }
-];
-
-const TCODE_SEARCH_TYPE = 'T Code';
-const SEARCH_TYPES = ['Customer Name', 'National ID', 'Passport', 'Phone', 'Case Number', TCODE_SEARCH_TYPE] as const;
+import {
+  DEFAULT_HEADER_APPS,
+  DEFAULT_HEADER_LANGUAGES,
+  DEFAULT_HEADER_TENANTS,
+  DEFAULT_SEARCH_TYPES,
+  TCODE_SEARCH_TYPE
+} from '../../core/models/header-options.model';
 
 @Component({
   selector: 'app-header',
@@ -75,8 +62,8 @@ export class HeaderComponent {
     return initials.toUpperCase();
   });
 
-  protected readonly searchTypes = SEARCH_TYPES;
-  protected readonly searchType = signal<(typeof SEARCH_TYPES)[number]>('Customer Name');
+  protected readonly searchTypes = DEFAULT_SEARCH_TYPES;
+  protected readonly searchType = signal<(typeof DEFAULT_SEARCH_TYPES)[number]>('Customer Name');
   protected readonly searchQuery = signal('');
 
   protected readonly isTCodeSearch = computed(() => this.searchType() === TCODE_SEARCH_TYPE);
@@ -85,15 +72,11 @@ export class HeaderComponent {
     this.isTCodeSearch() ? this.quickNav.search(this.searchQuery()) : []
   );
 
-  protected readonly apps = SSO_APPS;
-  protected readonly tenants = ['Prime Bank Ltd.', 'Northgate Finance', 'Meridian Trust Co.'];
+  protected readonly apps = DEFAULT_HEADER_APPS;
+  protected readonly tenants = DEFAULT_HEADER_TENANTS;
   protected readonly activeTenant = signal(this.tenants[0]);
 
-  protected readonly languages: { code: string; label: string }[] = [
-    { code: 'en', label: 'English' },
-    { code: 'bn', label: 'বাংলা' },
-    { code: 'ar', label: 'العربية' }
-  ];
+  protected readonly languages = DEFAULT_HEADER_LANGUAGES;
 
   runSearch(): void {
     if (!this.rail.expanded()) {
