@@ -46,6 +46,8 @@ export interface RowActionConfig<T> {
     /** Wraps the button in `*appAuthorizedUi` when set; omitted means the action always renders. */
     permissionKey?: string;
     danger?: boolean;
+    /** Omits actions that are not valid for the current row state. */
+    hidden?: (row: T) => boolean;
 }
 
 export interface ActionsColumnConfig<T> extends BaseColumnConfig<T> {

@@ -39,6 +39,7 @@
       @case ('actions') {
         <div class="dynamic-list__row-actions">
           @for (action of column.actions; track action.label) {
+           @if (!action.hidden?.(row)) {
             @if (action.permissionKey) {
               <button
                 *appAuthorizedUi="action.permissionKey"
@@ -61,6 +62,7 @@
                 <app-icon [name]="action.icon" [size]="14" />
               </button>
             }
+           }
           }
         </div>
       }
