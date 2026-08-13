@@ -1,0 +1,24 @@
+<div class="scope-grid">
+    <label>
+        <span>{{ tenantLabel() }}</span>
+        <select [disabled]="disabled() || isLoading('tenant')" [value]="value()?.tenantId ?? ''" (change)="tenantChanged($event)">
+            <option value="">Select tenant</option>
+            @for (option of tenants(); track option.id) { <option [value]="option.id">{{ option.label }}</option> }
+        </select>
+    </label>
+    <label>
+        <span>{{ businessLabel() }}</span>
+        <select [disabled]="disabled() || !value()?.tenantId || isLoading('business')" [value]="value()?.businessId ?? ''" (change)="businessChanged($event)">
+            <option value="">All businesses</option>
+            @for (option of businesses(); track option.id) { <option [value]="option.id">{{ option.label }}</option> }
+        </select>
+    </label>
+    <label>
+        <span>{{ branchLabel() }}</span>
+        <select [disabled]="disabled() || !value()?.businessId || isLoading('branch')" [value]="value()?.branchId ?? ''" (change)="branchChanged($event)">
+            <option value="">All branches</option>
+            @for (option of branches(); track option.id) { <option [value]="option.id">{{ option.label }}</option> }
+        </select>
+    </label>
+</div>
+@if (loadError()) { <p class="error" role="alert">{{ loadError() }}</p> }

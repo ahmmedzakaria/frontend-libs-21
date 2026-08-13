@@ -1,0 +1,7 @@
+:host { display: block; }
+.scope-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--layout-space-3); }
+label { display: grid; gap: var(--layout-space-1); color: var(--text-muted); font-size: var(--layout-font-size-sm); }
+select { min-height: var(--layout-control-lg); padding-inline: var(--layout-space-2); border: var(--layout-border-width) solid var(--border); border-radius: var(--layout-radius-sm); background: var(--card); color: var(--text); }
+select:focus-visible { outline: var(--layout-focus-ring-width) solid var(--layout-focus-ring-color); outline-offset: var(--layout-focus-ring-offset); }
+select:disabled { opacity: var(--layout-disabled-opacity); background: var(--layout-disabled-bg); }
+.error { margin-block: var(--layout-space-2) 0; color: var(--layout-error-color); }

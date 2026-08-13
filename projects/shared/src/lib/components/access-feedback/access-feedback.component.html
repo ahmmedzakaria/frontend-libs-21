@@ -1,0 +1,11 @@
+<section class="feedback" [attr.data-kind]="kind()" role="alert">
+    <h2>{{ title() || defaultTitle() }}</h2>
+    <p>{{ message() || defaultMessage() }}</p>
+    @if (kind() === 'retry-after' && retryAfterSeconds() !== undefined) {
+        <p>Retry after {{ retryAfterSeconds() }} seconds.</p>
+    }
+    @if (traceId()) { <p class="trace">Support trace: <code>{{ traceId() }}</code></p> }
+    @if (kind() === 'configuration-error' || kind() === 'retry-after') {
+        <app-button label="Retry" icon="refresh" variant="ghost" (clicked)="retry.emit()" />
+    }
+</section>

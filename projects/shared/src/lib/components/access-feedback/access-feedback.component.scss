@@ -1,0 +1,6 @@
+.feedback { padding: var(--layout-space-4); border: var(--layout-border-width) solid var(--border); border-inline-start: var(--layout-border-width-accent) solid var(--amber); border-radius: var(--layout-radius-md); background: var(--card); color: var(--text); }
+.feedback[data-kind='access-denied'] { border-inline-start-color: var(--red); }
+h2 { margin-block: 0 var(--layout-space-2); font-size: var(--layout-font-size-xl); }
+p { margin-block: var(--layout-space-1); }
+.trace { color: var(--text-muted); font-size: var(--layout-font-size-sm); }
+app-button { display: inline-block; margin-block-start: var(--layout-space-2); }
