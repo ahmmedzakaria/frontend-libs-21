@@ -5,7 +5,7 @@
         <p>Retry after {{ retryAfterSeconds() }} seconds.</p>
     }
     @if (traceId()) { <p class="trace">Support trace: <code>{{ traceId() }}</code></p> }
-    @if (kind() === 'configuration-error' || kind() === 'retry-after') {
+    @if (retryable() || kind() === 'configuration-error' || kind() === 'retry-after') {
         <app-button label="Retry" icon="refresh" variant="ghost" (clicked)="retry.emit()" />
     }
 </section>

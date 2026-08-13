@@ -7,7 +7,7 @@ function error(code: string, status = 403): HttpErrorResponse {
     return new HttpErrorResponse({
         status,
         headers: new HttpHeaders({ 'X-Trace-Id': 'trace-7', 'Retry-After': '12' }),
-        error: { message: [{ code }] }
+        error: { message: [{ code, message: 'Denied' }] }
     });
 }
 
@@ -19,7 +19,10 @@ describe('AuthorizationDenialService revocation handling', () => {
 
         const denial = service.handle(error('USER_PRIVILEGE_NOT_ALLOWED'));
 
-        expect(denial).toMatchObject({ code: 'USER_PRIVILEGE_NOT_ALLOWED', traceId: 'trace-7', retryAfterSeconds: 12 });
+        expect(denial).toMatchObject({
+            code: 'USER_PRIVILEGE_NOT_ALLOWED', message: 'Denied', traceId: 'trace-7',
+            retryAfterSeconds: 12, recoverability: 'refresh-context'
+        });
         expect(context.refresh).toHaveBeenCalledTimes(1);
         expect(context.clear).not.toHaveBeenCalled();
         expect(router.navigate).not.toHaveBeenCalled();

@@ -3,11 +3,16 @@
     <input type="search" [placeholder]="searchPlaceholder()" [value]="query()" (input)="updateQuery($event)" />
 </label>
 <div class="checklist" role="list">
-    @for (item of visibleItems(); track keyOf()(item)) {
-        <label class="item">
-            <input type="checkbox" [checked]="selectedKeys().has(keyOf()(item))" [disabled]="disabled()" (change)="toggle(item, $event)" />
-            <span><strong>{{ labelOf()(item) }}</strong>@if (detailOf()(item)) { <small>{{ detailOf()(item) }}</small> }</span>
-        </label>
+    @for (group of visibleGroups(); track group.label) {
+        <section class="group" [attr.aria-label]="group.label || null">
+            @if (group.label) { <h3>{{ group.label }}</h3> }
+            @for (item of group.items; track keyOf()(item)) {
+                <label class="item">
+                    <input type="checkbox" [checked]="selectedKeys().has(keyOf()(item))" [disabled]="disabled()" (change)="toggle(item, $event)" />
+                    <span><strong>{{ labelOf()(item) }}</strong>@if (detailOf()(item)) { <small>{{ detailOf()(item) }}</small> }</span>
+                </label>
+            }
+        </section>
     } @empty {
         <p class="empty">No matching assignments.</p>
     }

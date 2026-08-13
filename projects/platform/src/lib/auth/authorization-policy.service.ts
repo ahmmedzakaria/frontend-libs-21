@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Signal, computed } from '@angular/core';
 import { ApplicationContextService, RoutePrivilegePolicy, UiPrivilegePolicy } from '../layout/index';
 import { isPolicyAllowed } from './policy-evaluator';
 
@@ -10,14 +10,26 @@ export class AuthorizationPolicyService {
         return this.context.hasPrivilege(code);
     }
 
+    privilegeAllowed(code: string): Signal<boolean> {
+        return computed(() => this.hasPrivilege(code));
+    }
+
     isRouteAllowed(requestedUrl: string): boolean {
         return isRoutePolicyAllowed(findRoutePolicy(this.context.routePolicies(), requestedUrl), code => this.hasPrivilege(code));
+    }
+
+    routeAllowed(requestedUrl: string): Signal<boolean> {
+        return computed(() => this.isRouteAllowed(requestedUrl));
     }
 
     isActionAllowed(actionCode: string): boolean {
         const normalized = normalizeActionCode(actionCode);
         const policy = this.context.uiPolicies().find(candidate => normalizeActionCode(candidate.actionCode) === normalized);
         return isUiPolicyAllowed(policy, code => this.hasPrivilege(code));
+    }
+
+    actionAllowed(actionCode: string): Signal<boolean> {
+        return computed(() => this.isActionAllowed(actionCode));
     }
 }
 

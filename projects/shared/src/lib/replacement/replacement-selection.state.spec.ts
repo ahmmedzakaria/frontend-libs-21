@@ -30,6 +30,16 @@ describe('ReplacementSelectionState', () => {
         expect(state.dirty()).toBe(false);
     });
 
+    it('retains an authoritative version only while its read remains valid', () => {
+        const state = new ReplacementSelectionState<Item, number>({ keyOf: item => item.id });
+        state.loadSucceeded(items, 'version-7');
+        expect(state.version()).toBe('version-7');
+        state.beginLoad();
+        expect(state.version()).toBeNull();
+        state.loadFailed('Unavailable');
+        expect(state.canSave()).toBe(false);
+    });
+
     it('supports ordered and set comparison semantics', () => {
         const setState = new ReplacementSelectionState<Item, number>({ keyOf: item => item.id, comparison: 'set' });
         const orderedState = new ReplacementSelectionState<Item, number>({ keyOf: item => item.id, comparison: 'ordered' });

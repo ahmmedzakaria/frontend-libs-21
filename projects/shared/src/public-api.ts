@@ -49,3 +49,6 @@ export * from './lib/components/wizard/wizard.component';
 export * from './lib/components/wizard/wizard-step.component';
 export * from './lib/services/validation-message.service';
 export * from './lib/replacement/replacement-selection.state';
+export * from './lib/state/resource-load.state';
+export * from './lib/state/mutation.state';
+export * from './lib/lookup/authorized-hierarchy.adapter';

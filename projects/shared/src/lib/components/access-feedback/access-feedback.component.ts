@@ -17,6 +17,7 @@ export class AccessFeedbackComponent {
     readonly message = input('');
     readonly traceId = input<string>();
     readonly retryAfterSeconds = input<number>();
+    readonly retryable = input(false);
     readonly retry = output<void>();
 
     readonly defaultTitle = computed(() => ({

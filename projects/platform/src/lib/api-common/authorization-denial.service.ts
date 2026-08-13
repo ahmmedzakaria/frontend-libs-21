@@ -20,12 +20,19 @@ export const AUTHORIZATION_ERROR_CODES = [
 
 export type AuthorizationErrorCode = typeof AUTHORIZATION_ERROR_CODES[number];
 
-export interface AuthorizationDenial {
+export type AuthorizationRecoverability = 'login' | 'refresh-context' | 'retry-later' | 'none';
+
+export interface AuthorizationFailure {
     code: AuthorizationErrorCode;
     status: number;
+    message: string;
     traceId?: string;
     retryAfterSeconds?: number;
+    recoverability: AuthorizationRecoverability;
 }
+
+/** @deprecated Use AuthorizationFailure. */
+export type AuthorizationDenial = AuthorizationFailure;
 
 const AUTHENTICATION_CODES: ReadonlySet<AuthorizationErrorCode> = new Set([
     'AUTHENTICATION_REQUIRED', 'INVALID_CLIENT_CREDENTIALS'
@@ -37,29 +44,35 @@ const CONTEXT_DENIAL_CODES: ReadonlySet<AuthorizationErrorCode> = new Set([
 
 @Injectable({ providedIn: 'root' })
 export class AuthorizationDenialService {
-    readonly lastDenial = signal<AuthorizationDenial | null>(null);
+    readonly lastDenial = signal<AuthorizationFailure | null>(null);
 
     constructor(
         private readonly context: ApplicationContextService,
         private readonly router: Router,
     ) {}
 
-    classify(error: HttpErrorResponse): AuthorizationDenial | null {
+    classify(error: HttpErrorResponse): AuthorizationFailure | null {
         const body = error.error as ApiResponse<unknown> | undefined;
-        const code = body?.message?.map(message => message.code)
-            .find(candidate => AUTHORIZATION_ERROR_CODES.includes(candidate as AuthorizationErrorCode));
+        const responseMessage = body?.message?.find(message =>
+            AUTHORIZATION_ERROR_CODES.includes(message.code as AuthorizationErrorCode));
+        const code = responseMessage?.code;
         if (!code) return null;
 
         const retryAfter = Number(error.headers?.get('Retry-After'));
+        const typedCode = code as AuthorizationErrorCode;
         return {
-            code: code as AuthorizationErrorCode,
+            code: typedCode,
             status: error.status,
+            message: responseMessage?.message || 'The request is not authorized.',
             traceId: error.headers?.get('X-Trace-Id') ?? undefined,
             retryAfterSeconds: Number.isFinite(retryAfter) && retryAfter >= 0 ? retryAfter : undefined,
+            recoverability: AUTHENTICATION_CODES.has(typedCode) ? 'login'
+                : CONTEXT_DENIAL_CODES.has(typedCode) ? 'refresh-context'
+                    : typedCode.startsWith('RATE_LIMIT_') ? 'retry-later' : 'none',
         };
     }
 
-    handle(error: HttpErrorResponse): AuthorizationDenial | null {
+    handle(error: HttpErrorResponse, refreshContext = true): AuthorizationFailure | null {
         const denial = this.classify(error);
         if (!denial) return null;
 
@@ -67,7 +80,7 @@ export class AuthorizationDenialService {
         if (AUTHENTICATION_CODES.has(denial.code)) {
             this.context.clear();
             void this.router.navigate(['/login']);
-        } else if (CONTEXT_DENIAL_CODES.has(denial.code)) {
+        } else if (refreshContext && CONTEXT_DENIAL_CODES.has(denial.code)) {
             // Refresh presentation state exactly once; the rejected operation,
             // especially a mutation, is deliberately never replayed.
             this.context.refresh().pipe(catchError(() => EMPTY)).subscribe();

@@ -24,6 +24,7 @@ export class ReplacementSelectionState<T, K = T> {
     readonly error = signal<string | null>(null);
     readonly original = signal<readonly T[]>([]);
     readonly selected = signal<readonly T[]>([]);
+    readonly version = signal<string | null>(null);
 
     readonly summary = computed(() => this.compare(this.original(), this.selected()));
     readonly dirty = computed(() => {
@@ -42,12 +43,14 @@ export class ReplacementSelectionState<T, K = T> {
         this.error.set(null);
         this.original.set([]);
         this.selected.set([]);
+        this.version.set(null);
     }
 
-    loadSucceeded(items: readonly T[]): void {
+    loadSucceeded(items: readonly T[], version?: string): void {
         this.original.set([...items]);
         this.selected.set([...items]);
         this.error.set(null);
+        this.version.set(version ?? null);
         this.status.set('loaded');
     }
 
@@ -55,6 +58,7 @@ export class ReplacementSelectionState<T, K = T> {
         this.original.set([]);
         this.selected.set([]);
         this.error.set(message);
+        this.version.set(null);
         this.status.set('failed');
     }
 
@@ -94,6 +98,7 @@ export class ReplacementSelectionState<T, K = T> {
         this.error.set(null);
         this.original.set([]);
         this.selected.set([]);
+        this.version.set(null);
     }
 
     private compare(original: readonly T[], selected: readonly T[]): ReplacementSummary<T> {

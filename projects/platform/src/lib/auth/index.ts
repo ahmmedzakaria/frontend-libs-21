@@ -5,6 +5,8 @@ export * from './login.guard';
 export * from './route-privilege.guard';
 export * from './policy-evaluator';
 export * from './authorization-policy.service';
+export * from './authorization-decision';
+export * from './authorization-revocation.service';
 export * from './authorized-ui.directive';
 export * from './access-denied.component';
 export * from './login/login.component';

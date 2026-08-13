@@ -13,6 +13,7 @@ export class AssignmentChecklistComponent<T> {
     readonly keyOf = input.required<(item: T) => string | number>();
     readonly labelOf = input.required<(item: T) => string>();
     readonly detailOf = input<(item: T) => string>(() => '');
+    readonly groupOf = input<(item: T) => string>(() => '');
     readonly disabled = input(false);
     readonly searchPlaceholder = input('Search assignments');
     readonly selectionChanged = output<{ item: T; selected: boolean }>();
@@ -23,6 +24,14 @@ export class AssignmentChecklistComponent<T> {
         if (!query) return this.items();
         return this.items().filter(item =>
             `${this.labelOf()(item)} ${this.detailOf()(item)}`.toLowerCase().includes(query));
+    });
+    readonly visibleGroups = computed(() => {
+        const groups = new Map<string, T[]>();
+        this.visibleItems().forEach(item => {
+            const group = this.groupOf()(item);
+            groups.set(group, [...(groups.get(group) ?? []), item]);
+        });
+        return [...groups.entries()].map(([label, items]) => ({ label, items }));
     });
 
     protected updateQuery(event: Event): void {
