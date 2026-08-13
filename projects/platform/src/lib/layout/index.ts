@@ -15,6 +15,8 @@ export * from './core/services/direction.service';
 export * from './core/services/header-menu.service';
 export * from './core/services/mega-panel.service';
 export * from './core/services/nav-tree-state.service';
+export * from './core/services/quick-nav.service';
+export * from './core/services/favorite-nav.service';
 export * from './core/services/viewport.service';
 export * from './core/services/rail-state.service';
 export * from './core/services/breadcrumb.service';

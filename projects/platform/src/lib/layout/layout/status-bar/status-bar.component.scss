@@ -60,6 +60,25 @@
   font-family: var(--layout-mono-font-family);
   color: var(--chrome-icon);
 }
+.status-favorite {
+  height: var(--layout-control-lg);
+  border: none;
+  background: transparent;
+  color: var(--chrome-text-muted);
+  border-radius: var(--layout-radius-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--layout-space-15);
+  padding: 0 var(--layout-space-15);
+  font: inherit;
+  cursor: pointer;
+
+  &:hover,
+  &.active {
+    background: var(--chrome-hover-bg);
+    color: var(--accent);
+  }
+}
 
 @media (max-width: tokens.$breakpoint-mobile) {
   // Informational-only segments — last-synced/audit-logging and the

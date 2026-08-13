@@ -34,9 +34,15 @@
         type="text"
         [ngModel]="searchQuery()"
         (ngModelChange)="searchQuery.set($event)"
-        [placeholder]="'search.placeholder' | transloco"
+        [placeholder]="isTCodeSearch() ? 'Enter T-code…' : ('search.placeholder' | transloco)"
+        [attr.list]="isTCodeSearch() ? 'tcodeList' : null"
         (keydown.enter)="runSearch()"
       />
+      <datalist id="tcodeList">
+        @for (item of tcodeOptions(); track item.pathKey) {
+          <option [value]="item.code">{{ item.label }} · {{ item.labels.slice(0, 4).join(' / ') }}</option>
+        }
+      </datalist>
       <button type="button" class="go focus-ring" [attr.aria-label]="'search.button' | transloco" (click)="runSearch()">
         <app-icon name="search" [size]="16" />
       </button>
@@ -44,6 +50,34 @@
   </div>
 
   <div class="hdr-right">
+    <!-- Favorites -->
+    <app-header-dropdown id="favorites">
+      <button trigger type="button" class="hdr-pill focus-ring" (click)="menu.toggle('favorites')">
+        <span class="icon-wrap">
+          <app-icon name="star" [size]="17" />
+          <span class="favorite-count">{{ favoriteNav.count() }}</span>
+        </span>
+        <span class="lbl-text">{{ 'header.favorites' | transloco }}</span>
+        <app-icon name="chevron-down" [size]="11" class="chev" />
+      </button>
+      <ng-container panel>
+        <div class="dd-head">Favorite Navigation</div>
+        <div class="favorite-list">
+          @if (favoriteNav.favorites().length) {
+            @for (item of favoriteNav.favorites(); track item.pathKey) {
+              <button type="button" class="favorite-row" (click)="goToQuickNavItem(item)">
+                <span class="name">{{ item.label }}</span>
+                <span class="code">{{ item.code }}</span>
+                <span class="path">{{ item.labels.slice(0, 4).join(' / ') }}</span>
+              </button>
+            }
+          } @else {
+            <div class="empty">No favorite navigation yet</div>
+          }
+        </div>
+      </ng-container>
+    </app-header-dropdown>
+
     <!-- Apps (SSO launcher) -->
     <app-header-dropdown id="apps">
       <button trigger type="button" class="hdr-pill focus-ring" (click)="menu.toggle('apps')">

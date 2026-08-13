@@ -53,6 +53,7 @@ export const ICONS: Record<string, string> = {
   'right-to-bracket': '<path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"/>',
   save: '<path d="M5 3h11l5 5v13a1 1 0 01-1 1H5a1 1 0 01-1-1V4a1 1 0 011-1z" stroke-linejoin="round"/><path d="M8 3v6h8V3M8 21v-7h8v7" stroke-linejoin="round"/>',
   spinner: '<path d="M12 3v3M18.4 5.6l-2.1 2.1M21 12h-3M18.4 18.4l-2.1-2.1M12 21v-3M5.6 18.4l2.1-2.1M3 12h3M5.6 5.6l2.1 2.1" stroke-linecap="round"/>',
+  star: '<path d="M12 3.5l2.7 5.5 6.1.9-4.4 4.3 1 6.1L12 17.4l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3.5z" stroke-linejoin="round"/>',
   table: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16" stroke-linecap="round"/>',
   times: '<path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/>',
   trash: '<path d="M4 7h16" stroke-linecap="round"/><path d="M9 7V4h6v3M6 7l1 13a1 1 0 001 1h8a1 1 0 001-1l1-13" stroke-linejoin="round"/><path d="M10 11v6M14 11v6" stroke-linecap="round"/>',

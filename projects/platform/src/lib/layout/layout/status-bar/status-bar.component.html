@@ -6,9 +6,23 @@
   </div>
 
   <div class="sb-group sb-mid">
-    <div class="sb-item">Last synced <span class="sb-mono">just now</span></div>
-    <div class="sb-div"></div>
-    <div class="sb-item">Audit Logging Active</div>
+    @if (currentItem(); as item) {
+      <div class="sb-item">T-code <span class="sb-tag sb-mono">{{ item.code }}</span></div>
+      <div class="sb-div"></div>
+      <button
+        type="button"
+        class="status-favorite"
+        [class.active]="favoriteNav.isFavorite(item.pathKey)"
+        (click)="toggleFavorite()"
+      >
+        <app-icon name="star" [size]="13" [filled]="favoriteNav.isFavorite(item.pathKey)" />
+        <span>{{ favoriteNav.isFavorite(item.pathKey) ? 'Favorite' : 'Add favorite' }}</span>
+      </button>
+    } @else {
+      <div class="sb-item">Last synced <span class="sb-mono">just now</span></div>
+      <div class="sb-div"></div>
+      <div class="sb-item">Audit Logging Active</div>
+    }
   </div>
 
   <div class="sb-group sb-right">

@@ -11,7 +11,7 @@ import { ICONS } from './icon-registry';
       [attr.width]="size()"
       [attr.height]="size()"
       viewBox="0 0 24 24"
-      fill="none"
+      [attr.fill]="filled() ? 'currentColor' : 'none'"
       stroke="currentColor"
       [attr.stroke-width]="strokeWidth()"
       [innerHTML]="markup()"
@@ -32,6 +32,8 @@ export class IconComponent {
   readonly name = input.required<string>();
   readonly size = input<number>(18);
   readonly strokeWidth = input<number>(1.8);
+  /** Fills the glyph with the current color instead of just outlining it — e.g. a favorited star. */
+  readonly filled = input<boolean>(false);
 
   protected readonly markup = computed(() => {
     const raw = ICONS[this.name()] ?? '';

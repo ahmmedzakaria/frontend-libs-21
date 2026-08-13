@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 
-export type HeaderMenuId = 'apps' | 'notifications' | 'tasks' | 'language' | 'theme' | 'tenant' | 'profile';
+export type HeaderMenuId = 'favorites' | 'apps' | 'notifications' | 'tasks' | 'language' | 'theme' | 'tenant' | 'profile';
 
 @Injectable({ providedIn: 'root' })
 export class HeaderMenuService {
