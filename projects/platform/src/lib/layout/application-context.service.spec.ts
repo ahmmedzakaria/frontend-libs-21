@@ -66,4 +66,34 @@ describe('ApplicationContextService', () => {
         expect(service.context()).toBeNull();
         expect(localStorage.getItem('privilegeCodes')).toBeNull();
     });
+
+    it('replaces revoked privileges on the next refresh without logout', () => {
+        const post = vi.fn()
+            .mockReturnValueOnce(of(VALID_CONTEXT))
+            .mockReturnValueOnce(of({ ...VALID_CONTEXT, privilegeCodes: [], authorizationVersion: 'revoked-v2' }));
+        const { service } = create(post);
+        service.ensureLoaded().subscribe();
+        expect(service.hasPrivilege('VIEW')).toBe(true);
+
+        service.refresh().subscribe();
+
+        expect(service.hasPrivilege('VIEW')).toBe(false);
+        expect(service.context()?.authorizationVersion).toBe('revoked-v2');
+    });
+
+    it('does not leak the previous user context into a sequential login', () => {
+        const secondUser = { ...VALID_CONTEXT, privilegeCodes: ['SEARCH'], authorizationVersion: 'user-b' };
+        const post = vi.fn().mockReturnValueOnce(of(VALID_CONTEXT)).mockReturnValueOnce(of(secondUser));
+        const { service } = create(post);
+        service.ensureLoaded().subscribe();
+        expect(service.hasPrivilege('VIEW')).toBe(true);
+
+        service.clear();
+        expect(service.context()).toBeNull();
+        expect(localStorage.getItem('privilegeCodes')).toBeNull();
+        service.ensureLoaded().subscribe();
+
+        expect(service.hasPrivilege('VIEW')).toBe(false);
+        expect(service.hasPrivilege('SEARCH')).toBe(true);
+    });
 });

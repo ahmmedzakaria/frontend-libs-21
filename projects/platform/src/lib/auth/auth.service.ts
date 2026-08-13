@@ -98,8 +98,8 @@ export class AuthService {
                         return this.applicationContextService.load().pipe(
                             catchError(error => {
                                 console.error('Application context load failed after login', error);
-                                this.clearApplicationContextStorage();
-                                return of({ privilegeCodes: [], routePolicies: [], uiPolicies: [] });
+                                this.logout(false, false);
+                                return throwError(() => error);
                             })
                         );
                     }
@@ -183,8 +183,8 @@ export class AuthService {
                     map(() => undefined),
                     catchError(error => {
                         console.error('Application context load failed after SSO login', error);
-                        this.clearApplicationContextStorage();
-                        return of(undefined);
+                        this.logout(false, false);
+                        return throwError(() => error);
                     })
                 );
             })
