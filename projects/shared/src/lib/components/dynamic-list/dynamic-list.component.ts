@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, TemplateRef, computed, effect, signal, untracked, viewChildren, input, output } from '@angular/core';
-import { AuthorizedUiDirective, IconComponent } from '@nexacore/platform';
+import { AuthorizationDenialService, AuthorizedUiDirective, IconComponent } from '@nexacore/platform';
+import { HttpErrorResponse } from '@angular/common/http';
+import { inject } from '@angular/core';
 import { ColumnDef, DataTableComponent } from '../data-table/data-table.component';
 import { ExportButtonComponent, ExportColumn } from '../export-button/export-button.component';
 import { FilterBarComponent } from '../filter-bar/filter-bar.component';
@@ -7,6 +9,8 @@ import { ImagePreviewComponent } from '../image-preview/image-preview.component'
 import { PillComponent } from '../pill/pill.component';
 import { SearchToolbarEvent, SearchTypeOption } from '../search-toolbar/search-toolbar.component';
 import { StatusBadgeComponent } from '../status-badge/status-badge.component';
+import { AccessFeedbackComponent } from '../access-feedback/access-feedback.component';
+import { ResourceLoadState } from '../../state/resource-load.state';
 import {
     ActionsColumnConfig,
     BadgeColumnConfig,
@@ -53,7 +57,8 @@ function needsGeneratedTemplate<T>(column: ListColumnConfig<T>): column is Templ
         PillComponent,
         ImagePreviewComponent,
         IconComponent,
-        AuthorizedUiDirective
+        AuthorizedUiDirective,
+        AccessFeedbackComponent
     ],
     exportAs: 'dynamicList',
     templateUrl: './dynamic-list.component.html',
@@ -61,6 +66,7 @@ function needsGeneratedTemplate<T>(column: ListColumnConfig<T>): column is Templ
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DynamicListComponent<T> {
+    private readonly denials = inject(AuthorizationDenialService);
     readonly columns = input.required<ListColumnConfig<T>[]>();
     readonly loadItems = input.required<DynamicListLoader<T>>();
     readonly pageSize = input(10);
@@ -79,6 +85,7 @@ export class DynamicListComponent<T> {
     readonly total = signal(0);
     readonly page = signal(1);
     readonly loading = signal(false);
+    readonly loadState = new ResourceLoadState<readonly T[]>();
 
     /** User-selected page size, overriding the `pageSize` input once they pick one from the selector. */
     private readonly pageSizeOverride = signal<number | null>(null);
@@ -137,6 +144,7 @@ export class DynamicListComponent<T> {
 
     private fetch(page: number): void {
         this.loading.set(true);
+        this.loadState.begin();
         const params: DynamicListLoadParams = {
             query: this.searchQuery,
             searchType: this.searchType,
@@ -149,8 +157,27 @@ export class DynamicListComponent<T> {
                 this.total.set(result.total);
                 this.page.set(page);
                 this.loading.set(false);
+                this.loadState.succeed(result.items, result.total === 0);
             },
-            error: () => this.loading.set(false)
+            error: (error: unknown) => {
+                this.loading.set(false);
+                this.rows.set([]);
+                this.total.set(0);
+                const denial = error instanceof HttpErrorResponse ? this.denials.classify(error) : null;
+                if (denial) this.loadState.deny(`[${denial.code}] ${denial.message}`, denial.traceId);
+                else this.loadState.fail(readFailureMessage(error), readTraceId(error));
+            }
         });
     }
+}
+
+function readFailureMessage(error: unknown): string {
+    if (!(error instanceof HttpErrorResponse)) return error instanceof Error ? error.message : 'The records could not be loaded.';
+    const body = error.error as { message?: Array<{ code?: string; message?: string }> } | undefined;
+    const detail = body?.message?.[0];
+    return `${detail?.code ? `[${detail.code}] ` : ''}${detail?.message || error.message || 'The records could not be loaded.'}`;
+}
+
+function readTraceId(error: unknown): string | undefined {
+    return error instanceof HttpErrorResponse ? error.headers?.get('X-Trace-Id') ?? undefined : undefined;
 }

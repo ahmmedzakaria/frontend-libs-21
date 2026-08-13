@@ -71,6 +71,12 @@
   </ng-template>
 }
 
+@if (loadState.status() === 'denied') {
+  <app-access-feedback kind="access-denied" [message]="loadState.error() ?? ''" [traceId]="loadState.traceId() ?? undefined" />
+} @else if (loadState.status() === 'failed') {
+  <app-access-feedback kind="configuration-error" [message]="loadState.error() ?? ''" [traceId]="loadState.traceId() ?? undefined"
+    [retryable]="true" (retry)="reload()" />
+} @else {
 <app-data-table
   [columns]="tableColumns()"
   [data]="rows()"
@@ -85,3 +91,4 @@
   (pageChange)="onPageChange($event)"
   (pageSizeChange)="onPageSizeChange($event)"
 />
+}

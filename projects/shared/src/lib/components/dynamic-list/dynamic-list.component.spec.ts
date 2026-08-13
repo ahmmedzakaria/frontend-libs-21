@@ -1,7 +1,8 @@
 import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ApplicationContextService, AuthService, UiPrivilegePolicy } from '@nexacore/platform';
-import { Observable, of } from 'rxjs';
+import { HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { AuthorizationDenialService, ApplicationContextService, AuthService, UiPrivilegePolicy } from '@nexacore/platform';
+import { Observable, of, throwError } from 'rxjs';
 import { describe, expect, it, vi } from 'vitest';
 import { DynamicListComponent } from './dynamic-list.component';
 import { DynamicListLoadParams, DynamicListLoadResult, ListColumnConfig } from './dynamic-list.model';
@@ -42,6 +43,8 @@ function createComponent(
                 hasPrivilege: (code: string) => granted.has(code)
             } },
             { provide: AuthService, useValue: { hasPrivilege: (code: string) => granted.has(code) } }
+            ,{ provide: AuthorizationDenialService, useValue: { classify: (error: HttpErrorResponse) => error.status === 403
+                ? { code:'DATA_SCOPE_NOT_ALLOWED', message:'Outside scope', traceId:error.headers.get('X-Trace-Id') ?? undefined } : null } }
         ]
     });
     const fixture = TestBed.createComponent(DynamicListComponent<Row>);
@@ -61,6 +64,14 @@ describe('DynamicListComponent', () => {
         expect(calls).toEqual([{ query: '', searchType: null, page: 1, pageSize: 10 }]);
         expect(fixture.componentInstance.rows()).toEqual(ROWS);
         expect(fixture.componentInstance.total()).toBe(2);
+    });
+
+    it('renders a stable denial with its trace instead of an empty table', () => {
+        const error=new HttpErrorResponse({ status:403, headers:new HttpHeaders({'X-Trace-Id':'trace-42'}) });
+        const fixture=createComponent(textColumns,() => throwError(() => error));
+        expect(fixture.componentInstance.loadState.status()).toBe('denied');
+        expect((fixture.nativeElement as HTMLElement).textContent).toContain('DATA_SCOPE_NOT_ALLOWED');
+        expect((fixture.nativeElement as HTMLElement).textContent).toContain('trace-42');
     });
 
     it('re-fetches with search params on search and with the requested page on pageChange', () => {

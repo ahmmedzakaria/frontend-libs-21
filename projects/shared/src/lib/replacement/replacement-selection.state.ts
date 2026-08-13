@@ -22,6 +22,8 @@ export interface ReplacementSelectionOptions<T, K> {
 export class ReplacementSelectionState<T, K = T> {
     readonly status = signal<ReplacementStatus>('idle');
     readonly error = signal<string | null>(null);
+    readonly errorCode = signal<string | null>(null);
+    readonly traceId = signal<string | null>(null);
     readonly original = signal<readonly T[]>([]);
     readonly selected = signal<readonly T[]>([]);
     readonly version = signal<string | null>(null);
@@ -41,6 +43,7 @@ export class ReplacementSelectionState<T, K = T> {
     beginLoad(): void {
         this.status.set('loading');
         this.error.set(null);
+        this.errorCode.set(null); this.traceId.set(null);
         this.original.set([]);
         this.selected.set([]);
         this.version.set(null);
@@ -50,14 +53,16 @@ export class ReplacementSelectionState<T, K = T> {
         this.original.set([...items]);
         this.selected.set([...items]);
         this.error.set(null);
+        this.errorCode.set(null); this.traceId.set(null);
         this.version.set(version ?? null);
         this.status.set('loaded');
     }
 
-    loadFailed(message: string): void {
+    loadFailed(message: string, code?: string, traceId?: string): void {
         this.original.set([]);
         this.selected.set([]);
         this.error.set(message);
+        this.errorCode.set(code ?? null); this.traceId.set(traceId ?? null);
         this.version.set(null);
         this.status.set('failed');
     }
@@ -78,6 +83,7 @@ export class ReplacementSelectionState<T, K = T> {
         if (!this.canSave()) return false;
         this.status.set('saving');
         this.error.set(null);
+        this.errorCode.set(null); this.traceId.set(null);
         return true;
     }
 
@@ -87,15 +93,17 @@ export class ReplacementSelectionState<T, K = T> {
         this.status.set('loaded');
     }
 
-    saveFailed(message: string): void {
+    saveFailed(message: string, code?: string, traceId?: string): void {
         if (this.status() !== 'saving') return;
         this.error.set(message);
+        this.errorCode.set(code ?? null); this.traceId.set(traceId ?? null);
         this.status.set('loaded');
     }
 
     reset(): void {
         this.status.set('idle');
         this.error.set(null);
+        this.errorCode.set(null); this.traceId.set(null);
         this.original.set([]);
         this.selected.set([]);
         this.version.set(null);
