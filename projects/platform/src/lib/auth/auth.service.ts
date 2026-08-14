@@ -233,9 +233,10 @@ export class AuthService {
         this.currentUserSubject.next(null);
         this.layoutService.setPublicLayout();
 
-        if (redirectToLogin && loginMethod === 'SSO' && authConfig?.issuerUri) {
+        if (redirectToLogin && loginMethod === 'SSO'
+            && authConfig?.issuerUri && authConfig.sso?.logoutRedirectUri) {
             const logoutUrl = new URL(`${authConfig.issuerUri}/protocol/openid-connect/logout`);
-            logoutUrl.searchParams.set('post_logout_redirect_uri', `${window.location.origin}/login`);
+            logoutUrl.searchParams.set('post_logout_redirect_uri', authConfig.sso.logoutRedirectUri);
             if (authConfig.clientId) {
                 logoutUrl.searchParams.set('client_id', authConfig.clientId);
             }
@@ -395,18 +396,8 @@ export class AuthService {
             registrationCredentialModel,
             enabledLoginMethods: loginMethod ? [loginMethod] : [],
             enabledRegistrationCredentialModels: registrationCredentialModel ? [registrationCredentialModel] : [],
-            loginIdentifierTypes: loginIdentifierType ? [loginIdentifierType] : [],
-            clientId: this.resolveFrontendClientId(config),
-            redirectUri: `${window.location.origin}/sso/callback`
+            loginIdentifierTypes: loginIdentifierType ? [loginIdentifierType] : []
         };
-    }
-
-    private resolveFrontendClientId(config: AuthConfig): string | undefined {
-        if (window.location.port === '4300') {
-            return 'privilege-frontend';
-        }
-
-        return config.clientId;
     }
 
     private async redirectToKeycloak(config: AuthConfig, forceLoginPrompt: boolean = false): Promise<void> {

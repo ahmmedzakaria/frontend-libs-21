@@ -48,4 +48,24 @@ describe('ApiService', () => {
     expect(request.request.body).toEqual({ name: 'Alice', source: 'NEXACORE_APP' });
     request.flush({});
   });
+
+  it('sends client code even when no API key is configured', () => {
+    const override = { ...Environment, clientCode: 'SYSTEM_ADMIN_WEB', apiKey: '' };
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: API_ENVIRONMENT, useValue: override }
+      ]
+    });
+    const service = TestBed.inject(ApiService);
+    const http = TestBed.inject(HttpTestingController);
+
+    service.post({ apiPath: 'people', actionType: 1 }, {}).subscribe();
+
+    const request = http.expectOne('http://localhost:9100/api/v1/people');
+    expect(request.request.headers.get('X-Client-Code')).toBe('SYSTEM_ADMIN_WEB');
+    expect(request.request.headers.has('X-API-Key')).toBe(false);
+    request.flush({});
+  });
 });
