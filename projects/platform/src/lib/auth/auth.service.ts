@@ -297,7 +297,7 @@ export class AuthService {
     }
 
     isLoginMethodEnabled(config: AuthConfig | null | undefined, method: LoginMethod): boolean {
-        return !!config?.enabledLoginMethods?.includes(method);
+        return config?.loginMethod ? config.loginMethod === method : !!config?.enabledLoginMethods?.includes(method);
     }
 
     isSsoOnly(config: AuthConfig | null | undefined): boolean {
@@ -384,11 +384,18 @@ export class AuthService {
     }
 
     private normalizeAuthConfig(config: AuthConfig): AuthConfig {
+        const loginMethod = config.loginMethod || config.enabledLoginMethods?.[0];
+        const loginIdentifierType = config.loginIdentifierType || config.loginIdentifierTypes?.[0];
+        const registrationCredentialModel = config.registrationCredentialModel
+            || config.enabledRegistrationCredentialModels?.[0];
         return {
             ...config,
-            enabledLoginMethods: config.enabledLoginMethods || [],
-            enabledRegistrationCredentialModels: config.enabledRegistrationCredentialModels || [],
-            loginIdentifierTypes: config.loginIdentifierTypes || [],
+            loginMethod,
+            loginIdentifierType,
+            registrationCredentialModel,
+            enabledLoginMethods: loginMethod ? [loginMethod] : [],
+            enabledRegistrationCredentialModels: registrationCredentialModel ? [registrationCredentialModel] : [],
+            loginIdentifierTypes: loginIdentifierType ? [loginIdentifierType] : [],
             clientId: this.resolveFrontendClientId(config),
             redirectUri: `${window.location.origin}/sso/callback`
         };

@@ -15,9 +15,22 @@ export type RegistrationCredentialModel =
 export type LoginIdentifierType = 'USERNAME' | 'EMAIL' | 'MOBILE' | 'PERSON_ID';
 
 export interface AuthConfig {
+    tenantId?: number;
+    clientCode?: string;
+    loginMethod?: LoginMethod;
+    loginIdentifierType?: LoginIdentifierType;
+    registrationCredentialModel?: RegistrationCredentialModel;
+    authPolicyVersion?: string;
+    secondFactorPolicy?: {
+        mode: 'DISABLED' | 'OPTIONAL' | 'REQUIRED';
+        method?: string | null;
+    };
     registrationMode?: string;
+    /** @deprecated Use registrationCredentialModel. */
     enabledRegistrationCredentialModels: RegistrationCredentialModel[];
+    /** @deprecated Use loginMethod. */
     enabledLoginMethods: LoginMethod[];
+    /** @deprecated Use loginIdentifierType. */
     loginIdentifierTypes: LoginIdentifierType[];
     userActivationMode?: string;
     issuerUri?: string;
@@ -44,5 +57,5 @@ export interface AuthConfig {
         maxLoginAttempts?: number;
         passwordPolicyCode?: string;
     };
-    applicationContext?: unknown;
+    layout?: unknown;
 }
