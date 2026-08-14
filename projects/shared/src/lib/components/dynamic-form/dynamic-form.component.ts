@@ -154,6 +154,11 @@ export class DynamicFormComponent {
         return field.type === 'text' || field.type === 'email' || field.type === 'tel' || field.type === 'number';
     }
 
+    isVisible(field: FieldConfig): boolean {
+        this.formVersion();
+        return !field.visibleWhen || field.visibleWhen(this.form()?.getRawValue() ?? {});
+    }
+
     submit(): void {
         const group = this.form();
         if (!group) {

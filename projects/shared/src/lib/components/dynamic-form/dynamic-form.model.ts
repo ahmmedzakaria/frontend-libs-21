@@ -17,6 +17,8 @@ interface BaseFieldConfig {
     required?: boolean;
     /** Grid columns this field spans, relative to `DynamicFormComponent`'s `columns` input. */
     colSpan?: number;
+    /** Conditionally renders the field from the current form value. Hidden controls remain in the value. */
+    visibleWhen?: (value: Record<string, unknown>) => boolean;
 }
 
 export interface TextFieldConfig extends BaseFieldConfig {

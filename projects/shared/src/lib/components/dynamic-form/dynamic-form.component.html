@@ -1,6 +1,7 @@
 @if (form(); as fg) {
   <form [formGroup]="fg" class="dynamic-form" [style.--df-columns]="columns()">
     @for (field of fields(); track field.key) {
+      @if (isVisible(field)) {
       <div class="dynamic-form__field" [style.grid-column]="'span ' + (field.colSpan ?? 1)">
         @if (isTextField(field)) {
           <app-textbox
@@ -118,6 +119,7 @@
           }
         }
       </div>
+      }
     }
   </form>
 }
