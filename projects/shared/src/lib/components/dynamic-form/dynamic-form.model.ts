@@ -2,6 +2,7 @@ import { CardOption } from '../card-selector/card-selector.component';
 import { DropdownOption } from '../dropdown/dropdown.component';
 import { RadioOption } from '../radio-group/radio-group.component';
 import { SmartDropdownLoader, SmartDropdownMode } from '../smart-dropdown/smart-dropdown.component';
+import { DropdownApiConfig } from '../../dropdown-config/dropdown-api-config.model';
 
 // `CardOption`/`DropdownOption`/`RadioOption`/`SmartDropdownMode`/`SmartDropdownLoader`
 // are not re-exported here — they're already public via their own component files
@@ -53,8 +54,14 @@ export interface RadioFieldConfig extends BaseFieldConfig {
 
 export interface DropdownFieldConfig extends BaseFieldConfig {
     type: 'dropdown';
-    options: DropdownOption<unknown>[];
+    /** Either declare `options` directly, or supply `dropdownConfig` and let
+     * DynamicFormComponent resolve options/placeholder from a shared
+     * `DropdownApiConfig` registry entry via `DropdownConfigService` —
+     * the declarative equivalent of calling `DropdownConfigService.field()`
+     * yourself. */
+    options?: DropdownOption<unknown>[];
     placeholder?: string;
+    dropdownConfig?: DropdownApiConfig;
 }
 
 export interface SmartDropdownFieldConfig extends BaseFieldConfig {
@@ -73,6 +80,8 @@ export interface SmartDropdownFieldConfig extends BaseFieldConfig {
     /** Last-resort label fallback for a value written onto the control from
      * outside the picker (e.g. copied in from another field programmatically). */
     displayWith?: (value: unknown) => string;
+    /** See `DropdownFieldConfig.dropdownConfig` — same resolution, for the async modes. */
+    dropdownConfig?: DropdownApiConfig;
 }
 
 export interface DateFieldConfig extends BaseFieldConfig {
@@ -95,16 +104,21 @@ export interface CardSelectorFieldConfig extends BaseFieldConfig {
     columns?: number;
 }
 
+/** Shown when a file-upload/profile-photo control has no freshly-picked file
+ * yet — e.g. an already-uploaded photo in an edit form. Separate from the
+ * field's own File[] value; see FileUploadComponent/ProfilePhotoUploadComponent. */
+export interface AttachmentPreviewConfig {
+    url?: string;
+    title?: string;
+}
+
 export interface FileUploadFieldConfig extends BaseFieldConfig {
     type: 'file-upload';
     accept?: string;
     multiple?: boolean;
     maxSizeMB?: number;
     hint?: string;
-    /** Shown when the control has no freshly-picked file yet — e.g. an already-uploaded
-     * photo in an edit form. Separate from the field's own File[] value; see FileUploadComponent. */
-    existingPreviewUrl?: string;
-    existingPreviewTitle?: string;
+    attachmentConfig?: AttachmentPreviewConfig;
 }
 
 export interface PasswordFieldConfig extends BaseFieldConfig {
@@ -119,8 +133,7 @@ export interface ProfilePhotoFieldConfig extends BaseFieldConfig {
     type: 'profile-photo';
     accept?: string;
     maxSizeMB?: number;
-    existingPreviewUrl?: string;
-    existingPreviewTitle?: string;
+    attachmentConfig?: AttachmentPreviewConfig;
 }
 
 export type FieldConfig =

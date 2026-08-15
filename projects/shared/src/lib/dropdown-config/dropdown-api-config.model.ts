@@ -20,6 +20,26 @@ export interface StaticDropdownApiConfig<T = unknown> {
     dropdownMode: 'static';
     listItems: T[];
     option: DropdownOptionMapping;
+    placeholder?: string;
+}
+
+/**
+ * Edit-mode support: resolves a saved raw id into this field's proper initial
+ * value (and label) via a dedicated fetch-by-id call, for dropdowns where the
+ * id alone isn't enough to render a label without hitting the API — e.g. a
+ * foreign-key column saved on the record being edited.
+ */
+export interface DropdownLookupConfig {
+    apiConfig: ApiEndpoint;
+    /** Builds the lookup request body from the raw id passed to `DropdownConfigService.resolveInitialValue()`. */
+    requestBody: (id: unknown) => Record<string, unknown>;
+    /** Merges the lookup response with the original id into an item shaped
+     * like a normal option-source item (same shape `option` expects) — needed
+     * whenever the lookup response doesn't echo back every field the option
+     * mapping reads (the id itself is often only known by the caller, not
+     * returned by a get-by-id endpoint). Return null to signal "not found".
+     * Defaults to using the response as-is when omitted. */
+    mapItem?: (response: unknown, id: unknown) => Record<string, unknown> | null;
 }
 
 export interface ApiDropdownApiConfig {
@@ -29,6 +49,8 @@ export interface ApiDropdownApiConfig {
     pageSize?: number;
     /** Extra static fields merged into every request body alongside page/size/searchText. */
     extraParams?: Record<string, unknown>;
+    lookup?: DropdownLookupConfig;
+    placeholder?: string;
 }
 
 export type DropdownApiConfig<T = unknown> = StaticDropdownApiConfig<T> | ApiDropdownApiConfig;

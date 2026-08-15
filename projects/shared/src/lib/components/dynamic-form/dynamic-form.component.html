@@ -1,6 +1,6 @@
 @if (form(); as fg) {
   <form [formGroup]="fg" class="dynamic-form" [style.--df-columns]="columns()">
-    @for (field of fields(); track field.key) {
+    @for (field of resolvedFields(); track field.key) {
       @if (isVisible(field)) {
       <div class="dynamic-form__field" [style.grid-column]="'span ' + (field.colSpan ?? 1)">
         @if (isTextField(field)) {
@@ -38,7 +38,7 @@
             @case ('dropdown') {
               <app-dropdown
                 [formControlName]="field.key"
-                [options]="field.options"
+                [options]="field.options ?? []"
                 [label]="field.label ?? ''"
                 [placeholder]="field.placeholder ?? 'Select an option'"
                 [required]="!!field.required"
@@ -93,8 +93,8 @@
                 [accept]="field.accept ?? '*/*'"
                 [multiple]="!!field.multiple"
                 [maxSizeMB]="field.maxSizeMB ?? 10"
-                [existingPreviewUrl]="field.existingPreviewUrl ?? ''"
-                [existingPreviewTitle]="field.existingPreviewTitle ?? 'Current Photo'"
+                [existingPreviewUrl]="field.attachmentConfig?.url ?? ''"
+                [existingPreviewTitle]="field.attachmentConfig?.title ?? 'Current Photo'"
               />
             }
             @case ('profile-photo') {
@@ -103,8 +103,8 @@
                 [label]="field.label ?? 'Profile Photo'"
                 [accept]="field.accept ?? 'image/*'"
                 [maxSizeMB]="field.maxSizeMB ?? 5"
-                [existingPreviewUrl]="field.existingPreviewUrl ?? ''"
-                [existingPreviewTitle]="field.existingPreviewTitle ?? 'Current Photo'"
+                [existingPreviewUrl]="field.attachmentConfig?.url ?? ''"
+                [existingPreviewTitle]="field.attachmentConfig?.title ?? 'Current Photo'"
               />
             }
             @case ('password') {

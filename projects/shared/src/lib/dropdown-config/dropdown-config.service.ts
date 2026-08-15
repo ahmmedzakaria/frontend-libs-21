@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { map, of } from 'rxjs';
+import { Observable, catchError, map, of } from 'rxjs';
 import { ApiService } from '@nexacore/platform';
 import { DropdownOption } from '../components/dropdown/dropdown.component';
 import { SmartDropdownLoader, SmartDropdownPage } from '../components/smart-dropdown/smart-dropdown.component';
@@ -32,6 +32,7 @@ export class DropdownConfigService {
                 key,
                 label,
                 type: 'dropdown',
+                placeholder: config.placeholder,
                 options: this.resolveStaticOptions(config)
             };
             return { ...base, ...overrides } as DropdownFieldConfig;
@@ -42,11 +43,36 @@ export class DropdownConfigService {
             label,
             type: 'smart-dropdown',
             mode: config.dropdownMode,
+            placeholder: config.placeholder,
             loadOptions: this.toLoader(config),
             compareWith: this.compareFor(config.option),
             displayWith: (value) => this.buildLabel(value as Record<string, unknown>, config.option)
         };
         return { ...base, ...overrides } as SmartDropdownFieldConfig;
+    }
+
+    /**
+     * Edit-mode support: given a saved raw id (e.g. a foreign-key column on
+     * the record being edited), calls the config's `lookup` endpoint and
+     * resolves the response into the value/label a `field()`-built control
+     * needs to start pre-selected — replaces hand-writing a hookup like
+     * `GisService.getLocationById(...)` -> `{id, gisCode, detailLocation}`
+     * per page. Emits `null` when there's no `lookup` configured, `id` is
+     * empty, or the lookup call fails/returns nothing (nothing to resolve —
+     * the field just starts empty, same as before this existed).
+     */
+    resolveInitialValue(config: DropdownApiConfig, id: unknown): Observable<unknown> {
+        if (config.dropdownMode === 'static' || !config.lookup || id === null || id === undefined || id === '') {
+            return of(null);
+        }
+        const { apiConfig, requestBody, mapItem } = config.lookup;
+        return this.api.post<unknown>(apiConfig, requestBody(id)).pipe(
+            map((response) => {
+                const item = mapItem ? mapItem(response, id) : (response as Record<string, unknown> | null);
+                return item ? this.buildValue(item, config.option) : null;
+            }),
+            catchError(() => of(null))
+        );
     }
 
     private resolveStaticOptions<T>(config: StaticDropdownApiConfig<T>): DropdownOption<unknown>[] {

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { ProfilePhotoUploadComponent } from '../profile-photo-upload/profile-photo-upload.component';
 import { CardSelectorComponent } from '../card-selector/card-selector.component';
@@ -12,6 +12,7 @@ import { SmartDropdownComponent } from '../smart-dropdown/smart-dropdown.compone
 import { TextareaComponent } from '../textarea/textarea.component';
 import { TextboxComponent } from '../textbox/textbox.component';
 import { ValidationMessageService } from '../../services/validation-message.service';
+import { DropdownConfigService } from '../../dropdown-config/dropdown-config.service';
 import { FieldConfig, TextFieldConfig } from './dynamic-form.model';
 
 function requiredArray(control: AbstractControl): ValidationErrors | null {
@@ -95,6 +96,7 @@ function validatorsFor(field: FieldConfig): ValidatorFn[] {
 })
 export class DynamicFormComponent {
     private readonly messages = inject(ValidationMessageService);
+    private readonly dropdownConfigService = inject(DropdownConfigService);
 
     /** Bound to `app-smart-dropdown`'s `compareWith` when a field doesn't supply
      * its own — binding an `input()` to an explicit `undefined` overrides the
@@ -105,6 +107,13 @@ export class DynamicFormComponent {
     readonly fields = input.required<FieldConfig[]>();
     readonly initialValue = input<Record<string, unknown>>({});
     readonly columns = input(1);
+
+    /** `fields()` with any `dropdownConfig`-carrying field resolved into its
+     * full options/placeholder via `DropdownConfigService.field()` — lets
+     * call sites declare `{ key, type: 'dropdown', label, dropdownConfig }`
+     * directly instead of calling the service themselves. Used for both
+     * rendering and building the FormGroup below. */
+    protected readonly resolvedFields = computed<FieldConfig[]>(() => this.fields().map((field) => this.resolveField(field)));
 
     /** Fires once, right after the FormGroup is (re)built from `fields()`. */
     readonly formReady = output<FormGroup>();
@@ -120,7 +129,7 @@ export class DynamicFormComponent {
 
     constructor() {
         effect((onCleanup) => {
-            const fields = this.fields();
+            const fields = this.resolvedFields();
             const initial = this.initialValue();
             const group = new FormGroup(
                 Object.fromEntries(fields.map((field) => [field.key, this.buildControl(field, initial)]))
@@ -173,5 +182,13 @@ export class DynamicFormComponent {
     private buildControl(field: FieldConfig, initial: Record<string, unknown>): FormControl {
         const value = field.key in initial ? initial[field.key] : defaultValueFor(field);
         return new FormControl(value, { validators: validatorsFor(field) });
+    }
+
+    private resolveField(field: FieldConfig): FieldConfig {
+        if ((field.type !== 'dropdown' && field.type !== 'smart-dropdown') || !field.dropdownConfig) {
+            return field;
+        }
+        const { dropdownConfig, ...overrides } = field;
+        return this.dropdownConfigService.field(field.key, field.label ?? field.key, dropdownConfig, overrides);
     }
 }
