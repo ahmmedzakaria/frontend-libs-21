@@ -33,7 +33,7 @@ export class DropdownConfigService {
                 label,
                 type: 'dropdown',
                 placeholder: config.placeholder,
-                options: this.resolveStaticOptions(config)
+                options: this.resolveOptions(config)
             };
             return { ...base, ...overrides } as DropdownFieldConfig;
         }
@@ -44,9 +44,9 @@ export class DropdownConfigService {
             type: 'smart-dropdown',
             mode: config.dropdownMode,
             placeholder: config.placeholder,
-            loadOptions: this.toLoader(config),
-            compareWith: this.compareFor(config.option),
-            displayWith: (value) => this.buildLabel(value as Record<string, unknown>, config.option)
+            loadOptions: this.resolveLoader(config),
+            compareWith: this.resolveCompareWith(config.option),
+            displayWith: this.resolveDisplayWith(config.option)
         };
         return { ...base, ...overrides } as SmartDropdownFieldConfig;
     }
@@ -75,14 +75,18 @@ export class DropdownConfigService {
         );
     }
 
-    private resolveStaticOptions<T>(config: StaticDropdownApiConfig<T>): DropdownOption<unknown>[] {
+    /** Options for 'static' mode — the label/value pairs a plain `<app-dropdown>`
+     * or `<app-smart-dropdown>` (mode 'static') can render directly. */
+    resolveOptions<T>(config: StaticDropdownApiConfig<T>): DropdownOption<unknown>[] {
         return config.listItems.map((item) => ({
             label: this.buildLabel(item as Record<string, unknown>, config.option),
             value: this.buildValue(item as Record<string, unknown>, config.option)
         }));
     }
 
-    private toLoader(config: ApiDropdownApiConfig): SmartDropdownLoader<unknown> {
+    /** Loader for 'api-simple'/'api-scroll' modes — what `<app-smart-dropdown>`
+     * calls per query/page. */
+    resolveLoader(config: ApiDropdownApiConfig): SmartDropdownLoader<unknown> {
         return (query: string, page: number) => {
             // Don't fetch on an empty query (e.g. right after opening the
             // panel) — avoids an unbounded "search everything" call.
@@ -123,11 +127,21 @@ export class DropdownConfigService {
         return Object.fromEntries(mapping.value.map((field) => [field, item[field]]));
     }
 
-    private compareFor(mapping: DropdownOptionMapping): (a: unknown, b: unknown) => boolean {
+    /** Equality check derived from the option mapping — 'JSON_OBJECT' values
+     * compare by their id field rather than by reference, since a freshly
+     * fetched page never returns the same object instance as the one
+     * currently held by the control's value. */
+    resolveCompareWith(mapping: DropdownOptionMapping): (a: unknown, b: unknown) => boolean {
         if (mapping.valueType === 'PRIMITIVE') {
             return (a, b) => a === b;
         }
         const idField = mapping.value[0];
         return (a, b) => (a as Record<string, unknown> | null)?.[idField] === (b as Record<string, unknown> | null)?.[idField];
+    }
+
+    /** Last-resort label fallback for a value written onto the control from
+     * outside a normal pick (e.g. copied in from another field programmatically). */
+    resolveDisplayWith(mapping: DropdownOptionMapping): (value: unknown) => string {
+        return (value) => this.buildLabel(value as Record<string, unknown>, mapping);
     }
 }

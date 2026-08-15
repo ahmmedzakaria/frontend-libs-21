@@ -48,11 +48,12 @@
             @case ('smart-dropdown') {
               <app-smart-dropdown
                 [formControlName]="field.key"
+                [dropdownConfig]="field.dropdownConfig ?? null"
                 [mode]="field.mode ?? 'static'"
                 [options]="field.options ?? []"
                 [loadOptions]="field.loadOptions ?? null"
                 [label]="field.label ?? ''"
-                [placeholder]="field.placeholder ?? 'Select...'"
+                [placeholder]="field.placeholder ?? null"
                 [searchable]="field.searchable ?? true"
                 [required]="!!field.required"
                 [errorMessage]="errorFor(field.key)"

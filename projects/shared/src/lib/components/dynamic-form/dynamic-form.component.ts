@@ -108,11 +108,16 @@ export class DynamicFormComponent {
     readonly initialValue = input<Record<string, unknown>>({});
     readonly columns = input(1);
 
-    /** `fields()` with any `dropdownConfig`-carrying field resolved into its
-     * full options/placeholder via `DropdownConfigService.field()` — lets
-     * call sites declare `{ key, type: 'dropdown', label, dropdownConfig }`
-     * directly instead of calling the service themselves. Used for both
-     * rendering and building the FormGroup below. */
+    /** `fields()` with any plain-'dropdown'-typed `dropdownConfig`-carrying
+     * field resolved into its full options/placeholder via
+     * `DropdownConfigService.field()` — lets call sites declare
+     * `{ key, type: 'dropdown', label, dropdownConfig }` directly instead of
+     * calling the service themselves. A 'smart-dropdown'-typed field's
+     * `dropdownConfig` is left untouched here and passed straight through to
+     * `<app-smart-dropdown>`, which now resolves it itself (see
+     * SmartDropdownComponent) — `<app-dropdown>` has no such input, so it
+     * still needs pre-resolving. Used for both rendering and building the
+     * FormGroup below. */
     protected readonly resolvedFields = computed<FieldConfig[]>(() => this.fields().map((field) => this.resolveField(field)));
 
     /** Fires once, right after the FormGroup is (re)built from `fields()`. */
@@ -185,7 +190,7 @@ export class DynamicFormComponent {
     }
 
     private resolveField(field: FieldConfig): FieldConfig {
-        if ((field.type !== 'dropdown' && field.type !== 'smart-dropdown') || !field.dropdownConfig) {
+        if (field.type !== 'dropdown' || !field.dropdownConfig) {
             return field;
         }
         const { dropdownConfig, ...overrides } = field;

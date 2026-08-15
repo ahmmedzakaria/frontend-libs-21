@@ -1,15 +1,15 @@
-@switch (mode()) {
+@switch (resolvedMode()) {
   @case ('static') {
     <app-static-dropdown
       [value]="value()"
       [disabled]="disabled()"
-      [options]="options()"
+      [options]="resolvedOptions()"
       [label]="label()"
-      [placeholder]="placeholder()"
+      [placeholder]="resolvedPlaceholder()"
       [searchable]="searchable()"
       [searchPlaceholder]="searchPlaceholder()"
       [errorMessage]="errorMessage()"
-      [compareWith]="compareWith()"
+      [compareWith]="resolvedCompareWith()"
       (valueChange)="emitValue($event)"
       (touched)="markTouched()"
     />
@@ -18,16 +18,16 @@
     <app-api-simple-dropdown
       [value]="value()"
       [disabled]="disabled()"
-      [loadOptions]="loadOptions()"
+      [loadOptions]="resolvedLoadOptions()"
       [label]="label()"
-      [placeholder]="placeholder()"
+      [placeholder]="resolvedPlaceholder()"
       [searchable]="searchable()"
       [searchPlaceholder]="searchPlaceholder()"
       [debounceMs]="debounceMs()"
       [errorMessage]="errorMessage()"
-      [compareWith]="compareWith()"
+      [compareWith]="resolvedCompareWith()"
       [initialOption]="initialOption()"
-      [displayWith]="displayWith()"
+      [displayWith]="resolvedDisplayWith()"
       (valueChange)="emitValue($event)"
       (touched)="markTouched()"
     />
@@ -36,16 +36,16 @@
     <app-api-scroll-dropdown
       [value]="value()"
       [disabled]="disabled()"
-      [loadOptions]="loadOptions()"
+      [loadOptions]="resolvedLoadOptions()"
       [label]="label()"
-      [placeholder]="placeholder()"
+      [placeholder]="resolvedPlaceholder()"
       [searchable]="searchable()"
       [searchPlaceholder]="searchPlaceholder()"
       [debounceMs]="debounceMs()"
       [errorMessage]="errorMessage()"
-      [compareWith]="compareWith()"
+      [compareWith]="resolvedCompareWith()"
       [initialOption]="initialOption()"
-      [displayWith]="displayWith()"
+      [displayWith]="resolvedDisplayWith()"
       (valueChange)="emitValue($event)"
       (touched)="markTouched()"
     />
