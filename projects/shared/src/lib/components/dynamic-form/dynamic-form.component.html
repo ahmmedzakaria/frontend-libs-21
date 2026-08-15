@@ -49,6 +49,7 @@
               <app-smart-dropdown
                 [formControlName]="field.key"
                 [dropdownConfig]="field.dropdownConfig ?? null"
+                [initValue]="field.initValue ?? null"
                 [mode]="field.mode ?? 'static'"
                 [options]="field.options ?? []"
                 [loadOptions]="field.loadOptions ?? null"

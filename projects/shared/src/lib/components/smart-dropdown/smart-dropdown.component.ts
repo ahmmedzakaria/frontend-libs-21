@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { NG_VALIDATORS, NG_VALUE_ACCESSOR, ValidationErrors, Validator } from '@angular/forms';
 import { BaseValueAccessor } from '../base/base-value-accessor';
 import { DropdownOption } from '../dropdown/dropdown.component';
@@ -28,6 +28,15 @@ import { SmartDropdownLoader, SmartDropdownMode } from './smart-dropdown.model';
  * for `DynamicFormComponent`, just without needing a `FieldConfig` wrapper.
  * The raw inputs remain the source of truth whenever `dropdownConfig` isn't
  * supplied, so direct callers (e.g. `component-demo`) are unaffected.
+ *
+ * Edit-mode support lives here too: pass `initValue` (a raw saved id) and
+ * this component resolves it into the control's starting value itself via
+ * `DropdownConfigService.resolveInitialValue()`, then pushes it into the
+ * form as if picked — the declarative equivalent of a host page calling
+ * `resolveInitialValue()` and threading the result through `initialValue`
+ * before the form mounts. Resolved at most once per component instance
+ * (see `initialValueResolved`) so it survives `dropdownConfig`/`initValue`
+ * being fresh object references on every parent recompute.
  */
 @Component({
     selector: 'app-smart-dropdown',
@@ -49,6 +58,11 @@ export class SmartDropdownComponent<T = string> extends BaseValueAccessor<T> imp
      * resolved from it instead of read directly (see the `resolved*`
      * computeds). */
     readonly dropdownConfig = input<DropdownApiConfig | null>(null);
+
+    /** Raw saved id to resolve into this control's starting value via
+     * `dropdownConfig`'s `lookup` — see the class doc. Ignored without a
+     * `dropdownConfig`. */
+    readonly initValue = input<unknown>(null);
 
     readonly mode = input<SmartDropdownMode>('static');
     /** Options for 'static' mode. */
@@ -103,6 +117,31 @@ export class SmartDropdownComponent<T = string> extends BaseValueAccessor<T> imp
     });
 
     protected readonly resolvedPlaceholder = computed(() => this.placeholder() ?? this.dropdownConfig()?.placeholder ?? 'Select...');
+
+    /** Guards `initValue` resolution to at most once per instance — `dropdownConfig`/
+     * `initValue` are commonly fresh object references on every parent recompute
+     * (e.g. a wizard step rebuilding its whole `fields` array), so gating on
+     * "already attempted" (set synchronously, before the HTTP call even
+     * resolves) rather than on `value()` avoids re-fetching or fighting a
+     * value the user has since changed. */
+    private readonly initialValueResolved = signal(false);
+
+    constructor() {
+        super();
+        effect(() => {
+            const config = this.dropdownConfig();
+            const rawId = this.initValue();
+            if (!config || rawId === null || rawId === undefined || rawId === '' || this.initialValueResolved()) {
+                return;
+            }
+            this.initialValueResolved.set(true);
+            this.dropdownConfigService.resolveInitialValue(config, rawId).subscribe((resolved) => {
+                if (resolved !== null) {
+                    this.emitValue(resolved as T);
+                }
+            });
+        });
+    }
 
     validate(): ValidationErrors | null {
         return this.required() && this.value() === null ? { required: true } : null;

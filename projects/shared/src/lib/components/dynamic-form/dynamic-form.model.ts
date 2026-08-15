@@ -82,6 +82,13 @@ export interface SmartDropdownFieldConfig extends BaseFieldConfig {
     displayWith?: (value: unknown) => string;
     /** See `DropdownFieldConfig.dropdownConfig` — same resolution, for the async modes. */
     dropdownConfig?: DropdownApiConfig;
+    /** Raw id to resolve into this field's starting value via `dropdownConfig`'s
+     * `lookup` (e.g. a saved foreign-key column on the record being edited) —
+     * the declarative equivalent of the host page calling
+     * `DropdownConfigService.resolveInitialValue()` itself before the form
+     * mounts. Resolved once, internally, by SmartDropdownComponent; ignored
+     * without a `dropdownConfig`. */
+    initValue?: unknown;
 }
 
 export interface DateFieldConfig extends BaseFieldConfig {
