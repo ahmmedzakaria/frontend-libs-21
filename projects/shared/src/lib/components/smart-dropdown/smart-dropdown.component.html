@@ -1,97 +1,53 @@
-<div class="dropdown-field">
-  @if (label()) {
-    <span class="lbl">{{ label() }}</span>
+@switch (mode()) {
+  @case ('static') {
+    <app-static-dropdown
+      [value]="value()"
+      [disabled]="disabled()"
+      [options]="options()"
+      [label]="label()"
+      [placeholder]="placeholder()"
+      [searchable]="searchable()"
+      [searchPlaceholder]="searchPlaceholder()"
+      [errorMessage]="errorMessage()"
+      [compareWith]="compareWith()"
+      (valueChange)="emitValue($event)"
+      (touched)="markTouched()"
+    />
   }
-
-  <button
-    #triggerBtn
-    type="button"
-    class="trigger focus-ring"
-    cdkOverlayOrigin
-    #origin="cdkOverlayOrigin"
-    role="combobox"
-    [attr.aria-expanded]="open()"
-    aria-haspopup="listbox"
-    [attr.aria-controls]="uid + '-listbox'"
-    [disabled]="disabled()"
-    [class.invalid]="!!errorMessage()"
-    (click)="toggle()"
-  >
-    <span class="value" [class.placeholder]="!triggerLabel()">
-      {{ triggerLabel() ?? placeholder() }}
-    </span>
-    <app-icon name="chevron-down" [size]="13" class="chev" [class.open]="open()" />
-  </button>
-
-  @if (errorMessage()) {
-    <span class="error">{{ errorMessage() }}</span>
+  @case ('api-simple') {
+    <app-api-simple-dropdown
+      [value]="value()"
+      [disabled]="disabled()"
+      [loadOptions]="loadOptions()"
+      [label]="label()"
+      [placeholder]="placeholder()"
+      [searchable]="searchable()"
+      [searchPlaceholder]="searchPlaceholder()"
+      [debounceMs]="debounceMs()"
+      [errorMessage]="errorMessage()"
+      [compareWith]="compareWith()"
+      [initialOption]="initialOption()"
+      [displayWith]="displayWith()"
+      (valueChange)="emitValue($event)"
+      (touched)="markTouched()"
+    />
   }
-</div>
-
-<ng-template
-  cdkConnectedOverlay
-  [cdkConnectedOverlayOrigin]="origin"
-  [cdkConnectedOverlayOpen]="open()"
-  [cdkConnectedOverlayWidth]="triggerWidth()"
-  [cdkConnectedOverlayHasBackdrop]="true"
-  cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
-  [cdkConnectedOverlayPositions]="[
-    { originX: 'start', originY: 'bottom', overlayX: 'start', overlayY: 'top', offsetY: 4 },
-    { originX: 'start', originY: 'top', overlayX: 'start', overlayY: 'bottom', offsetY: -4 }
-  ]"
-  (backdropClick)="close()"
-  (detach)="close()"
-  (attach)="onOverlayAttach()"
->
-  <div class="dropdown-panel">
-    @if (searchable()) {
-      <div class="search-row">
-        <input
-          #searchInput
-          type="text"
-          [placeholder]="searchPlaceholder()"
-          [value]="query()"
-          (input)="onQueryInput($event)"
-          (keydown)="onListKeydown($event)"
-        />
-        @if (loading()) {
-          <app-icon name="spinner" [size]="14" class="spin" />
-        }
-      </div>
-    }
-
-    <div class="options" role="listbox" [id]="uid + '-listbox'" (scroll)="onPanelScroll($event)">
-      @if (!loading() && !displayOptions().length) {
-        <div class="empty">No results</div>
-      }
-      @for (option of displayOptions(); track option.label + $index; let i = $index) {
-        <div
-          class="option"
-          role="option"
-          [attr.aria-selected]="selectedOption() === option"
-          [attr.aria-disabled]="option.disabled || null"
-          [class.active]="activeIndex() === i"
-          [class.selected]="selectedOption() === option"
-          [class.disabled]="option.disabled"
-          (mouseenter)="activeIndex.set(i)"
-          (click)="selectOption(option)"
-        >
-          <span class="opt-content">
-            @if (option.icon) {
-              <app-icon [name]="option.icon" [size]="14" />
-            }
-            <span>{{ option.label }}</span>
-          </span>
-          @if (selectedOption() === option) {
-            <app-icon name="check" [size]="14" />
-          }
-        </div>
-      }
-      @if (loadingMore()) {
-        <div class="loading-more">
-          <app-icon name="spinner" [size]="14" class="spin" /> Loading…
-        </div>
-      }
-    </div>
-  </div>
-</ng-template>
+  @default {
+    <app-api-scroll-dropdown
+      [value]="value()"
+      [disabled]="disabled()"
+      [loadOptions]="loadOptions()"
+      [label]="label()"
+      [placeholder]="placeholder()"
+      [searchable]="searchable()"
+      [searchPlaceholder]="searchPlaceholder()"
+      [debounceMs]="debounceMs()"
+      [errorMessage]="errorMessage()"
+      [compareWith]="compareWith()"
+      [initialOption]="initialOption()"
+      [displayWith]="displayWith()"
+      (valueChange)="emitValue($event)"
+      (touched)="markTouched()"
+    />
+  }
+}

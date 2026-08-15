@@ -1,0 +1,136 @@
+// Shared visual chrome for the mode-specific dropdown components (Static/
+// ApiSimple/ApiScroll) — SCSS mixins, not shared classes, since each
+// component's styles are individually encapsulated by Angular (see
+// _field-shell.scss for the same rationale). SmartDropdownComponent itself
+// renders none of this — it's a pure facade that delegates to one of the
+// three per `mode()`.
+
+@use 'field-shell' as shell;
+
+@mixin dropdown-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--layout-space-15);
+}
+
+@mixin dropdown-trigger {
+  height: var(--layout-control-6xl);
+  border-radius: var(--radius);
+  border: var(--layout-border-width) solid var(--border);
+  background: var(--paper);
+  color: var(--text);
+  padding: 0 var(--layout-space-25) 0 var(--layout-space-3);
+  font-size: var(--layout-font-size-base);
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--layout-space-2);
+  cursor: pointer;
+  width: 100%;
+  text-align: start;
+
+  &:hover:not(:disabled) {
+    border-color: var(--text-muted);
+  }
+  &:disabled {
+    opacity: var(--layout-disabled-opacity);
+    cursor: default;
+  }
+  &.invalid {
+    border-color: var(--layout-error-color);
+  }
+
+  .value {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .value.placeholder {
+    color: var(--text-muted);
+  }
+  .chev {
+    flex-shrink: 0;
+    color: var(--text-muted);
+    transition: transform var(--layout-transition-fast);
+  }
+  .chev.open {
+    transform: rotate(var(--layout-rotate-open));
+  }
+}
+
+@mixin dropdown-panel-chrome($min-width, $max-height) {
+  width: 100%;
+  min-width: $min-width;
+  max-height: $max-height;
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border: var(--layout-border-width) solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+@mixin dropdown-search-row {
+  display: flex;
+  align-items: center;
+  gap: var(--layout-space-2);
+  padding: var(--layout-space-2);
+  border-bottom: var(--layout-border-width) solid var(--border);
+
+  input {
+    @include shell.control-reset;
+    font-size: var(--layout-font-size-md-plus);
+  }
+}
+
+@mixin dropdown-options-list {
+  overflow-y: auto;
+  padding: var(--layout-space-1);
+}
+
+@mixin dropdown-option-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--layout-space-2);
+  padding: var(--layout-space-2) var(--layout-space-25);
+  border-radius: var(--layout-radius-sm);
+  font-size: var(--layout-font-size-base);
+  color: var(--text);
+  cursor: pointer;
+
+  .opt-content {
+    display: flex;
+    align-items: center;
+    gap: var(--layout-space-15);
+    color: var(--text-muted);
+  }
+
+  &.active {
+    background: var(--surface-2);
+  }
+  &.selected {
+    color: var(--accent);
+    font-weight: var(--layout-font-weight-semibold);
+
+    .opt-content {
+      color: inherit;
+    }
+  }
+  &.disabled {
+    color: var(--text-muted);
+    cursor: default;
+  }
+}
+
+@mixin dropdown-empty-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--layout-space-15);
+  padding: var(--layout-space-3);
+  color: var(--text-muted);
+  font-size: var(--layout-font-size-sm);
+}

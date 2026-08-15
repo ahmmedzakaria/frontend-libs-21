@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, map, of } from 'rxjs';
 import { ApiService } from '@nexacore/platform';
 import { DropdownOption } from '../components/dropdown/dropdown.component';
-import { SmartDropdownLoader, SmartDropdownPage } from '../components/smart-dropdown/smart-dropdown.component';
+import { SmartDropdownLoader, SmartDropdownPage } from '../components/smart-dropdown/smart-dropdown.model';
 import { DropdownFieldConfig, FieldConfig, SmartDropdownFieldConfig } from '../components/dynamic-form/dynamic-form.model';
 import { ApiDropdownApiConfig, DropdownApiConfig, DropdownOptionMapping, StaticDropdownApiConfig } from './dropdown-api-config.model';
 

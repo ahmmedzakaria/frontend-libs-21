@@ -3,6 +3,8 @@ export * from './lib/components/access-feedback/access-feedback.component';
 export * from './lib/components/assignment-checklist/assignment-checklist.component';
 export * from './lib/components/assignment-load-state/assignment-load-state.component';
 export * from './lib/components/approval-actions/approval-actions.component';
+export * from './lib/components/api-simple-dropdown/api-simple-dropdown.component';
+export * from './lib/components/api-scroll-dropdown/api-scroll-dropdown.component';
 export * from './lib/components/button/button.component';
 export * from './lib/components/card-selector/card-selector.component';
 export * from './lib/components/checkbox/checkbox.component';
@@ -38,7 +40,9 @@ export * from './lib/components/profile-photo-upload/profile-photo-upload.compon
 export * from './lib/components/replacement-summary/replacement-summary.component';
 export * from './lib/components/radio-group/radio-group.component';
 export * from './lib/components/search-toolbar/search-toolbar.component';
+export * from './lib/components/smart-dropdown/smart-dropdown.model';
 export * from './lib/components/smart-dropdown/smart-dropdown.component';
+export * from './lib/components/static-dropdown/static-dropdown.component';
 export * from './lib/components/status-badge/status-badge.component';
 export * from './lib/components/stepper/stepper.component';
 export * from './lib/components/tab-bar/tab-bar.component';

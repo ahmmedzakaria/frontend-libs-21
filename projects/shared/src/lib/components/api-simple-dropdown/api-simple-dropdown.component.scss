@@ -1,0 +1,48 @@
+@use '../../styles/field-shell' as shell;
+@use '../../styles/dropdown-panel-shell' as panel;
+
+$panel-min-width: 220px;
+$panel-max-height: 260px;
+
+:host {
+  display: block;
+}
+
+.dropdown-field {
+  @include panel.dropdown-field;
+}
+.lbl {
+  @include shell.field-label;
+}
+.trigger {
+  @include panel.dropdown-trigger;
+}
+.error {
+  @include shell.field-error;
+}
+
+.dropdown-panel {
+  @include panel.dropdown-panel-chrome($panel-min-width, $panel-max-height);
+}
+
+.search-row {
+  @include panel.dropdown-search-row;
+
+  .spin {
+    @include shell.spin-animation;
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+}
+
+.options {
+  @include panel.dropdown-options-list;
+}
+
+.option {
+  @include panel.dropdown-option-row;
+}
+
+.empty {
+  @include panel.dropdown-empty-loading;
+}

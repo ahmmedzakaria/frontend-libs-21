@@ -1,7 +1,7 @@
 import { CardOption } from '../card-selector/card-selector.component';
 import { DropdownOption } from '../dropdown/dropdown.component';
 import { RadioOption } from '../radio-group/radio-group.component';
-import { SmartDropdownLoader, SmartDropdownMode } from '../smart-dropdown/smart-dropdown.component';
+import { SmartDropdownLoader, SmartDropdownMode } from '../smart-dropdown/smart-dropdown.model';
 import { DropdownApiConfig } from '../../dropdown-config/dropdown-api-config.model';
 
 // `CardOption`/`DropdownOption`/`RadioOption`/`SmartDropdownMode`/`SmartDropdownLoader`
