@@ -1,11 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
-import { ProfilePhotoUploadComponent } from '../profile-photo-upload/profile-photo-upload.component';
+import { DynamicAttachmentComponent } from '../dynamic-attachment/dynamic-attachment.component';
 import { CardSelectorComponent } from '../card-selector/card-selector.component';
 import { CheckboxComponent } from '../checkbox/checkbox.component';
 import { DatePickerComponent } from '../date-picker/date-picker.component';
 import { DropdownComponent } from '../dropdown/dropdown.component';
-import { FileUploadComponent } from '../file-upload/file-upload.component';
 import { PasswordGroupComponent } from '../password-group/password-group.component';
 import { RadioGroupComponent } from '../radio-group/radio-group.component';
 import { SmartDropdownComponent } from '../smart-dropdown/smart-dropdown.component';
@@ -23,8 +22,7 @@ function defaultValueFor(field: FieldConfig): unknown {
     switch (field.type) {
         case 'checkbox':
             return false;
-        case 'file-upload':
-        case 'profile-photo':
+        case 'attachment':
             return [];
         case 'date-range':
             return { start: null, end: null };
@@ -43,7 +41,7 @@ function validatorsFor(field: FieldConfig): ValidatorFn[] {
     if (field.required) {
         if (field.type === 'checkbox') {
             validators.push(Validators.requiredTrue);
-        } else if (field.type === 'file-upload' || field.type === 'profile-photo') {
+        } else if (field.type === 'attachment') {
             validators.push(requiredArray);
         } else {
             validators.push(Validators.required);
@@ -85,8 +83,7 @@ function validatorsFor(field: FieldConfig): ValidatorFn[] {
         SmartDropdownComponent,
         DatePickerComponent,
         CardSelectorComponent,
-        FileUploadComponent,
-        ProfilePhotoUploadComponent,
+        DynamicAttachmentComponent,
         PasswordGroupComponent
     ],
     exportAs: 'dynamicForm',

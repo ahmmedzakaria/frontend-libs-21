@@ -87,26 +87,19 @@
             @case ('card-selector') {
               <app-card-selector [formControlName]="field.key" [options]="field.options" [label]="field.label ?? ''" [columns]="field.columns ?? 3" />
             }
-            @case ('file-upload') {
-              <app-file-upload
+            @case ('attachment') {
+              <app-dynamic-attachment
                 [formControlName]="field.key"
-                [label]="field.label ?? 'Upload Files'"
+                [mode]="field.mode ?? 'file-upload'"
+                [label]="field.label ?? null"
                 [hint]="field.hint ?? 'Drag & drop files or click to browse'"
-                [accept]="field.accept ?? '*/*'"
+                [accept]="field.accept ?? null"
                 [multiple]="!!field.multiple"
-                [maxSizeMB]="field.maxSizeMB ?? 10"
-                [existingPreviewUrl]="field.attachmentConfig?.url ?? ''"
-                [existingPreviewTitle]="field.attachmentConfig?.title ?? 'Current Photo'"
-              />
-            }
-            @case ('profile-photo') {
-              <app-profile-photo-upload
-                [formControlName]="field.key"
-                [label]="field.label ?? 'Profile Photo'"
-                [accept]="field.accept ?? 'image/*'"
-                [maxSizeMB]="field.maxSizeMB ?? 5"
-                [existingPreviewUrl]="field.attachmentConfig?.url ?? ''"
-                [existingPreviewTitle]="field.attachmentConfig?.title ?? 'Current Photo'"
+                [maxSizeMB]="field.maxSizeMB ?? null"
+                [uploadUrl]="field.uploadUrl ?? null"
+                [showPreview]="field.showPreview ?? true"
+                [attachmentConfig]="field.attachmentConfig ?? null"
+                [required]="!!field.required"
               />
             }
             @case ('password') {

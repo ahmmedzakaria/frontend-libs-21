@@ -15,6 +15,8 @@ export * from './lib/components/date-picker/date-picker.component';
 export * from './lib/components/dropdown/dropdown.component';
 export * from './lib/dropdown-config/dropdown-api-config.model';
 export * from './lib/dropdown-config/dropdown-config.service';
+export * from './lib/components/dynamic-attachment/dynamic-attachment.model';
+export * from './lib/components/dynamic-attachment/dynamic-attachment.component';
 export * from './lib/components/dynamic-form/dynamic-form.component';
 export * from './lib/components/dynamic-form/dynamic-form.model';
 export * from './lib/components/dynamic-list/dynamic-list.component';

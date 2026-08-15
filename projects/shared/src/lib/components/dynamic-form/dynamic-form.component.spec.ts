@@ -38,8 +38,8 @@ describe('DynamicFormComponent', () => {
         expect(control.valid).toBe(true);
     });
 
-    it('requires a non-empty array for a required file-upload field', () => {
-        const fixture = createComponent([{ type: 'file-upload', key: 'photo', required: true }]);
+    it('requires a non-empty array for a required attachment field', () => {
+        const fixture = createComponent([{ type: 'attachment', key: 'photo', required: true }]);
         const control = fixture.componentInstance.form()!.get('photo')!;
         expect(control.value).toEqual([]);
         expect(control.valid).toBe(false);
