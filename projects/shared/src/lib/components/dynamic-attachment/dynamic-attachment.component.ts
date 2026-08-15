@@ -1,9 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, effect, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { FormControl, NG_VALIDATORS, NG_VALUE_ACCESSOR, ReactiveFormsModule, TouchedChangeEvent, ValidationErrors, Validator } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BaseValueAccessor } from '../base/base-value-accessor';
 import { FileUploadComponent } from '../file-upload/file-upload.component';
 import { ProfilePhotoUploadComponent } from '../profile-photo-upload/profile-photo-upload.component';
+import { AttachmentApiConfig } from '../../attachment-config/attachment-api-config.model';
+import { AttachmentConfigService } from '../../attachment-config/attachment-config.service';
 import { AttachmentMode, AttachmentPreviewConfig } from './dynamic-attachment.model';
 
 /**
@@ -21,6 +23,14 @@ import { AttachmentMode, AttachmentPreviewConfig } from './dynamic-attachment.mo
  * working. This facade bridges to them via an internal `FormControl` bound
  * with `[formControl]`, syncing its own `value`/`disabled` state onto it and
  * relaying `TouchedChangeEvent`s back up through `markTouched()`.
+ *
+ * Configuration-specific abstraction, same as `SmartDropdownComponent`'s
+ * `dropdownConfig`: pass `attachmentApiConfig` + `attachmentId` (a raw saved
+ * id) instead of hand-fetching the existing preview yourself — this
+ * component resolves it once, internally, via `AttachmentConfigService`, the
+ * declarative equivalent of a host page calling
+ * `AttachmentConfigService.resolvePreview()` before the form mounts. An
+ * explicit `attachmentConfig` input always wins over the resolved preview.
  */
 @Component({
     selector: 'app-dynamic-attachment',
@@ -35,6 +45,8 @@ import { AttachmentMode, AttachmentPreviewConfig } from './dynamic-attachment.mo
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DynamicAttachmentComponent extends BaseValueAccessor<File[]> implements Validator {
+    private readonly attachmentConfigService = inject(AttachmentConfigService);
+
     readonly mode = input<AttachmentMode>('file-upload');
     /** `null` defers to a mode-specific default — see `resolvedLabel`. */
     readonly label = input<string | null>(null);
@@ -50,16 +62,33 @@ export class DynamicAttachmentComponent extends BaseValueAccessor<File[]> implem
     readonly uploadUrl = input<string | null>(null);
     /** 'file-upload' mode only. */
     readonly showPreview = input(true);
+    /** Explicit preview — always wins over a resolved `attachmentApiConfig` fetch. */
     readonly attachmentConfig = input<AttachmentPreviewConfig | null>(null);
+    /** Declarative source for the existing-preview fetch — see the class doc. */
+    readonly attachmentApiConfig = input<AttachmentApiConfig | null>(null);
+    /** Raw saved id to resolve into a preview via `attachmentApiConfig` — see the class doc. */
+    readonly attachmentId = input<unknown>(null);
     readonly required = input(false);
 
     /** 'file-upload' mode only — pass-through from the underlying FileUploadComponent. */
     readonly filesSelected = output<File[]>();
     readonly uploadComplete = output<{ file: File; index: number }>();
+    /** Fires once `attachmentApiConfig` finishes resolving a preview. */
+    readonly previewResolved = output<AttachmentPreviewConfig>();
 
     protected readonly resolvedLabel = computed(() => this.label() ?? (this.mode() === 'profile-photo' ? 'Profile Photo' : 'Upload Files'));
     protected readonly resolvedAccept = computed(() => this.accept() ?? (this.mode() === 'profile-photo' ? 'image/*' : '*/*'));
     protected readonly resolvedMaxSizeMB = computed(() => this.maxSizeMB() ?? (this.mode() === 'profile-photo' ? 5 : 10));
+
+    private readonly fetchedPreview = signal<AttachmentPreviewConfig | null>(null);
+    protected readonly resolvedAttachmentConfig = computed(() => this.attachmentConfig() ?? this.fetchedPreview());
+
+    /** Guards `attachmentApiConfig` resolution to at most once per instance —
+     * `attachmentApiConfig`/`attachmentId` are commonly fresh object
+     * references on every parent recompute (see SmartDropdownComponent's
+     * `initialValueResolved` for the same rationale), so gating on "already
+     * attempted" avoids re-fetching. */
+    private readonly previewFetchAttempted = signal(false);
 
     /** Bridges this facade's CVA value/disabled state onto the concrete
      * control via `[formControl]`, since the concrete components are
@@ -90,6 +119,21 @@ export class DynamicAttachmentComponent extends BaseValueAccessor<File[]> implem
             if (event instanceof TouchedChangeEvent && event.touched) {
                 this.markTouched();
             }
+        });
+
+        effect(() => {
+            const config = this.attachmentApiConfig();
+            const id = this.attachmentId();
+            if (!config || id === null || id === undefined || id === '' || this.previewFetchAttempted()) {
+                return;
+            }
+            this.previewFetchAttempted.set(true);
+            this.attachmentConfigService.resolvePreview(config, id).subscribe((preview) => {
+                if (preview) {
+                    this.fetchedPreview.set(preview);
+                    this.previewResolved.emit(preview);
+                }
+            });
         });
     }
 

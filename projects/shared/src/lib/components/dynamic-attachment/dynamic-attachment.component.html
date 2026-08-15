@@ -5,8 +5,8 @@
       [label]="resolvedLabel()"
       [accept]="resolvedAccept()"
       [maxSizeMB]="resolvedMaxSizeMB()"
-      [existingPreviewUrl]="attachmentConfig()?.url ?? ''"
-      [existingPreviewTitle]="attachmentConfig()?.title ?? 'Current Photo'"
+      [existingPreviewUrl]="resolvedAttachmentConfig()?.url ?? ''"
+      [existingPreviewTitle]="resolvedAttachmentConfig()?.title ?? 'Current Photo'"
     />
   }
   @default {
@@ -19,8 +19,8 @@
       [maxSizeMB]="resolvedMaxSizeMB()"
       [uploadUrl]="uploadUrl()"
       [showPreview]="showPreview()"
-      [existingPreviewUrl]="attachmentConfig()?.url ?? ''"
-      [existingPreviewTitle]="attachmentConfig()?.title ?? 'Current Photo'"
+      [existingPreviewUrl]="resolvedAttachmentConfig()?.url ?? ''"
+      [existingPreviewTitle]="resolvedAttachmentConfig()?.title ?? 'Current Photo'"
       (filesSelected)="filesSelected.emit($event)"
       (uploadComplete)="uploadComplete.emit($event)"
     />

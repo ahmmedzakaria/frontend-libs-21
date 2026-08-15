@@ -4,6 +4,7 @@ import { RadioOption } from '../radio-group/radio-group.component';
 import { SmartDropdownLoader, SmartDropdownMode } from '../smart-dropdown/smart-dropdown.model';
 import { AttachmentMode, AttachmentPreviewConfig } from '../dynamic-attachment/dynamic-attachment.model';
 import { DropdownApiConfig } from '../../dropdown-config/dropdown-api-config.model';
+import { AttachmentApiConfig } from '../../attachment-config/attachment-api-config.model';
 
 // `CardOption`/`DropdownOption`/`RadioOption`/`SmartDropdownMode`/`SmartDropdownLoader`/
 // `AttachmentMode`/`AttachmentPreviewConfig` are not re-exported here — they're already
@@ -131,7 +132,14 @@ export interface AttachmentFieldConfig extends BaseFieldConfig {
     uploadUrl?: string | null;
     /** 'file-upload' mode only. */
     showPreview?: boolean;
+    /** Explicit preview — always wins over a resolved `attachmentApiConfig` fetch. */
     attachmentConfig?: AttachmentPreviewConfig;
+    /** Declarative source for the existing-preview fetch — the attachment
+     * equivalent of `SmartDropdownFieldConfig.dropdownConfig`. */
+    attachmentApiConfig?: AttachmentApiConfig;
+    /** Raw saved id to resolve into a preview via `attachmentApiConfig` — the
+     * attachment equivalent of `SmartDropdownFieldConfig.initValue`. */
+    attachmentId?: unknown;
 }
 
 export interface PasswordFieldConfig extends BaseFieldConfig {
