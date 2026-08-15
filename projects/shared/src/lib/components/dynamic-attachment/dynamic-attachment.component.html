@@ -1,0 +1,28 @@
+@switch (mode()) {
+  @case ('profile-photo') {
+    <app-profile-photo-upload
+      [formControl]="innerControl"
+      [label]="resolvedLabel()"
+      [accept]="resolvedAccept()"
+      [maxSizeMB]="resolvedMaxSizeMB()"
+      [existingPreviewUrl]="attachmentConfig()?.url ?? ''"
+      [existingPreviewTitle]="attachmentConfig()?.title ?? 'Current Photo'"
+    />
+  }
+  @default {
+    <app-file-upload
+      [formControl]="innerControl"
+      [label]="resolvedLabel()"
+      [hint]="hint()"
+      [accept]="resolvedAccept()"
+      [multiple]="multiple()"
+      [maxSizeMB]="resolvedMaxSizeMB()"
+      [uploadUrl]="uploadUrl()"
+      [showPreview]="showPreview()"
+      [existingPreviewUrl]="attachmentConfig()?.url ?? ''"
+      [existingPreviewTitle]="attachmentConfig()?.title ?? 'Current Photo'"
+      (filesSelected)="filesSelected.emit($event)"
+      (uploadComplete)="uploadComplete.emit($event)"
+    />
+  }
+}

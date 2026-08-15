@@ -1,0 +1,6 @@
+// DynamicAttachmentComponent renders no chrome of its own — it's a pure
+// facade that delegates to app-file-upload or app-profile-photo-upload per
+// `mode()`; see those components' stylesheets for the actual visual styling.
+:host {
+  display: block;
+}

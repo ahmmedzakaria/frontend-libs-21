@@ -2,12 +2,14 @@ import { CardOption } from '../card-selector/card-selector.component';
 import { DropdownOption } from '../dropdown/dropdown.component';
 import { RadioOption } from '../radio-group/radio-group.component';
 import { SmartDropdownLoader, SmartDropdownMode } from '../smart-dropdown/smart-dropdown.model';
+import { AttachmentMode, AttachmentPreviewConfig } from '../dynamic-attachment/dynamic-attachment.model';
 import { DropdownApiConfig } from '../../dropdown-config/dropdown-api-config.model';
 
-// `CardOption`/`DropdownOption`/`RadioOption`/`SmartDropdownMode`/`SmartDropdownLoader`
-// are not re-exported here — they're already public via their own component files
-// (also exported from this package's public-api.ts), and re-exporting them again
-// from this module would create an ambiguous duplicate export in the barrel.
+// `CardOption`/`DropdownOption`/`RadioOption`/`SmartDropdownMode`/`SmartDropdownLoader`/
+// `AttachmentMode`/`AttachmentPreviewConfig` are not re-exported here — they're already
+// public via their own component files (also exported from this package's public-api.ts),
+// and re-exporting them again from this module would create an ambiguous duplicate export
+// in the barrel.
 
 export type TextFieldType = 'text' | 'email' | 'tel' | 'number';
 
@@ -111,20 +113,24 @@ export interface CardSelectorFieldConfig extends BaseFieldConfig {
     columns?: number;
 }
 
-/** Shown when a file-upload/profile-photo control has no freshly-picked file
- * yet — e.g. an already-uploaded photo in an edit form. Separate from the
- * field's own File[] value; see FileUploadComponent/ProfilePhotoUploadComponent. */
-export interface AttachmentPreviewConfig {
-    url?: string;
-    title?: string;
-}
-
-export interface FileUploadFieldConfig extends BaseFieldConfig {
-    type: 'file-upload';
-    accept?: string;
-    multiple?: boolean;
-    maxSizeMB?: number;
+/** Either 'file-upload' (rectangular drag/drop, multi-file, upload-progress)
+ * or 'profile-photo' (circular single-photo picker) — see
+ * `DynamicAttachmentComponent`, the abstraction layer over both, resolved
+ * the same way `SmartDropdownFieldConfig`/`SmartDropdownComponent` resolve
+ * their three dropdown modes. Value is always `File[]`. */
+export interface AttachmentFieldConfig extends BaseFieldConfig {
+    type: 'attachment';
+    mode?: AttachmentMode;
+    /** 'file-upload' mode only. */
     hint?: string;
+    /** 'file-upload' mode only — multi-select drag/drop. */
+    multiple?: boolean;
+    accept?: string;
+    maxSizeMB?: number;
+    /** 'file-upload' mode only — API endpoint enabling an "Upload All" button with per-file progress. */
+    uploadUrl?: string | null;
+    /** 'file-upload' mode only. */
+    showPreview?: boolean;
     attachmentConfig?: AttachmentPreviewConfig;
 }
 
@@ -132,15 +138,6 @@ export interface PasswordFieldConfig extends BaseFieldConfig {
     type: 'password';
     confirmLabel?: string;
     showStrength?: boolean;
-}
-
-/** Circular single-photo picker (profile photo) — see ProfilePhotoUploadComponent.
- * Same File[] value shape as `file-upload`, distinct presentation only. */
-export interface ProfilePhotoFieldConfig extends BaseFieldConfig {
-    type: 'profile-photo';
-    accept?: string;
-    maxSizeMB?: number;
-    attachmentConfig?: AttachmentPreviewConfig;
 }
 
 export type FieldConfig =
@@ -153,6 +150,5 @@ export type FieldConfig =
     | DateFieldConfig
     | DateRangeFieldConfig
     | CardSelectorFieldConfig
-    | FileUploadFieldConfig
-    | ProfilePhotoFieldConfig
+    | AttachmentFieldConfig
     | PasswordFieldConfig;
