@@ -16,7 +16,6 @@ export * from './lib/components/dropdown/dropdown.component';
 export * from './lib/dropdown-config/dropdown-api-config.model';
 export * from './lib/dropdown-config/dropdown-config.service';
 export * from './lib/attachment-config/attachment-api-config.model';
-export * from './lib/attachment-config/attachment-config.service';
 export * from './lib/components/dynamic-attachment/dynamic-attachment.model';
 export * from './lib/components/dynamic-attachment/dynamic-attachment.component';
 export * from './lib/components/dynamic-form/dynamic-form.component';

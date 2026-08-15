@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { FormControl, NG_VALIDATORS, NG_VALUE_ACCESSOR, ReactiveFormsModule, TouchedChangeEvent, ValidationErrors, Validator } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Observable, catchError, map, of } from 'rxjs';
+import { ApiService } from '@nexacore/platform';
 import { BaseValueAccessor } from '../base/base-value-accessor';
 import { FileUploadComponent } from '../file-upload/file-upload.component';
 import { ProfilePhotoUploadComponent } from '../profile-photo-upload/profile-photo-upload.component';
 import { AttachmentApiConfig } from '../../attachment-config/attachment-api-config.model';
-import { AttachmentConfigService } from '../../attachment-config/attachment-config.service';
 import { AttachmentMode, AttachmentPreviewConfig } from './dynamic-attachment.model';
 
 /**
@@ -25,12 +26,12 @@ import { AttachmentMode, AttachmentPreviewConfig } from './dynamic-attachment.mo
  * relaying `TouchedChangeEvent`s back up through `markTouched()`.
  *
  * Configuration-specific abstraction, same as `SmartDropdownComponent`'s
- * `dropdownConfig`: pass `attachmentApiConfig` + `attachmentId` (a raw saved
- * id) instead of hand-fetching the existing preview yourself — this
- * component resolves it once, internally, via `AttachmentConfigService`, the
- * declarative equivalent of a host page calling
- * `AttachmentConfigService.resolvePreview()` before the form mounts. An
- * explicit `attachmentConfig` input always wins over the resolved preview.
+ * `dropdownConfig`: pass `attachmentApiConfig` + `initValue` (a raw saved id)
+ * instead of hand-fetching the existing preview yourself — this component
+ * resolves it itself (`resolvePreview()` below, calling `ApiService`
+ * directly), the declarative equivalent of a host page hand-fetching the
+ * preview before the form mounts. An explicit `attachmentConfig` input
+ * always wins over the resolved preview.
  */
 @Component({
     selector: 'app-dynamic-attachment',
@@ -45,7 +46,7 @@ import { AttachmentMode, AttachmentPreviewConfig } from './dynamic-attachment.mo
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DynamicAttachmentComponent extends BaseValueAccessor<File[]> implements Validator {
-    private readonly attachmentConfigService = inject(AttachmentConfigService);
+    private readonly api = inject(ApiService);
 
     readonly mode = input<AttachmentMode>('file-upload');
     /** `null` defers to a mode-specific default — see `resolvedLabel`. */
@@ -66,8 +67,9 @@ export class DynamicAttachmentComponent extends BaseValueAccessor<File[]> implem
     readonly attachmentConfig = input<AttachmentPreviewConfig | null>(null);
     /** Declarative source for the existing-preview fetch — see the class doc. */
     readonly attachmentApiConfig = input<AttachmentApiConfig | null>(null);
-    /** Raw saved id to resolve into a preview via `attachmentApiConfig` — see the class doc. */
-    readonly attachmentId = input<unknown>(null);
+    /** Raw saved id to resolve into a preview via `attachmentApiConfig` — see
+     * the class doc. Named to match `SmartDropdownComponent.initValue`. */
+    readonly initValue = input<unknown>(null);
     readonly required = input(false);
 
     /** 'file-upload' mode only — pass-through from the underlying FileUploadComponent. */
@@ -123,12 +125,12 @@ export class DynamicAttachmentComponent extends BaseValueAccessor<File[]> implem
 
         effect(() => {
             const config = this.attachmentApiConfig();
-            const id = this.attachmentId();
+            const id = this.initValue();
             if (!config || id === null || id === undefined || id === '' || this.previewFetchAttempted()) {
                 return;
             }
             this.previewFetchAttempted.set(true);
-            this.attachmentConfigService.resolvePreview(config, id).subscribe((preview) => {
+            this.resolvePreview(config, id).subscribe((preview) => {
                 if (preview) {
                     this.fetchedPreview.set(preview);
                     this.previewResolved.emit(preview);
@@ -139,5 +141,24 @@ export class DynamicAttachmentComponent extends BaseValueAccessor<File[]> implem
 
     validate(): ValidationErrors | null {
         return this.required() && !this.value()?.length ? { required: true } : null;
+    }
+
+    /**
+     * Edit-mode support: given a saved raw id (e.g. an owner/record id),
+     * calls the config's endpoint and resolves the response into the preview
+     * this component needs to render the "already uploaded" state. Lives
+     * here (not a shared service) since this component is the sole consumer
+     * — mirrors `SmartDropdownComponent.buildLoader()`. Emits `null` when
+     * `id` is empty or the fetch fails (nothing to preview — the field just
+     * starts empty).
+     */
+    private resolvePreview(config: AttachmentApiConfig, id: unknown): Observable<AttachmentPreviewConfig | null> {
+        if (id === null || id === undefined || id === '') {
+            return of(null);
+        }
+        return this.api.fetchImageUrl(config.apiConfig, config.requestBody(id)).pipe(
+            map((url): AttachmentPreviewConfig => ({ url, title: config.title })),
+            catchError(() => of(null))
+        );
     }
 }

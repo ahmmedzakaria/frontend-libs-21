@@ -137,9 +137,9 @@ export interface AttachmentFieldConfig extends BaseFieldConfig {
     /** Declarative source for the existing-preview fetch — the attachment
      * equivalent of `SmartDropdownFieldConfig.dropdownConfig`. */
     attachmentApiConfig?: AttachmentApiConfig;
-    /** Raw saved id to resolve into a preview via `attachmentApiConfig` — the
-     * attachment equivalent of `SmartDropdownFieldConfig.initValue`. */
-    attachmentId?: unknown;
+    /** Raw saved id to resolve into a preview via `attachmentApiConfig` — same
+     * role as `SmartDropdownFieldConfig.initValue`. */
+    initValue?: unknown;
 }
 
 export interface PasswordFieldConfig extends BaseFieldConfig {
