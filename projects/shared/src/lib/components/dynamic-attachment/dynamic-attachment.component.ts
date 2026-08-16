@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, computed, effect, inject, input, output, signal } from '@angular/core';
 import { FormControl, NG_VALIDATORS, NG_VALUE_ACCESSOR, ReactiveFormsModule, TouchedChangeEvent, ValidationErrors, Validator } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Observable, catchError, map, of } from 'rxjs';
@@ -32,6 +32,15 @@ import { AttachmentMode, AttachmentPreviewConfig } from './dynamic-attachment.mo
  * directly), the declarative equivalent of a host page hand-fetching the
  * preview before the form mounts. An explicit `attachmentConfig` input
  * always wins over the resolved preview.
+ *
+ * Owns both preview object URLs' full lifecycle (create + revoke) *and* the
+ * precedence between them — a freshly-staged (not yet uploaded) pick always
+ * wins over an already-uploaded one — and mirrors the single resulting value
+ * out via `previewUrlChange`. A host page that needs the same image
+ * elsewhere (e.g. a read-only review/summary section) should bind that
+ * output instead of re-deriving the precedence or re-fetching the image
+ * itself, and must never revoke a URL it received this way (this component
+ * still owns it).
  */
 @Component({
     selector: 'app-dynamic-attachment',
@@ -45,7 +54,7 @@ import { AttachmentMode, AttachmentPreviewConfig } from './dynamic-attachment.mo
     styleUrl: './dynamic-attachment.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DynamicAttachmentComponent extends BaseValueAccessor<File[]> implements Validator {
+export class DynamicAttachmentComponent extends BaseValueAccessor<File[]> implements Validator, OnDestroy {
     private readonly api = inject(ApiService);
 
     readonly mode = input<AttachmentMode>('file-upload');
@@ -75,8 +84,12 @@ export class DynamicAttachmentComponent extends BaseValueAccessor<File[]> implem
     /** 'file-upload' mode only — pass-through from the underlying FileUploadComponent. */
     readonly filesSelected = output<File[]>();
     readonly uploadComplete = output<{ file: File; index: number }>();
-    /** Fires once `attachmentApiConfig` finishes resolving a preview. */
-    readonly previewResolved = output<AttachmentPreviewConfig>();
+    /** The single "what should currently be shown as the preview" URL,
+     * whenever it changes — a freshly-staged pick if there is one, else the
+     * "already uploaded" preview (explicit `attachmentConfig` or a resolved
+     * `attachmentApiConfig` fetch), else `null`. This component owns the
+     * URL's lifecycle; see the class doc. */
+    readonly previewUrlChange = output<string | null>();
 
     protected readonly resolvedLabel = computed(() => this.label() ?? (this.mode() === 'profile-photo' ? 'Profile Photo' : 'Upload Files'));
     protected readonly resolvedAccept = computed(() => this.accept() ?? (this.mode() === 'profile-photo' ? 'image/*' : '*/*'));
@@ -84,6 +97,13 @@ export class DynamicAttachmentComponent extends BaseValueAccessor<File[]> implem
 
     private readonly fetchedPreview = signal<AttachmentPreviewConfig | null>(null);
     protected readonly resolvedAttachmentConfig = computed(() => this.attachmentConfig() ?? this.fetchedPreview());
+
+    /** The freshly-picked file's local object URL — created/revoked here as
+     * `value()` changes. */
+    private readonly stagedPreviewUrl = signal<string | null>(null);
+    /** A staged pick always wins over the "already uploaded" preview — the
+     * combined value mirrored out via `previewUrlChange`. */
+    protected readonly currentPreviewUrl = computed(() => this.stagedPreviewUrl() ?? this.resolvedAttachmentConfig()?.url ?? null);
 
     /** Guards `attachmentApiConfig` resolution to at most once per instance —
      * `attachmentApiConfig`/`attachmentId` are commonly fresh object
@@ -133,14 +153,42 @@ export class DynamicAttachmentComponent extends BaseValueAccessor<File[]> implem
             this.resolvePreview(config, id).subscribe((preview) => {
                 if (preview) {
                     this.fetchedPreview.set(preview);
-                    this.previewResolved.emit(preview);
                 }
             });
+        });
+
+        // Tracks a freshly-picked (not yet uploaded) file's local object URL —
+        // created/revoked here as `value()` changes.
+        effect(() => {
+            const file = this.value()?.[0] ?? null;
+            const previous = this.stagedPreviewUrl();
+            if (previous) {
+                URL.revokeObjectURL(previous);
+            }
+            this.stagedPreviewUrl.set(file ? URL.createObjectURL(file) : null);
+        });
+
+        // Mirrors the combined preview URL out to the host (see the class doc)
+        // whenever it changes — a staged pick, the resolved "already uploaded"
+        // preview, or null.
+        effect(() => {
+            this.previewUrlChange.emit(this.currentPreviewUrl());
         });
     }
 
     validate(): ValidationErrors | null {
         return this.required() && !this.value()?.length ? { required: true } : null;
+    }
+
+    ngOnDestroy(): void {
+        const staged = this.stagedPreviewUrl();
+        if (staged) {
+            URL.revokeObjectURL(staged);
+        }
+        const fetched = this.fetchedPreview()?.url;
+        if (fetched) {
+            URL.revokeObjectURL(fetched);
+        }
     }
 
     /**

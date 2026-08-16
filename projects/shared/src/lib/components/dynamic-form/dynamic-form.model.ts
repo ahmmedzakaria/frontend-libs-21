@@ -140,6 +140,14 @@ export interface AttachmentFieldConfig extends BaseFieldConfig {
     /** Raw saved id to resolve into a preview via `attachmentApiConfig` — same
      * role as `SmartDropdownFieldConfig.initValue`. */
     initValue?: unknown;
+    /** Called whenever the current preview URL changes — a freshly-staged
+     * (not yet uploaded) pick always wins over an already-uploaded one,
+     * `DynamicAttachmentComponent` resolves that precedence itself. Lets the
+     * host mirror the result elsewhere (e.g. a read-only review/summary
+     * section) without re-deriving the precedence or re-fetching anything.
+     * `DynamicAttachmentComponent` still owns the URL's lifecycle — never
+     * revoke it from here. */
+    previewUrl?: (url: string | null) => void;
 }
 
 export interface PasswordFieldConfig extends BaseFieldConfig {

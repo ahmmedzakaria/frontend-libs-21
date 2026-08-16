@@ -102,6 +102,7 @@
                 [attachmentApiConfig]="field.attachmentApiConfig ?? null"
                 [initValue]="field.initValue ?? null"
                 [required]="!!field.required"
+                (previewUrlChange)="field.previewUrl?.($event)"
               />
             }
             @case ('password') {
