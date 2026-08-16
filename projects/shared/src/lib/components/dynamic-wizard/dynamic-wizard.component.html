@@ -9,7 +9,7 @@
     <app-wizard-step [label]="step.label" [disabled]="!!step.disabled" [form]="stepForms()[i]">
       @if (isReviewStep(step)) {
         <app-dynamic-preview
-          [sections]="step.reviewSections"
+          [sections]="step.reviewSections ?? []"
           [data]="mergedValuesUpTo(i)"
           [heading]="step.reviewHeading ?? ''"
           [subheading]="step.reviewSubheading ?? ''"

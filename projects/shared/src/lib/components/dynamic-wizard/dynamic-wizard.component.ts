@@ -2,9 +2,10 @@ import { ChangeDetectionStrategy, Component, computed, effect, input, output, si
 import { FormGroup } from '@angular/forms';
 import { DynamicFormComponent } from '../dynamic-form/dynamic-form.component';
 import { DynamicPreviewComponent } from '../dynamic-preview/dynamic-preview.component';
+import { PreviewFieldConfig, PreviewSectionConfig } from '../dynamic-preview/dynamic-preview.model';
 import { WizardComponent } from '../wizard/wizard.component';
 import { WizardStepComponent } from '../wizard/wizard-step.component';
-import { DynamicWizardReviewStepConfig, DynamicWizardStepConfig } from './dynamic-wizard.model';
+import { DynamicWizardFieldStepConfig, DynamicWizardReviewStepConfig, DynamicWizardStepConfig } from './dynamic-wizard.model';
 
 /**
  * Config-driven multi-step form: composes the existing `DynamicFormComponent`
@@ -47,14 +48,23 @@ export class DynamicWizardComponent {
     readonly stepForms = signal<(FormGroup | null)[]>([]);
 
     /** `steps()` with each field step's `initialValue` defaulted from
-     * `initialRecord` when the step doesn't declare its own — see
-     * `initialRecord`'s doc. */
+     * `initialRecord` when the step doesn't declare its own (see
+     * `initialRecord`'s doc), and each review step's `reviewSections`
+     * auto-generated from the preceding field steps when the step doesn't
+     * declare its own (see `DynamicWizardReviewStepConfig.reviewSections`
+     * and `buildAutoReviewSections`). */
     protected readonly resolvedSteps = computed<DynamicWizardStepConfig[]>(() => {
         const record = this.initialRecord();
-        if (!record) {
-            return this.steps();
-        }
-        return this.steps().map((step) => ('fields' in step && step.initialValue === undefined ? { ...step, initialValue: record } : step));
+        const withInitialValue = record
+            ? this.steps().map((step) => ('fields' in step && step.initialValue === undefined ? { ...step, initialValue: record } : step))
+            : this.steps();
+        return withInitialValue.map((step, index) => {
+            if (!this.isReviewStep(step) || step.reviewSections) {
+                return step;
+            }
+            const precedingFieldSteps = withInitialValue.slice(0, index).filter((s): s is DynamicWizardFieldStepConfig => 'fields' in s);
+            return { ...step, reviewSections: this.buildAutoReviewSections(precedingFieldSteps) };
+        });
     });
 
     constructor() {
@@ -63,9 +73,27 @@ export class DynamicWizardComponent {
         });
     }
 
-    /** Type guard so the template can narrow before reading `reviewSections` — mirrors DynamicFormComponent.isTextField. */
+    /** Type guard so the template can narrow before reading `reviewSections` —
+     * a review step is identified by the *absence* of `fields` (required on
+     * every field step) rather than the presence of `reviewSections`, since
+     * the latter is now optional (auto-generated when omitted). */
     protected isReviewStep(step: DynamicWizardStepConfig): step is DynamicWizardReviewStepConfig {
-        return 'reviewSections' in step;
+        return !('fields' in step);
+    }
+
+    /** One `PreviewSectionConfig` per field step, titled from the step's
+     * `label` — each field becomes a `text` preview field (`key`/`label`) in
+     * declaration order, unless it sets `hideInReview` (dropped) or
+     * `reviewField` (used verbatim instead). */
+    private buildAutoReviewSections(fieldSteps: DynamicWizardFieldStepConfig[]): PreviewSectionConfig<Record<string, unknown>>[] {
+        return fieldSteps.map((step) => ({
+            key: step.key,
+            title: step.label,
+            columns: step.columns,
+            fields: step.fields
+                .filter((field) => !field.hideInReview)
+                .map((field): PreviewFieldConfig<Record<string, unknown>> => field.reviewField ?? { key: field.key, label: field.label ?? field.key })
+        }));
     }
 
     /** Merges every step's live values up to (not including) `index` — feeds a

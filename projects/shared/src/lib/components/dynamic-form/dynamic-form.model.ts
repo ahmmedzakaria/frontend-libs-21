@@ -3,6 +3,7 @@ import { DropdownOption } from '../dropdown/dropdown.component';
 import { RadioOption } from '../radio-group/radio-group.component';
 import { SmartDropdownLoader, SmartDropdownMode } from '../smart-dropdown/smart-dropdown.model';
 import { AttachmentMode, AttachmentPreviewConfig } from '../dynamic-attachment/dynamic-attachment.model';
+import { PreviewFieldConfig } from '../dynamic-preview/dynamic-preview.model';
 import { DropdownApiConfig } from '../../dropdown-config/dropdown-api-config.model';
 import { AttachmentApiConfig } from '../../attachment-config/attachment-api-config.model';
 
@@ -31,6 +32,17 @@ interface BaseFieldConfig {
     publishEvent?: string;
     /** Reacts to another field's `publishEvent` of the same name — see `FieldEventSubscribeConfig`. */
     subscribeEvent?: FieldEventSubscribeConfig;
+    /** Excludes this field from an auto-generated Review section — see
+     * `DynamicWizardReviewStepConfig.reviewSections`. For a field a review
+     * step re-derives differently (e.g. combined with another field into one
+     * summary row) or that has no sensible generic preview (e.g. a raw
+     * `File[]` attachment value). */
+    hideInReview?: boolean;
+    /** Overrides how this field renders in an auto-generated Review section —
+     * full control over the resulting preview field (e.g. render an
+     * `attachment` field's key as an `image` type instead of the default
+     * `text`). Ignored when `hideInReview` is set. */
+    reviewField?: PreviewFieldConfig<Record<string, unknown>>;
 }
 
 /** Pairs with `BaseFieldConfig.publishEvent` on another field in the same form. */

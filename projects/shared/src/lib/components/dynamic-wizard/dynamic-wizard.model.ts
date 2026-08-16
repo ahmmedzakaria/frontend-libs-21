@@ -23,7 +23,12 @@ export interface DynamicWizardFieldStepConfig extends BaseDynamicWizardStepConfi
  * existing DynamicPreviewComponent against the values merged from every prior step.
  */
 export interface DynamicWizardReviewStepConfig extends BaseDynamicWizardStepConfig {
-    reviewSections: PreviewSectionConfig<Record<string, unknown>>[];
+    /** Supply for full manual control. Omit to auto-generate one section per
+     * preceding field step — see `DynamicWizardComponent.resolvedSteps` — with
+     * one `text` preview field per field, in declaration order; a field opts
+     * out via `FieldConfig.hideInReview` or supplies its own rendering via
+     * `FieldConfig.reviewField`. */
+    reviewSections?: PreviewSectionConfig<Record<string, unknown>>[];
     reviewHeading?: string;
     reviewSubheading?: string;
 }
