@@ -43,6 +43,13 @@ interface BaseFieldConfig {
      * `attachment` field's key as an `image` type instead of the default
      * `text`). Ignored when `hideInReview` is set. */
     reviewField?: PreviewFieldConfig<Record<string, unknown>>;
+    /** Excludes this field's key from `DynamicWizardComponent.submitFieldKeys`
+     * / `submitFieldKeysFrom` — the declarative default-forwarding allowlist a
+     * host builds e.g. a multipart `FormData` request from. For a field the
+     * host handles separately, not as a plain value (a raw `File[]`, a nested
+     * object expanded into other request fields) or that's UI-only and never
+     * sent to the backend at all. */
+    excludeFromSubmit?: boolean;
 }
 
 /** Pairs with `BaseFieldConfig.publishEvent` on another field in the same form. */

@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, expect, it } from 'vitest';
-import { DynamicWizardComponent } from './dynamic-wizard.component';
+import { DynamicWizardComponent, submitFieldKeysFrom } from './dynamic-wizard.component';
 import { DynamicWizardStepConfig } from './dynamic-wizard.model';
 
 const steps: DynamicWizardStepConfig[] = [
@@ -65,5 +65,24 @@ describe('DynamicWizardComponent', () => {
         clickButtonByLabel(fixture, 'Save');
 
         expect(emitted).toEqual([{ firstName: 'Amina', lastName: 'Doe' }]);
+    });
+
+    it('submitFieldKeysFrom collects every field-step key except ones marked excludeFromSubmit', () => {
+        const withExclusion: DynamicWizardStepConfig[] = [
+            {
+                key: 'basic', label: 'Basic',
+                fields: [
+                    { type: 'text', key: 'firstName' },
+                    { type: 'attachment', key: 'photo', excludeFromSubmit: true }
+                ]
+            },
+            { key: 'review', label: 'Review' }
+        ];
+        expect(submitFieldKeysFrom(withExclusion)).toEqual(['firstName']);
+    });
+
+    it('exposes the same computation reactively as submitFieldKeys()', () => {
+        const fixture = createComponent(steps);
+        expect(fixture.componentInstance.submitFieldKeys()).toEqual(['firstName', 'lastName']);
     });
 });

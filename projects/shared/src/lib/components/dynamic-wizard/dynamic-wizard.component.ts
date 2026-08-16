@@ -7,6 +7,18 @@ import { WizardComponent } from '../wizard/wizard.component';
 import { WizardStepComponent } from '../wizard/wizard-step.component';
 import { DynamicWizardFieldStepConfig, DynamicWizardReviewStepConfig, DynamicWizardStepConfig } from './dynamic-wizard.model';
 
+/** Every field-step key across `steps`, minus any field marked
+ * `excludeFromSubmit` — a declarative default-forwarding allowlist for a host
+ * building e.g. a multipart `FormData` request from the wizard's merged
+ * `submitted` value, so a field can only be included by actually existing on
+ * the form (no risk of a stale or hand-added authorization-sensitive key
+ * lingering in a separately maintained list). Exported standalone (also used
+ * as `DynamicWizardComponent.submitFieldKeys`) so a host can derive it from
+ * its own step config without needing a live component instance. */
+export function submitFieldKeysFrom(steps: DynamicWizardStepConfig[]): string[] {
+    return steps.flatMap((step) => ('fields' in step ? step.fields.filter((field) => !field.excludeFromSubmit).map((field) => field.key) : []));
+}
+
 /**
  * Config-driven multi-step form: composes the existing `DynamicFormComponent`
  * (one instance per step, each building its own `FormGroup`) and the existing
@@ -46,6 +58,10 @@ export class DynamicWizardComponent {
     readonly submitted = output<Record<string, unknown>>();
 
     readonly stepForms = signal<(FormGroup | null)[]>([]);
+
+    /** See `submitFieldKeysFrom` — the same computation, kept in sync with
+     * `steps()` reactively. */
+    readonly submitFieldKeys = computed<string[]>(() => submitFieldKeysFrom(this.steps()));
 
     /** `steps()` with each field step's `initialValue` defaulted from
      * `initialRecord` when the step doesn't declare its own (see
