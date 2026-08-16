@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, expect, it } from 'vitest';
+import { of } from 'rxjs';
 import { DynamicWizardComponent, buildSubmitFormData, submitFieldKeysFrom } from './dynamic-wizard.component';
 import { DynamicWizardStepConfig } from './dynamic-wizard.model';
 
@@ -131,5 +132,45 @@ describe('DynamicWizardComponent', () => {
 
         expect(formData.get('middleName')).toBeNull();
         expect(formData.get('photo')).toBe(file);
+    });
+
+    it('submitConfig: builds FormData and performs the request itself, emitting submitSuccess with the response', () => {
+        const fixture = createComponent(steps);
+        const submittedFormData: FormData[] = [];
+        const succeeded: unknown[] = [];
+        fixture.componentInstance.submitSuccess.subscribe((value) => succeeded.push(value));
+        fixture.componentRef.setInput('submitConfig', {
+            submit: (formData: FormData) => {
+                submittedFormData.push(formData);
+                return of({ id: 'new-record' });
+            }
+        });
+        fixture.detectChanges();
+
+        fixture.componentInstance.stepForms()[0]!.get('firstName')!.setValue('Amina');
+        fixture.detectChanges();
+        clickButtonByLabel(fixture, 'Next');
+        fixture.componentInstance.stepForms()[1]!.get('lastName')!.setValue('Doe');
+        fixture.detectChanges();
+        clickButtonByLabel(fixture, 'Save');
+
+        expect(submittedFormData).toHaveLength(1);
+        expect(submittedFormData[0].get('firstName')).toBe('Amina');
+        expect(submittedFormData[0].get('lastName')).toBe('Doe');
+        expect(succeeded).toEqual([{ id: 'new-record' }]);
+    });
+
+    it('does not call submitConfig.submit when an earlier step is invalid', () => {
+        const fixture = createComponent(steps);
+        let calls = 0;
+        fixture.componentRef.setInput('submitConfig', { submit: () => { calls++; return of(null); } });
+        fixture.detectChanges();
+
+        fixture.componentInstance.stepForms()[1]!.get('lastName')!.setValue('Doe');
+        fixture.componentInstance.stepForms()[0]!.get('firstName')!.setValue('');
+        fixture.detectChanges();
+        clickButtonByLabel(fixture, 'Save');
+
+        expect(calls).toBe(0);
     });
 });

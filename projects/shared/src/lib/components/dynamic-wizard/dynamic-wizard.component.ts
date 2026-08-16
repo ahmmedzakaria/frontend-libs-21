@@ -1,11 +1,17 @@
-import { ChangeDetectionStrategy, Component, computed, effect, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, input, output, signal } from '@angular/core';
 import { FormGroup } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DynamicFormComponent } from '../dynamic-form/dynamic-form.component';
 import { DynamicPreviewComponent } from '../dynamic-preview/dynamic-preview.component';
 import { PreviewFieldConfig, PreviewSectionConfig } from '../dynamic-preview/dynamic-preview.model';
 import { WizardComponent } from '../wizard/wizard.component';
 import { WizardStepComponent } from '../wizard/wizard-step.component';
-import { DynamicWizardFieldStepConfig, DynamicWizardReviewStepConfig, DynamicWizardStepConfig } from './dynamic-wizard.model';
+import {
+    DynamicWizardFieldStepConfig,
+    DynamicWizardReviewStepConfig,
+    DynamicWizardStepConfig,
+    DynamicWizardSubmitConfig
+} from './dynamic-wizard.model';
 
 /** Every field-step key across `steps` that submits under its own name — i.e.
  * minus any field marked `excludeFromSubmit` or carrying its own
@@ -76,6 +82,8 @@ export function buildSubmitFormData(steps: DynamicWizardStepConfig[], formValue:
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DynamicWizardComponent {
+    private readonly destroyRef = inject(DestroyRef);
+
     readonly steps = input.required<DynamicWizardStepConfig[]>();
     /** A flat record (e.g. the record being edited) to seed every field step's
      * `initialValue` from — the declarative equivalent of a host page building
@@ -87,11 +95,19 @@ export class DynamicWizardComponent {
     readonly nextLabel = input('Next');
     readonly backLabel = input('Back');
     readonly finishLabel = input('Save');
+    /** Supply to have this component build the `FormData` (via
+     * `buildSubmitFormData`) and perform the request itself once every field
+     * step is valid — see `DynamicWizardSubmitConfig`'s doc. Omit to keep
+     * doing both yourself from `submitted`. */
+    readonly submitConfig = input<DynamicWizardSubmitConfig | null>(null);
 
     readonly stepIndexChange = output<number>();
     /** The merged, flat value across every fields-driven step — only emitted
      * once every such step is valid. */
     readonly submitted = output<Record<string, unknown>>();
+    /** Emits whatever `submitConfig().submit(...)` resolves to, once it
+     * resolves — only fires when `submitConfig` is set. */
+    readonly submitSuccess = output<unknown>();
 
     readonly stepForms = signal<(FormGroup | null)[]>([]);
 
@@ -178,5 +194,11 @@ export class DynamicWizardComponent {
             {}
         );
         this.submitted.emit(merged);
+
+        const config = this.submitConfig();
+        if (config) {
+            const formData = buildSubmitFormData(this.resolvedSteps(), merged);
+            config.submit(formData).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((response) => this.submitSuccess.emit(response));
+        }
     }
 }
