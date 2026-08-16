@@ -5,7 +5,7 @@
   (stepIndexChange)="stepIndexChange.emit($event)"
   (finished)="onFinished()"
 >
-  @for (step of steps(); track step.key; let i = $index) {
+  @for (step of resolvedSteps(); track step.key; let i = $index) {
     <app-wizard-step [label]="step.label" [disabled]="!!step.disabled" [form]="stepForms()[i]">
       @if (isReviewStep(step)) {
         <app-dynamic-preview

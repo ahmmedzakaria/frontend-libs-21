@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, input, output, signal } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { DynamicFormComponent } from '../dynamic-form/dynamic-form.component';
 import { DynamicPreviewComponent } from '../dynamic-preview/dynamic-preview.component';
@@ -28,6 +28,13 @@ import { DynamicWizardReviewStepConfig, DynamicWizardStepConfig } from './dynami
 })
 export class DynamicWizardComponent {
     readonly steps = input.required<DynamicWizardStepConfig[]>();
+    /** A flat record (e.g. the record being edited) to seed every field step's
+     * `initialValue` from — the declarative equivalent of a host page building
+     * one signal per field step and setting them all itself (see
+     * `resolvedSteps`). A step that already declares its own `initialValue`
+     * keeps it; steps whose fields don't match any of this record's keys
+     * (e.g. a step built from derived/composite fields) are unaffected. */
+    readonly initialRecord = input<Record<string, unknown> | null>(null);
     readonly nextLabel = input('Next');
     readonly backLabel = input('Back');
     readonly finishLabel = input('Save');
@@ -38,6 +45,17 @@ export class DynamicWizardComponent {
     readonly submitted = output<Record<string, unknown>>();
 
     readonly stepForms = signal<(FormGroup | null)[]>([]);
+
+    /** `steps()` with each field step's `initialValue` defaulted from
+     * `initialRecord` when the step doesn't declare its own — see
+     * `initialRecord`'s doc. */
+    protected readonly resolvedSteps = computed<DynamicWizardStepConfig[]>(() => {
+        const record = this.initialRecord();
+        if (!record) {
+            return this.steps();
+        }
+        return this.steps().map((step) => ('fields' in step && step.initialValue === undefined ? { ...step, initialValue: record } : step));
+    });
 
     constructor() {
         effect(() => {
