@@ -141,9 +141,31 @@ export class DynamicFormComponent {
 
             const valueSub = group.valueChanges.subscribe(() => this.valueChange.emit(group.getRawValue()));
             const eventsSub = group.events.subscribe(() => this.formVersion.update((n) => n + 1));
+
+            // Wires each `subscribeEvent` field to the field publishing the same
+            // `publishEvent` name, in the same FormGroup — see `dynamic-form.model.ts`.
+            const eventSubs = fields.flatMap((field) => {
+                const subscribeEvent = field.subscribeEvent;
+                const publisher = subscribeEvent && fields.find((f) => f.publishEvent === subscribeEvent.event);
+                const publisherControl = publisher && group.get(publisher.key);
+                const subscriberControl = group.get(field.key);
+                if (!subscribeEvent || !publisherControl || !subscriberControl) {
+                    return [];
+                }
+                return [
+                    publisherControl.valueChanges.subscribe((payload) => {
+                        const next = subscribeEvent.handler(payload, group.getRawValue());
+                        if (next !== undefined) {
+                            subscriberControl.setValue(next);
+                        }
+                    })
+                ];
+            });
+
             onCleanup(() => {
                 valueSub.unsubscribe();
                 eventsSub.unsubscribe();
+                eventSubs.forEach((sub) => sub.unsubscribe());
             });
         });
     }

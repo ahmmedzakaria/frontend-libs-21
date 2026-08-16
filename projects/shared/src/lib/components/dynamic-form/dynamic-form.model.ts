@@ -23,6 +23,24 @@ interface BaseFieldConfig {
     colSpan?: number;
     /** Conditionally renders the field from the current form value. Hidden controls remain in the value. */
     visibleWhen?: (value: Record<string, unknown>) => boolean;
+    /** Publishes this field's value changes under this event name — pair with
+     * another field's `subscribeEvent` of the same name to react to it. The
+     * declarative equivalent of a host page subscribing to one field's
+     * `valueChanges` and patching another itself (e.g. a "same as current
+     * address" checkbox copying one address field into another). */
+    publishEvent?: string;
+    /** Reacts to another field's `publishEvent` of the same name — see `FieldEventSubscribeConfig`. */
+    subscribeEvent?: FieldEventSubscribeConfig;
+}
+
+/** Pairs with `BaseFieldConfig.publishEvent` on another field in the same form. */
+export interface FieldEventSubscribeConfig {
+    /** Event name to react to — matches another field's `publishEvent`. */
+    event: string;
+    /** Computes this field's next value from the publishing field's new value
+     * and the form's current raw value. Return `undefined` to leave this
+     * field's own value untouched. */
+    handler: (payload: unknown, formValue: Record<string, unknown>) => unknown;
 }
 
 export interface TextFieldConfig extends BaseFieldConfig {
