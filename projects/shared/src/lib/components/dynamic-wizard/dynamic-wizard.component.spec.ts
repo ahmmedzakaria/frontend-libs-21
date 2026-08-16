@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, expect, it } from 'vitest';
-import { DynamicWizardComponent, submitFieldKeysFrom } from './dynamic-wizard.component';
+import { DynamicWizardComponent, buildSubmitFormData, submitFieldKeysFrom } from './dynamic-wizard.component';
 import { DynamicWizardStepConfig } from './dynamic-wizard.model';
 
 const steps: DynamicWizardStepConfig[] = [
@@ -84,5 +84,52 @@ describe('DynamicWizardComponent', () => {
     it('exposes the same computation reactively as submitFieldKeys()', () => {
         const fixture = createComponent(steps);
         expect(fixture.componentInstance.submitFieldKeys()).toEqual(['firstName', 'lastName']);
+    });
+
+    it('buildSubmitFormData expands a submitFields field into its own entries and skips excludeFromSubmit fields', () => {
+        const withOverrides: DynamicWizardStepConfig[] = [
+            {
+                key: 'basic', label: 'Basic',
+                fields: [
+                    { type: 'text', key: 'firstName' },
+                    { type: 'checkbox', key: 'sameAddress', excludeFromSubmit: true },
+                    {
+                        type: 'text', key: 'location',
+                        submitFields: (value) => {
+                            const loc = value as { id: string; type: string } | null;
+                            return { locationId: loc?.id ?? '', locationType: loc?.type ?? '' };
+                        }
+                    }
+                ]
+            }
+        ];
+        const formData = buildSubmitFormData(withOverrides, {
+            firstName: 'Amina',
+            sameAddress: true,
+            location: { id: 'loc-1', type: 'district' }
+        });
+
+        expect(formData.get('firstName')).toBe('Amina');
+        expect(formData.get('sameAddress')).toBeNull();
+        expect(formData.get('location')).toBeNull();
+        expect(formData.get('locationId')).toBe('loc-1');
+        expect(formData.get('locationType')).toBe('district');
+    });
+
+    it('buildSubmitFormData skips null/undefined values and appends a File directly via submitFields', () => {
+        const file = new File(['content'], 'photo.png', { type: 'image/png' });
+        const withFile: DynamicWizardStepConfig[] = [
+            {
+                key: 'basic', label: 'Basic',
+                fields: [
+                    { type: 'text', key: 'middleName' },
+                    { type: 'attachment', key: 'photo', submitFields: (value) => ({ photo: (value as File[])[0] }) }
+                ]
+            }
+        ];
+        const formData = buildSubmitFormData(withFile, { middleName: null, photo: [file] });
+
+        expect(formData.get('middleName')).toBeNull();
+        expect(formData.get('photo')).toBe(file);
     });
 });

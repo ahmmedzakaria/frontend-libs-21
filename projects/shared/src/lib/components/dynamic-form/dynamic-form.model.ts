@@ -44,12 +44,19 @@ interface BaseFieldConfig {
      * `text`). Ignored when `hideInReview` is set. */
     reviewField?: PreviewFieldConfig<Record<string, unknown>>;
     /** Excludes this field's key from `DynamicWizardComponent.submitFieldKeys`
-     * / `submitFieldKeysFrom` — the declarative default-forwarding allowlist a
-     * host builds e.g. a multipart `FormData` request from. For a field the
-     * host handles separately, not as a plain value (a raw `File[]`, a nested
-     * object expanded into other request fields) or that's UI-only and never
-     * sent to the backend at all. */
+     * / `submitFieldKeysFrom` and from `buildSubmitFormData` — for a field
+     * that's UI-only and never sent to the backend at all (e.g. a "same as"
+     * checkbox). Ignored when `submitFields` is set — that already replaces
+     * the field's default submission, no need to also exclude it. */
     excludeFromSubmit?: boolean;
+    /** Overrides how this field's value is written into a `FormData` request
+     * built by `buildSubmitFormData` — return the one or more entries to
+     * append instead of the default (this field's own key, its raw value via
+     * `String(value)`, skipped when null/undefined). For a nested object
+     * that expands into several request fields (e.g. a location object into
+     * `*Id`/`*Type`), or a raw `File`/`File[]` value that needs appending
+     * directly rather than stringified. Implies `excludeFromSubmit`. */
+    submitFields?: (value: unknown, formValue: Record<string, unknown>) => Record<string, string | Blob>;
 }
 
 /** Pairs with `BaseFieldConfig.publishEvent` on another field in the same form. */

@@ -7,16 +7,52 @@ import { WizardComponent } from '../wizard/wizard.component';
 import { WizardStepComponent } from '../wizard/wizard-step.component';
 import { DynamicWizardFieldStepConfig, DynamicWizardReviewStepConfig, DynamicWizardStepConfig } from './dynamic-wizard.model';
 
-/** Every field-step key across `steps`, minus any field marked
- * `excludeFromSubmit` — a declarative default-forwarding allowlist for a host
- * building e.g. a multipart `FormData` request from the wizard's merged
- * `submitted` value, so a field can only be included by actually existing on
- * the form (no risk of a stale or hand-added authorization-sensitive key
- * lingering in a separately maintained list). Exported standalone (also used
- * as `DynamicWizardComponent.submitFieldKeys`) so a host can derive it from
- * its own step config without needing a live component instance. */
+/** Every field-step key across `steps` that submits under its own name — i.e.
+ * minus any field marked `excludeFromSubmit` or carrying its own
+ * `submitFields` override (which replaces default per-key submission with
+ * its own key(s), so the field's own name never appears here). A declarative
+ * default-forwarding allowlist for a host building e.g. a multipart
+ * `FormData` request from the wizard's merged `submitted` value, so a field
+ * can only be included by actually existing on the form (no risk of a stale
+ * or hand-added authorization-sensitive key lingering in a separately
+ * maintained list). Exported standalone (also used as
+ * `DynamicWizardComponent.submitFieldKeys`) so a host can derive it from its
+ * own step config without needing a live component instance. */
 export function submitFieldKeysFrom(steps: DynamicWizardStepConfig[]): string[] {
-    return steps.flatMap((step) => ('fields' in step ? step.fields.filter((field) => !field.excludeFromSubmit).map((field) => field.key) : []));
+    return steps.flatMap((step) =>
+        'fields' in step ? step.fields.filter((field) => !field.excludeFromSubmit && !field.submitFields).map((field) => field.key) : []
+    );
+}
+
+/** Builds a `FormData` request from `steps`' field keys and `formValue` (the
+ * wizard's merged `submitted` value) — the declarative equivalent of a host
+ * hand-writing a `formData.append(...)` call per field. Per field, in order:
+ * skipped entirely if `excludeFromSubmit`; if `submitFields` is set, calls it
+ * with the field's own value and the full `formValue`, appending each
+ * returned entry (a `Blob`/`File` appends directly, everything else is
+ * already a string); otherwise appends the field's own key/value via
+ * `String(value)`, skipped when the value is null/undefined. */
+export function buildSubmitFormData(steps: DynamicWizardStepConfig[], formValue: Record<string, unknown>): FormData {
+    const formData = new FormData();
+    steps.forEach((step) => {
+        if (!('fields' in step)) {
+            return;
+        }
+        step.fields.forEach((field) => {
+            const value = formValue[field.key];
+            if (field.submitFields) {
+                Object.entries(field.submitFields(value, formValue)).forEach(([key, entry]) => formData.append(key, entry));
+                return;
+            }
+            if (field.excludeFromSubmit) {
+                return;
+            }
+            if (value !== null && value !== undefined) {
+                formData.append(field.key, String(value));
+            }
+        });
+    });
+    return formData;
 }
 
 /**
