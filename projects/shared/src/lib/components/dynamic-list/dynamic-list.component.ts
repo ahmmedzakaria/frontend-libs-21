@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, TemplateRef, computed, effect, signal, untracked, viewChildren, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, TemplateRef, computed, effect, signal, untracked, viewChildren, input, output } from '@angular/core';
 import { AuthorizationDenialService, AuthorizedUiDirective, IconComponent } from '@nexacore/platform';
 import { HttpErrorResponse } from '@angular/common/http';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { inject } from '@angular/core';
 import { ColumnDef, DataTableComponent } from '../data-table/data-table.component';
 import { ExportButtonComponent, ExportColumn } from '../export-button/export-button.component';
@@ -67,6 +68,7 @@ function needsGeneratedTemplate<T>(column: ListColumnConfig<T>): column is Templ
 })
 export class DynamicListComponent<T> {
     private readonly denials = inject(AuthorizationDenialService);
+    private readonly destroyRef = inject(DestroyRef);
     readonly columns = input.required<ListColumnConfig<T>[]>();
     readonly loadItems = input.required<DynamicListLoader<T>>();
     readonly pageSize = input(10);
@@ -151,7 +153,7 @@ export class DynamicListComponent<T> {
             page,
             pageSize: this.effectivePageSize()
         };
-        this.loadItems()(params).subscribe({
+        this.loadItems()(params).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (result) => {
                 this.rows.set(result.items);
                 this.total.set(result.total);
