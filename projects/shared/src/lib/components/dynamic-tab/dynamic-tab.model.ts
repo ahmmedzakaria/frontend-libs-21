@@ -2,6 +2,8 @@ import { DropdownOption } from '../dropdown/dropdown.component';
 import { FieldConfig } from '../dynamic-form/dynamic-form.model';
 import { DynamicListLoader, ListColumnConfig } from '../dynamic-list/dynamic-list.model';
 import { PreviewSectionConfig } from '../dynamic-preview/dynamic-preview.model';
+import { ExportColumn } from '../export-button/export-button.component';
+import { SearchTypeOption } from '../search-toolbar/search-toolbar.component';
 
 interface BaseDynamicTabConfig {
     /** Also used as the `track` key. */
@@ -30,9 +32,14 @@ export interface DynamicTabListConfig extends BaseDynamicTabConfig {
     loadItems: DynamicListLoader<unknown>;
     pageSize?: number;
     pageSizeOptions?: number[];
+    /** Search-type dropdown alongside the query box — omit for a plain single query field. */
+    searchTypes?: SearchTypeOption[];
     searchPlaceholder?: string;
     emptyTitle?: string;
     emptyMessage?: string;
+    /** Adds an `app-export-button` (CSV) to the list's toolbar when set. */
+    exportColumns?: ExportColumn<unknown>[] | null;
+    exportFilename?: string;
 }
 
 export interface TabFilterFieldConfig {
@@ -54,9 +61,14 @@ export interface DynamicTabFilteredListConfig extends BaseDynamicTabConfig {
     columns: ListColumnConfig<unknown>[];
     loadItems: DynamicListLoader<unknown>;
     pageSize?: number;
+    /** Search-type dropdown alongside the query box — omit for a plain single query field. */
+    searchTypes?: SearchTypeOption[];
     searchPlaceholder?: string;
     emptyTitle?: string;
     emptyMessage?: string;
+    /** Adds an `app-export-button` (CSV) to the list's toolbar when set. */
+    exportColumns?: ExportColumn<unknown>[] | null;
+    exportFilename?: string;
 }
 
 export type DynamicTabConfig = DynamicTabFieldConfig | DynamicTabPreviewConfig | DynamicTabListConfig | DynamicTabFilteredListConfig;

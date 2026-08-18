@@ -29,9 +29,12 @@
           [loadItems]="tab.loadItems"
           [pageSize]="tab.pageSize ?? 10"
           [pageSizeOptions]="tab.pageSizeOptions ?? [10, 25, 50, 100]"
+          [searchTypes]="tab.searchTypes ?? []"
           [searchPlaceholder]="tab.searchPlaceholder ?? 'Search…'"
           [emptyTitle]="tab.emptyTitle ?? 'No records yet'"
           [emptyMessage]="tab.emptyMessage ?? 'There is nothing to show here.'"
+          [exportColumns]="tab.exportColumns ?? null"
+          [exportFilename]="tab.exportFilename ?? 'export'"
         />
       } @else if (isFilteredListTab(tab)) {
         <div class="dynamic-tab__filter-row">
@@ -55,9 +58,12 @@
             [columns]="tab.columns"
             [loadItems]="tab.loadItems"
             [pageSize]="tab.pageSize ?? 10"
+            [searchTypes]="tab.searchTypes ?? []"
             [searchPlaceholder]="tab.searchPlaceholder ?? 'Search…'"
             [emptyTitle]="tab.emptyTitle ?? 'No records yet'"
             [emptyMessage]="tab.emptyMessage ?? 'There is nothing to show here.'"
+            [exportColumns]="tab.exportColumns ?? null"
+            [exportFilename]="tab.exportFilename ?? 'export'"
           />
         } @else {
           <p class="dynamic-tab__hint">{{ tab.emptyFilterHint }}</p>
