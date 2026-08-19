@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, WritableSignal, computed, effect, inject, input, output, signal } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DynamicFormComponent } from '../dynamic-form/dynamic-form.component';
+import { FieldConfig } from '../dynamic-form/dynamic-form.model';
 import { DynamicPreviewComponent } from '../dynamic-preview/dynamic-preview.component';
 import { PreviewFieldConfig, PreviewSectionConfig } from '../dynamic-preview/dynamic-preview.model';
 import { WizardComponent } from '../wizard/wizard.component';
@@ -117,17 +118,26 @@ export class DynamicWizardComponent<T> {
      * `steps()` reactively. */
     readonly submitFieldKeys = computed<string[]>(() => submitFieldKeysFrom(this.steps()));
 
-    /** `steps()` with each field step's `initialValue` defaulted from
-     * `initialRecord` when the step doesn't declare its own (see
-     * `initialRecord`'s doc), and each review step's `reviewSections`
-     * auto-generated from the preceding field steps when the step doesn't
-     * declare its own (see `DynamicWizardReviewStepConfig.reviewSections`
-     * and `buildAutoReviewSections`). */
+    /** One signal per `attachment`-typed field's key, holding its current
+     * preview URL (staged-or-uploaded) — see `attachmentUrlSignal`'s doc. */
+    private readonly attachmentUrlMap = new Map<string, WritableSignal<string | null>>();
+
+    /** `steps()` with, in order: every `attachment`-typed field wired to the
+     * wizard's own preview-URL tracking (see `wireAttachmentField`); each
+     * field step's `initialValue` defaulted from `initialRecord` when the
+     * step doesn't declare its own (see `initialRecord`'s doc); and each
+     * review step's `reviewSections` auto-generated from the preceding field
+     * steps when the step doesn't declare its own (see
+     * `DynamicWizardReviewStepConfig.reviewSections` and
+     * `buildAutoReviewSections`). */
     protected readonly resolvedSteps = computed<DynamicWizardStepConfig[]>(() => {
+        const withAttachmentsWired = this.steps().map((step) =>
+            'fields' in step ? { ...step, fields: step.fields.map((field) => this.wireAttachmentField(field)) } : step
+        );
         const record = this.initialRecord();
         const withInitialValue = record
-            ? this.steps().map((step) => ('fields' in step && step.initialValue === undefined ? { ...step, initialValue: record } : step))
-            : this.steps();
+            ? withAttachmentsWired.map((step) => ('fields' in step && step.initialValue === undefined ? { ...step, initialValue: record } : step))
+            : withAttachmentsWired;
         return withInitialValue.map((step, index) => {
             if (!this.isReviewStep(step) || step.reviewSections) {
                 return step;
@@ -164,6 +174,54 @@ export class DynamicWizardComponent<T> {
                 .filter((field) => !field.hideInReview)
                 .map((field): PreviewFieldConfig<Record<string, unknown>> => field.reviewField ?? { key: field.key, label: field.label ?? field.key })
         }));
+    }
+
+    /** Returns (creating on first access) the signal tracking `key`'s current
+     * attachment preview URL. The wizard-owned equivalent of a host
+     * hand-rolling one `signal<string | null>` per attachment field
+     * (previously done once per host, e.g. `person-form.component.ts`'s old
+     * `currentPhotoPreviewUrl`) — supports any number of attachment fields
+     * per wizard, each independently keyed by its own field `key`. */
+    private attachmentUrlSignal(key: string): WritableSignal<string | null> {
+        let urlSignal = this.attachmentUrlMap.get(key);
+        if (!urlSignal) {
+            urlSignal = signal<string | null>(null);
+            this.attachmentUrlMap.set(key, urlSignal);
+        }
+        return urlSignal;
+    }
+
+    /** For an `attachment`-typed field: chains its `previewUrl` (if any) so
+     * the wizard's own tracked signal (see `attachmentUrlSignal`) always
+     * updates too, and resolves its `reviewField`'s `image.src` — or builds
+     * a bare default `image` reviewField when the field doesn't declare one
+     * at all — from that same signal. A host never wires either itself; it
+     * only supplies the image's styling (`shape`/`size`/`fallbackIcon`/etc.)
+     * if it wants something other than the bare default. Fields of any
+     * other type pass through unchanged. */
+    private wireAttachmentField(field: FieldConfig): FieldConfig {
+        if (field.type !== 'attachment') {
+            return field;
+        }
+        const urlSignal = this.attachmentUrlSignal(field.key);
+        const hostPreviewUrl = field.previewUrl;
+        const reviewField = field.reviewField;
+        let resolvedReviewField: PreviewFieldConfig<Record<string, unknown>>;
+        if (!reviewField) {
+            resolvedReviewField = { key: field.key, type: 'image', label: field.label ?? field.key, src: () => urlSignal() ?? undefined };
+        } else if (reviewField.type === 'image') {
+            resolvedReviewField = { ...reviewField, src: () => urlSignal() ?? undefined };
+        } else {
+            resolvedReviewField = reviewField;
+        }
+        return {
+            ...field,
+            previewUrl: (url: string | null) => {
+                urlSignal.set(url);
+                hostPreviewUrl?.(url);
+            },
+            reviewField: resolvedReviewField
+        };
     }
 
     /** Merges every step's live values up to (not including) `index` — feeds a

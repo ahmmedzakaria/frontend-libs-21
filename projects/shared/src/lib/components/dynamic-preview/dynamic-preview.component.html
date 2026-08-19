@@ -61,7 +61,7 @@
                 <app-pill [label]="field.pillLabel(data())" [tone]="field.tone ? field.tone(data()) : 'neutral'" />
               }
               @case ('image') {
-                @if (field.src(data()); as src) {
+                @if (field.src?.(data()); as src) {
                   <app-image-preview
                     [src]="src"
                     [alt]="field.alt ? field.alt(data()) : field.label"

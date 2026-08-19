@@ -3,7 +3,16 @@ import { describe, expect, it, vi } from 'vitest';
 import { Observable, of } from 'rxjs';
 import { ActionTypes, ApiEndpoint, ApiService } from '@nexacore/platform';
 import { DynamicWizardComponent, buildSubmitFormData, submitFieldKeysFrom } from './dynamic-wizard.component';
-import { DynamicWizardData, DynamicWizardStepConfig } from './dynamic-wizard.model';
+import { DynamicWizardData, DynamicWizardFieldStepConfig, DynamicWizardStepConfig } from './dynamic-wizard.model';
+import { AttachmentFieldConfig } from '../dynamic-form/dynamic-form.model';
+import { ImagePreviewFieldConfig } from '../dynamic-preview/dynamic-preview.model';
+
+/** `resolvedSteps` is `protected` (an internal computed, not part of the
+ * public API) — this cast is the pragmatic way to inspect its output in a
+ * test without widening the class's real public surface just for this. */
+function resolvedSteps(fixture: ComponentFixture<DynamicWizardComponent<unknown>>): DynamicWizardStepConfig[] {
+    return (fixture.componentInstance as unknown as { resolvedSteps: () => DynamicWizardStepConfig[] }).resolvedSteps();
+}
 
 const steps: DynamicWizardStepConfig[] = [
     { key: 'basic', label: 'Basic', fields: [{ type: 'text', key: 'firstName', required: true }] },
@@ -192,5 +201,66 @@ describe('DynamicWizardComponent', () => {
         clickButtonByLabel(fixture, 'Save');
 
         expect(post).not.toHaveBeenCalled();
+    });
+
+    it('tracks an attachment field\'s previewUrl itself and builds a bare image reviewField from it when the host declares none', () => {
+        const withAttachment: DynamicWizardStepConfig[] = [
+            { key: 'basic', label: 'Basic', fields: [{ type: 'attachment', key: 'photo', label: 'Photo' }] }
+        ];
+        const fixture = createComponent({ config: { steps: withAttachment } });
+        const photoField = (resolvedSteps(fixture)[0] as DynamicWizardFieldStepConfig).fields.find((f) => f.key === 'photo') as AttachmentFieldConfig;
+        const reviewField = photoField.reviewField as ImagePreviewFieldConfig<Record<string, unknown>>;
+
+        expect(reviewField.type).toBe('image');
+        expect(reviewField.src!({})).toBeUndefined();
+
+        photoField.previewUrl!('blob:staged-url');
+
+        expect(reviewField.src!({})).toBe('blob:staged-url');
+    });
+
+    it('resolves reviewField.src from the same tracked signal when the host supplies its own image styling', () => {
+        const withAttachment: DynamicWizardStepConfig[] = [
+            {
+                key: 'basic', label: 'Basic',
+                fields: [{
+                    type: 'attachment', key: 'photo', label: 'Photo',
+                    reviewField: { key: 'photo', type: 'image', label: 'Photo', shape: 'circle', size: 64, fallbackIcon: 'user' }
+                }]
+            }
+        ];
+        const fixture = createComponent({ config: { steps: withAttachment } });
+        const photoField = (resolvedSteps(fixture)[0] as DynamicWizardFieldStepConfig).fields.find((f) => f.key === 'photo') as AttachmentFieldConfig;
+        const reviewField = photoField.reviewField as ImagePreviewFieldConfig<Record<string, unknown>>;
+
+        // The host's own styling survives untouched...
+        expect(reviewField.shape).toBe('circle');
+        expect(reviewField.size).toBe(64);
+        expect(reviewField.fallbackIcon).toBe('user');
+        // ...while `src` — which the host never supplied — comes from the wizard.
+        photoField.previewUrl!('blob:uploaded-url');
+        expect(reviewField.src!({})).toBe('blob:uploaded-url');
+    });
+
+    it('keeps each attachment field\'s preview URL independent, keyed by its own field key', () => {
+        const withTwoAttachments: DynamicWizardStepConfig[] = [
+            {
+                key: 'basic', label: 'Basic',
+                fields: [
+                    { type: 'attachment', key: 'photo', label: 'Photo' },
+                    { type: 'attachment', key: 'signature', label: 'Signature' }
+                ]
+            }
+        ];
+        const fixture = createComponent({ config: { steps: withTwoAttachments } });
+        const fields = (resolvedSteps(fixture)[0] as DynamicWizardFieldStepConfig).fields as AttachmentFieldConfig[];
+        const photo = fields.find((f) => f.key === 'photo')!;
+        const signature = fields.find((f) => f.key === 'signature')!;
+
+        photo.previewUrl!('blob:photo-url');
+        signature.previewUrl!('blob:signature-url');
+
+        expect((photo.reviewField as ImagePreviewFieldConfig<Record<string, unknown>>).src!({})).toBe('blob:photo-url');
+        expect((signature.reviewField as ImagePreviewFieldConfig<Record<string, unknown>>).src!({})).toBe('blob:signature-url');
     });
 });

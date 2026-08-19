@@ -30,7 +30,13 @@ export interface PillPreviewFieldConfig<T> extends BasePreviewFieldConfig<T> {
 
 export interface ImagePreviewFieldConfig<T> extends BasePreviewFieldConfig<T> {
     type: 'image';
-    src: (row: T) => string | undefined;
+    /** Optional so a field can be declared with its styling
+     * (`shape`/`size`/`fallbackIcon`/etc.) up front while something else
+     * resolves the actual URL before render — e.g. `DynamicWizardComponent`
+     * always injects this for an `attachment`-typed field's `reviewField`,
+     * keyed by that field's own key, so the host never writes `src` itself.
+     * Renders just the fallback icon (or nothing) while unset. */
+    src?: (row: T) => string | undefined;
     alt?: (row: T) => string;
     fallbackIcon?: string;
     shape?: 'circle' | 'square';
