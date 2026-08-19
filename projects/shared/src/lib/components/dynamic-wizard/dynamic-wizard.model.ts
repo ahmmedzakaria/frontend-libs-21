@@ -47,6 +47,31 @@ export type DynamicWizardSubmitConfig =
     | { actionType: ActionTypes.UPDATE; updateApiEndpoint: ApiEndpoint }
     | { actionType: ActionTypes.DELETE; deleteApiEndpoint: ApiEndpoint };
 
+/** Labels/visibility for the wizard's action-row buttons — all optional,
+ * each falling back to the default noted below. Replaces the old top-level
+ * `nextLabel`/`backLabel`/`finishLabel` inputs. */
+export interface DynamicWizardButtonConfig {
+    /** Finish-button label when `submitConfig.actionType` is `CREATE`. Default `'Create'`. */
+    create?: string;
+    /** Finish-button label when `submitConfig.actionType` is `UPDATE`. Default `'Update'`. */
+    update?: string;
+    /** Step-back label. Default `'Previous'`. */
+    previous?: string;
+    /** Step-forward label. Default `'Next'`. */
+    next?: string;
+    /** Shows a Back button in the action row (left of Reset) when true — the
+     * wizard itself never navigates; the host handles `DynamicWizardComponent.back`
+     * (e.g. routing to a list page). Default `false`. */
+    showBack?: boolean;
+    /** Back-button label. Default `'Back'`. */
+    back?: string;
+    /** Shows a Reset button that reverts the active step's form to its
+     * `initialValue` when true. Default `false`. */
+    showReset?: boolean;
+    /** Reset-button label. Default `'Reset'`. */
+    reset?: string;
+}
+
 /** The wizard's own shape, independent of any particular entity — everything
  * a host would otherwise pass as separate `steps`/`submitConfig` inputs. */
 export interface DynamicWizardConfig {
@@ -62,6 +87,8 @@ export interface DynamicWizardConfig {
      * `DynamicWizardSubmitConfig`'s doc. Omit to keep doing both yourself
      * from `submitted`. */
     submitConfig?: DynamicWizardSubmitConfig | null;
+    /** See `DynamicWizardButtonConfig`. Omit for defaults across the board. */
+    buttons?: DynamicWizardButtonConfig;
 }
 
 /** Single bundled input for `DynamicWizardComponent` — the entity being

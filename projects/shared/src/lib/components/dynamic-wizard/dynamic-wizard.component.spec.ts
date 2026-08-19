@@ -41,6 +41,11 @@ function createComponent(data: DynamicWizardData, post?: ReturnType<typeof fakeP
     return fixture;
 }
 
+function buttonLabels(fixture: ComponentFixture<DynamicWizardComponent<unknown>>): (string | undefined)[] {
+    const buttons: HTMLButtonElement[] = Array.from(fixture.nativeElement.querySelectorAll('button'));
+    return buttons.map((button) => button.textContent?.trim());
+}
+
 function clickButtonByLabel(fixture: ComponentFixture<DynamicWizardComponent<unknown>>, label: string): void {
     const buttons: HTMLButtonElement[] = Array.from(fixture.nativeElement.querySelectorAll('button'));
     const target = buttons.find((button) => button.textContent?.trim() === label);
@@ -177,7 +182,7 @@ describe('DynamicWizardComponent', () => {
         clickButtonByLabel(fixture, 'Next');
         fixture.componentInstance.stepForms()[1]!.get('lastName')!.setValue('Doe');
         fixture.detectChanges();
-        clickButtonByLabel(fixture, 'Save');
+        clickButtonByLabel(fixture, 'Create');
 
         expect(post).toHaveBeenCalledTimes(1);
         const [calledEndpoint, calledBody] = post.mock.calls[0];
@@ -201,6 +206,73 @@ describe('DynamicWizardComponent', () => {
         clickButtonByLabel(fixture, 'Save');
 
         expect(post).not.toHaveBeenCalled();
+    });
+
+    it('finish button reads "Update" (not "Save") when submitConfig\'s actionType is UPDATE', () => {
+        const updateEndpoint: ApiEndpoint = { apiPath: 'test/update', actionType: ActionTypes.UPDATE };
+        const fixture = createComponent(
+            { config: { steps, submitConfig: { actionType: ActionTypes.UPDATE, updateApiEndpoint: updateEndpoint } } },
+            fakePost(null)
+        );
+        fixture.componentInstance.stepForms()[0]!.get('firstName')!.setValue('Amina');
+        fixture.detectChanges();
+        clickButtonByLabel(fixture, 'Next');
+
+        const labels = buttonLabels(fixture);
+        expect(labels).toContain('Update');
+        expect(labels).not.toContain('Save');
+    });
+
+    it('buttons.create/buttons.update override the auto-derived finish label', () => {
+        const fixture = createComponent(
+            { config: { steps, submitConfig: { actionType: ActionTypes.CREATE, createApiEndpoint: createEndpoint }, buttons: { create: 'Register' } } },
+            fakePost(null)
+        );
+        fixture.componentInstance.stepForms()[0]!.get('firstName')!.setValue('Amina');
+        fixture.detectChanges();
+        clickButtonByLabel(fixture, 'Next');
+
+        const labels = buttonLabels(fixture);
+        expect(labels).toContain('Register');
+    });
+
+    it('hides Back/Reset by default', () => {
+        const fixture = createComponent({ config: { steps } });
+        const labels = buttonLabels(fixture);
+        expect(labels).not.toContain('Back');
+        expect(labels).not.toContain('Reset');
+    });
+
+    it('shows Back/Reset with configurable labels when buttons.showBack/showReset are set', () => {
+        const fixture = createComponent({ config: { steps, buttons: { showBack: true, showReset: true, back: 'Cancel' } } });
+        const labels = buttonLabels(fixture);
+        expect(labels).toContain('Cancel');
+        expect(labels).toContain('Reset');
+    });
+
+    it('emits `back` when the Back button is clicked, without navigating or touching form state itself', () => {
+        const fixture = createComponent({ config: { steps, buttons: { showBack: true } } });
+        const backEvents: void[] = [];
+        fixture.componentInstance.back.subscribe(() => backEvents.push(undefined));
+
+        clickButtonByLabel(fixture, 'Back');
+
+        expect(backEvents).toHaveLength(1);
+    });
+
+    it('Reset reverts the active step\'s form to its initialValue', () => {
+        const stepsWithInitial: DynamicWizardStepConfig[] = [
+            { key: 'basic', label: 'Basic', fields: [{ type: 'text', key: 'firstName' }], initialValue: { firstName: 'Amina' } }
+        ];
+        const fixture = createComponent({ config: { steps: stepsWithInitial, buttons: { showReset: true } } });
+
+        fixture.componentInstance.stepForms()[0]!.get('firstName')!.setValue('Changed');
+        fixture.detectChanges();
+        expect(fixture.componentInstance.stepForms()[0]!.get('firstName')!.value).toBe('Changed');
+
+        clickButtonByLabel(fixture, 'Reset');
+
+        expect(fixture.componentInstance.stepForms()[0]!.get('firstName')!.value).toBe('Amina');
     });
 
     it('tracks an attachment field\'s previewUrl itself and builds a bare image reviewField from it when the host declares none', () => {

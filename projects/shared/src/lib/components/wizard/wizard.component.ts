@@ -20,11 +20,21 @@ import { WizardStepComponent } from './wizard-step.component';
 })
 export class WizardComponent {
     readonly nextLabel = input('Next');
-    readonly backLabel = input('Back');
+    readonly previousLabel = input('Previous');
     readonly finishLabel = input('Finish');
+
+    /** Shows a Back button at the start of the action row when true — purely
+     * presentational here; `backClicked` is the wizard's only involvement,
+     * the host decides what "back" means (e.g. routing away). */
+    readonly showBackButton = input(false);
+    readonly backButtonLabel = input('Back');
+    readonly showResetButton = input(false);
+    readonly resetButtonLabel = input('Reset');
 
     readonly stepIndexChange = output<number>();
     readonly finished = output<void>();
+    readonly backClicked = output<void>();
+    readonly resetClicked = output<void>();
 
     protected readonly stepComponents = contentChildren(WizardStepComponent);
     protected readonly currentIndex = signal(0);

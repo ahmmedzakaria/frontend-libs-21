@@ -6,7 +6,17 @@
   </div>
 
   <div class="wizard-actions">
-    <app-button variant="ghost" [label]="backLabel()" [disabled]="currentIndex() === 0" (clicked)="back()" />
-    <app-button [label]="isLastStep() ? finishLabel() : nextLabel()" [disabled]="currentInvalid()" (clicked)="next()" />
+    <div class="wizard-actions-group">
+      @if (showBackButton()) {
+        <app-button variant="ghost" [label]="backButtonLabel()" (clicked)="backClicked.emit()" />
+      }
+      @if (showResetButton()) {
+        <app-button variant="ghost" [label]="resetButtonLabel()" (clicked)="resetClicked.emit()" />
+      }
+    </div>
+    <div class="wizard-actions-group">
+      <app-button variant="ghost" [label]="previousLabel()" [disabled]="currentIndex() === 0" (clicked)="back()" />
+      <app-button [label]="isLastStep() ? finishLabel() : nextLabel()" [disabled]="currentInvalid()" (clicked)="next()" />
+    </div>
   </div>
 </div>

@@ -4,10 +4,16 @@
   }
   <app-wizard
     [nextLabel]="nextLabel()"
-    [backLabel]="backLabel()"
+    [previousLabel]="previousLabel()"
     [finishLabel]="finishLabel()"
-    (stepIndexChange)="stepIndexChange.emit($event)"
+    [showBackButton]="showBackButton()"
+    [backButtonLabel]="backButtonLabel()"
+    [showResetButton]="showResetButton()"
+    [resetButtonLabel]="resetButtonLabel()"
+    (stepIndexChange)="onStepIndexChange($event)"
     (finished)="onFinished()"
+    (backClicked)="back.emit()"
+    (resetClicked)="onReset()"
   >
     @for (step of resolvedSteps(); track step.key; let i = $index) {
       <app-wizard-step [label]="step.label" [disabled]="!!step.disabled" [form]="stepForms()[i]">

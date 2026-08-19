@@ -9,6 +9,7 @@ import { WizardComponent } from '../wizard/wizard.component';
 import { WizardStepComponent } from '../wizard/wizard-step.component';
 import { ActionTypes, ApiEndpoint, ApiService } from '@nexacore/platform';
 import {
+    DynamicWizardButtonConfig,
     DynamicWizardData,
     DynamicWizardFieldStepConfig,
     DynamicWizardReviewStepConfig,
@@ -93,15 +94,44 @@ export class DynamicWizardComponent<T> {
      * instead of three independently-bound ones. */
     readonly data = input.required<DynamicWizardData>();
 
-    readonly nextLabel = input('Next');
-    readonly backLabel = input('Back');
-    readonly finishLabel = input('Save');
-
     private readonly steps = computed(() => this.data().config.steps);
     private readonly submitConfig = computed(() => this.data().config.submitConfig ?? null);
+    private readonly buttons = computed<DynamicWizardButtonConfig>(() => this.data().config.buttons ?? {});
     /** See `DynamicWizardConfig.title`'s doc — read directly by the template
      * to decide whether to render the card shell + heading at all. */
     protected readonly title = computed(() => this.data().config.title ?? null);
+
+    protected readonly previousLabel = computed(() => this.buttons().previous ?? 'Previous');
+    protected readonly nextLabel = computed(() => this.buttons().next ?? 'Next');
+    /** `'Create'`/`'Update'` when `submitConfig`'s `actionType` matches — the
+     * finish button renames itself to match what it's actually about to do,
+     * instead of a host hand-picking "Save" for both. Anything else
+     * (`DELETE`, or no `submitConfig` at all) keeps the old literal default. */
+    protected readonly finishLabel = computed(() => {
+        const config = this.submitConfig();
+        const btn = this.buttons();
+        if (config?.actionType === ActionTypes.CREATE) {
+            return btn.create ?? 'Create';
+        }
+        if (config?.actionType === ActionTypes.UPDATE) {
+            return btn.update ?? 'Update';
+        }
+        return 'Save';
+    });
+    protected readonly showBackButton = computed(() => !!this.buttons().showBack);
+    protected readonly backButtonLabel = computed(() => this.buttons().back ?? 'Back');
+    protected readonly showResetButton = computed(() => !!this.buttons().showReset);
+    protected readonly resetButtonLabel = computed(() => this.buttons().reset ?? 'Reset');
+
+    /** The step currently shown by the inner `<app-wizard>` — tracked here
+     * (not just re-emitted via `stepIndexChange`) so `onReset` knows which
+     * step's form to revert. */
+    private readonly currentStepIndex = signal(0);
+
+    /** Emitted when the Back button (see `DynamicWizardButtonConfig.showBack`)
+     * is clicked — the wizard never navigates itself; the host decides what
+     * "back" means (e.g. routing to a list page). */
+    readonly back = output<void>();
     /** `data().entity`, cast to the flat-record shape `resolvedSteps` needs —
      * see `DynamicWizardData.entity`'s doc for why this stays a cast here
      * rather than a generic component type parameter. */
@@ -241,6 +271,24 @@ export class DynamicWizardComponent<T> {
             next[index] = group;
             return next;
         });
+    }
+
+    protected onStepIndexChange(index: number): void {
+        this.currentStepIndex.set(index);
+        this.stepIndexChange.emit(index);
+    }
+
+    /** Reverts the active step's form to its `initialValue` (empty object for
+     * a step that doesn't declare one) — a review step has no form of its
+     * own, so this is a no-op there. */
+    protected onReset(): void {
+        const index = this.currentStepIndex();
+        const group = this.stepForms()[index];
+        const step = this.resolvedSteps()[index];
+        if (!group || !step || !('fields' in step)) {
+            return;
+        }
+        group.reset(step.initialValue ?? {});
     }
 
     protected onFinished(): void {
