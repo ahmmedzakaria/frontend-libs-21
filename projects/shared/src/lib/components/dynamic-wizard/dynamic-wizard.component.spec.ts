@@ -1,23 +1,38 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { describe, expect, it } from 'vitest';
-import { of } from 'rxjs';
+import { describe, expect, it, vi } from 'vitest';
+import { Observable, of } from 'rxjs';
+import { ActionTypes, ApiEndpoint, ApiService } from '@nexacore/platform';
 import { DynamicWizardComponent, buildSubmitFormData, submitFieldKeysFrom } from './dynamic-wizard.component';
-import { DynamicWizardStepConfig } from './dynamic-wizard.model';
+import { DynamicWizardData, DynamicWizardStepConfig } from './dynamic-wizard.model';
 
 const steps: DynamicWizardStepConfig[] = [
     { key: 'basic', label: 'Basic', fields: [{ type: 'text', key: 'firstName', required: true }] },
     { key: 'more', label: 'More', fields: [{ type: 'text', key: 'lastName', required: true }] }
 ];
 
-function createComponent(config: DynamicWizardStepConfig[]): ComponentFixture<DynamicWizardComponent> {
-    TestBed.configureTestingModule({ imports: [DynamicWizardComponent] });
-    const fixture = TestBed.createComponent(DynamicWizardComponent);
-    fixture.componentRef.setInput('steps', config);
+const createEndpoint: ApiEndpoint = { apiPath: 'test/create', actionType: ActionTypes.CREATE };
+
+/** A loosely-typed stand-in for `ApiService.post` — a concrete mock can't
+ * satisfy that method's actual generic `<T>(...) => Observable<T>` signature
+ * (TS rejects substituting a fixed-return mock for an all-T generic), and
+ * this is test scaffolding, not code under test, so the inferred `Mock` type
+ * (not `ApiService['post']`) is fine here. */
+function fakePost(response: unknown) {
+    return vi.fn((_apiInfo: ApiEndpoint, _body?: unknown) => of(response) as Observable<unknown>);
+}
+
+function createComponent(data: DynamicWizardData, post?: ReturnType<typeof fakePost>): ComponentFixture<DynamicWizardComponent<unknown>> {
+    TestBed.configureTestingModule({
+        imports: [DynamicWizardComponent],
+        providers: post ? [{ provide: ApiService, useValue: { post } }] : []
+    });
+    const fixture = TestBed.createComponent(DynamicWizardComponent<unknown>);
+    fixture.componentRef.setInput('data', data);
     fixture.detectChanges();
     return fixture;
 }
 
-function clickButtonByLabel(fixture: ComponentFixture<DynamicWizardComponent>, label: string): void {
+function clickButtonByLabel(fixture: ComponentFixture<DynamicWizardComponent<unknown>>, label: string): void {
     const buttons: HTMLButtonElement[] = Array.from(fixture.nativeElement.querySelectorAll('button'));
     const target = buttons.find((button) => button.textContent?.trim() === label);
     target?.click();
@@ -26,13 +41,13 @@ function clickButtonByLabel(fixture: ComponentFixture<DynamicWizardComponent>, l
 
 describe('DynamicWizardComponent', () => {
     it('builds one FormGroup per step and reports it to the matching wizard step', () => {
-        const fixture = createComponent(steps);
+        const fixture = createComponent({ config: { steps } });
         expect(fixture.componentInstance.stepForms()).toHaveLength(2);
         expect(fixture.componentInstance.stepForms().every((group) => group !== null)).toBe(true);
     });
 
     it('does not submit when an earlier step is left invalid, even once the current step is valid', () => {
-        const fixture = createComponent(steps);
+        const fixture = createComponent({ config: { steps } });
         const emitted: Record<string, unknown>[] = [];
         fixture.componentInstance.submitted.subscribe((value) => emitted.push(value));
 
@@ -53,7 +68,7 @@ describe('DynamicWizardComponent', () => {
     });
 
     it('submits the flat-merged value once every step is valid', () => {
-        const fixture = createComponent(steps);
+        const fixture = createComponent({ config: { steps } });
         const emitted: Record<string, unknown>[] = [];
         fixture.componentInstance.submitted.subscribe((value) => emitted.push(value));
 
@@ -66,6 +81,11 @@ describe('DynamicWizardComponent', () => {
         clickButtonByLabel(fixture, 'Save');
 
         expect(emitted).toEqual([{ firstName: 'Amina', lastName: 'Doe' }]);
+    });
+
+    it('seeds every field step\'s initialValue from data().entity', () => {
+        const fixture = createComponent({ entity: { firstName: 'Amina' }, config: { steps } });
+        expect(fixture.componentInstance.stepForms()[0]!.get('firstName')!.value).toBe('Amina');
     });
 
     it('submitFieldKeysFrom collects every field-step key except ones marked excludeFromSubmit', () => {
@@ -83,7 +103,7 @@ describe('DynamicWizardComponent', () => {
     });
 
     it('exposes the same computation reactively as submitFieldKeys()', () => {
-        const fixture = createComponent(steps);
+        const fixture = createComponent({ config: { steps } });
         expect(fixture.componentInstance.submitFieldKeys()).toEqual(['firstName', 'lastName']);
     });
 
@@ -134,18 +154,14 @@ describe('DynamicWizardComponent', () => {
         expect(formData.get('photo')).toBe(file);
     });
 
-    it('submitConfig: builds FormData and performs the request itself, emitting submitSuccess with the response', () => {
-        const fixture = createComponent(steps);
-        const submittedFormData: FormData[] = [];
+    it('submitConfig: posts to the CREATE actionType\'s endpoint and emits submitSuccess with the response', () => {
+        const post = fakePost({ id: 'new-record' });
+        const fixture = createComponent(
+            { config: { steps, submitConfig: { actionType: ActionTypes.CREATE, createApiEndpoint: createEndpoint } } },
+            post
+        );
         const succeeded: unknown[] = [];
         fixture.componentInstance.submitSuccess.subscribe((value) => succeeded.push(value));
-        fixture.componentRef.setInput('submitConfig', {
-            submit: (formData: FormData) => {
-                submittedFormData.push(formData);
-                return of({ id: 'new-record' });
-            }
-        });
-        fixture.detectChanges();
 
         fixture.componentInstance.stepForms()[0]!.get('firstName')!.setValue('Amina');
         fixture.detectChanges();
@@ -154,23 +170,27 @@ describe('DynamicWizardComponent', () => {
         fixture.detectChanges();
         clickButtonByLabel(fixture, 'Save');
 
-        expect(submittedFormData).toHaveLength(1);
-        expect(submittedFormData[0].get('firstName')).toBe('Amina');
-        expect(submittedFormData[0].get('lastName')).toBe('Doe');
+        expect(post).toHaveBeenCalledTimes(1);
+        const [calledEndpoint, calledBody] = post.mock.calls[0];
+        expect(calledEndpoint).toBe(createEndpoint);
+        const postedFormData = calledBody as FormData;
+        expect(postedFormData.get('firstName')).toBe('Amina');
+        expect(postedFormData.get('lastName')).toBe('Doe');
         expect(succeeded).toEqual([{ id: 'new-record' }]);
     });
 
-    it('does not call submitConfig.submit when an earlier step is invalid', () => {
-        const fixture = createComponent(steps);
-        let calls = 0;
-        fixture.componentRef.setInput('submitConfig', { submit: () => { calls++; return of(null); } });
-        fixture.detectChanges();
+    it('does not call the API when an earlier step is invalid', () => {
+        const post = fakePost(null);
+        const fixture = createComponent(
+            { config: { steps, submitConfig: { actionType: ActionTypes.CREATE, createApiEndpoint: createEndpoint } } },
+            post
+        );
 
         fixture.componentInstance.stepForms()[1]!.get('lastName')!.setValue('Doe');
         fixture.componentInstance.stepForms()[0]!.get('firstName')!.setValue('');
         fixture.detectChanges();
         clickButtonByLabel(fixture, 'Save');
 
-        expect(calls).toBe(0);
+        expect(post).not.toHaveBeenCalled();
     });
 });

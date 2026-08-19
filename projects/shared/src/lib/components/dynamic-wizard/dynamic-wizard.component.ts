@@ -8,10 +8,10 @@ import { WizardComponent } from '../wizard/wizard.component';
 import { WizardStepComponent } from '../wizard/wizard-step.component';
 import { ActionTypes, ApiEndpoint, ApiService } from '@nexacore/platform';
 import {
+    DynamicWizardData,
     DynamicWizardFieldStepConfig,
     DynamicWizardReviewStepConfig,
-    DynamicWizardStepConfig,
-    DynamicWizardSubmitConfig
+    DynamicWizardStepConfig
 } from './dynamic-wizard.model';
 
 /** Every field-step key across `steps` that submits under its own name — i.e.
@@ -85,22 +85,23 @@ export function buildSubmitFormData(steps: DynamicWizardStepConfig[], formValue:
 export class DynamicWizardComponent<T> {
     private readonly destroyRef = inject(DestroyRef);
 
-    readonly steps = input.required<DynamicWizardStepConfig[]>();
-    /** A flat record (e.g. the record being edited) to seed every field step's
-     * `initialValue` from — the declarative equivalent of a host page building
-     * one signal per field step and setting them all itself (see
-     * `resolvedSteps`). A step that already declares its own `initialValue`
-     * keeps it; steps whose fields don't match any of this record's keys
-     * (e.g. a step built from derived/composite fields) are unaffected. */
-    readonly initialRecord = input<Record<string, unknown> | null>(null);
+    /** Everything the wizard needs from the host: the entity being created/
+     * edited, plus the wizard's own configuration (steps + optional submit
+     * behavior) — see `DynamicWizardData`'s doc. Replaces separate `steps`/
+     * `initialRecord`/`submitConfig` inputs so a host builds one object
+     * instead of three independently-bound ones. */
+    readonly data = input.required<DynamicWizardData>();
+
     readonly nextLabel = input('Next');
     readonly backLabel = input('Back');
     readonly finishLabel = input('Save');
-    /** Supply to have this component build the `FormData` (via
-     * `buildSubmitFormData`) and perform the request itself once every field
-     * step is valid — see `DynamicWizardSubmitConfig`'s doc. Omit to keep
-     * doing both yourself from `submitted`. */
-    readonly submitConfig = input<DynamicWizardSubmitConfig | null>(null);
+
+    private readonly steps = computed(() => this.data().config.steps);
+    private readonly submitConfig = computed(() => this.data().config.submitConfig ?? null);
+    /** `data().entity`, cast to the flat-record shape `resolvedSteps` needs —
+     * see `DynamicWizardData.entity`'s doc for why this stays a cast here
+     * rather than a generic component type parameter. */
+    private readonly initialRecord = computed(() => (this.data().entity ?? null) as Record<string, unknown> | null);
 
     readonly stepIndexChange = output<number>();
     /** The merged, flat value across every fields-driven step — only emitted

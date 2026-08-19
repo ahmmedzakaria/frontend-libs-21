@@ -46,3 +46,26 @@ export type DynamicWizardSubmitConfig =
     | { actionType: ActionTypes.CREATE; createApiEndpoint: ApiEndpoint }
     | { actionType: ActionTypes.UPDATE; updateApiEndpoint: ApiEndpoint }
     | { actionType: ActionTypes.DELETE; deleteApiEndpoint: ApiEndpoint };
+
+/** The wizard's own shape, independent of any particular entity — everything
+ * a host would otherwise pass as separate `steps`/`submitConfig` inputs. */
+export interface DynamicWizardConfig {
+    steps: DynamicWizardStepConfig[];
+    /** Supply to have `DynamicWizardComponent` build the `FormData` and
+     * perform the request itself once every field step is valid — see
+     * `DynamicWizardSubmitConfig`'s doc. Omit to keep doing both yourself
+     * from `submitted`. */
+    submitConfig?: DynamicWizardSubmitConfig | null;
+}
+
+/** Single bundled input for `DynamicWizardComponent` — the entity being
+ * created/edited alongside the wizard's own configuration. `entity` is
+ * `unknown` (not a generic host DTO type) so a host passes its record
+ * directly with no cast at the call site; `DynamicWizardComponent` reads it
+ * internally as `Record<string, unknown> | null` — the same shape
+ * `resolvedSteps` always needed, just sourced from here instead of a
+ * separate `initialRecord` input. */
+export interface DynamicWizardData {
+    entity?: unknown;
+    config: DynamicWizardConfig;
+}
