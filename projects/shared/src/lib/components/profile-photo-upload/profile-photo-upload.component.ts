@@ -62,6 +62,7 @@ export class ProfilePhotoUploadComponent extends BaseValueAccessor<File[]> imple
 
     remove(): void {
         this.revokeStagedPreview();
+        this.stagedPreview.set(null);
         this.emitValue([]);
         this.markTouched();
     }

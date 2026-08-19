@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, computed, effect, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
 import { FormControl, NG_VALIDATORS, NG_VALUE_ACCESSOR, ReactiveFormsModule, TouchedChangeEvent, ValidationErrors, Validator } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Observable, catchError, map, of } from 'rxjs';
@@ -161,7 +161,12 @@ export class DynamicAttachmentComponent extends BaseValueAccessor<File[]> implem
         // created/revoked here as `value()` changes.
         effect(() => {
             const file = this.value()?.[0] ?? null;
-            const previous = this.stagedPreviewUrl();
+            // `untracked` here is load-bearing, not a style choice: `URL.createObjectURL`
+            // returns a distinct string on every call even for the same File, so if this
+            // read of `stagedPreviewUrl` were tracked, the `.set()` below would re-trigger
+            // this same effect on every run — an infinite loop that hangs the tab (this is
+            // exactly the freeze the attachment/photo-upload field was hitting).
+            const previous = untracked(this.stagedPreviewUrl);
             if (previous) {
                 URL.revokeObjectURL(previous);
             }
