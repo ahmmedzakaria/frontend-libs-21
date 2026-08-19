@@ -41,10 +41,15 @@ export type DynamicWizardStepConfig = DynamicWizardFieldStepConfig | DynamicWiza
  * every field step is valid, instead of a host subscribing to `submitted`
  * and doing both by hand. A discriminated union on `actionType` so the
  * matching `*ApiEndpoint` is required and the other two don't need to be
- * supplied — e.g. a create-only wizard only ever builds the `CREATE` variant. */
+ * supplied — e.g. a create-only wizard only ever builds the `CREATE` variant.
+ *
+ * `UPDATE`'s `id` is appended to the submitted `FormData` under the key
+ * `'id'` — the record being updated is identified by the host (e.g. from a
+ * route param), not by anything the user can edit in the form, so it can't
+ * be declared as a regular field the way every other submitted value is. */
 export type DynamicWizardSubmitConfig =
     | { actionType: ActionTypes.CREATE; createApiEndpoint: ApiEndpoint }
-    | { actionType: ActionTypes.UPDATE; updateApiEndpoint: ApiEndpoint }
+    | { actionType: ActionTypes.UPDATE; updateApiEndpoint: ApiEndpoint; id: string | number }
     | { actionType: ActionTypes.DELETE; deleteApiEndpoint: ApiEndpoint };
 
 /** Labels/visibility for the wizard's action-row buttons — all optional,

@@ -309,9 +309,15 @@ export class DynamicWizardComponent<T> {
         const config = this.submitConfig();
         if (config) {
             const formData = buildSubmitFormData(this.resolvedSteps(), merged);
-            const apiEndpoint: ApiEndpoint = config.actionType === ActionTypes.CREATE ? config.createApiEndpoint
-                : config.actionType === ActionTypes.UPDATE ? config.updateApiEndpoint
-                : config.deleteApiEndpoint;
+            let apiEndpoint: ApiEndpoint;
+            if (config.actionType === ActionTypes.CREATE) {
+                apiEndpoint = config.createApiEndpoint;
+            } else if (config.actionType === ActionTypes.UPDATE) {
+                apiEndpoint = config.updateApiEndpoint;
+                formData.append('id', String(config.id));
+            } else {
+                apiEndpoint = config.deleteApiEndpoint;
+            }
             this.api.post<T>(apiEndpoint, formData)
                 .pipe(takeUntilDestroyed(this.destroyRef))
                 .subscribe((response) => this.submitSuccess.emit(response));

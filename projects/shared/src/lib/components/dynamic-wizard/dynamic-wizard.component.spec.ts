@@ -193,6 +193,29 @@ describe('DynamicWizardComponent', () => {
         expect(succeeded).toEqual([{ id: 'new-record' }]);
     });
 
+    it('submitConfig: UPDATE appends submitConfig.id to the posted FormData, even though no step field declares it', () => {
+        const updateEndpoint: ApiEndpoint = { apiPath: 'test/update', actionType: ActionTypes.UPDATE };
+        const post = fakePost({ updated: true });
+        const fixture = createComponent(
+            { config: { steps, submitConfig: { actionType: ActionTypes.UPDATE, updateApiEndpoint: updateEndpoint, id: 42 } } },
+            post
+        );
+
+        fixture.componentInstance.stepForms()[0]!.get('firstName')!.setValue('Amina');
+        fixture.detectChanges();
+        clickButtonByLabel(fixture, 'Next');
+        fixture.componentInstance.stepForms()[1]!.get('lastName')!.setValue('Doe');
+        fixture.detectChanges();
+        clickButtonByLabel(fixture, 'Update');
+
+        expect(post).toHaveBeenCalledTimes(1);
+        const [calledEndpoint, calledBody] = post.mock.calls[0];
+        expect(calledEndpoint).toBe(updateEndpoint);
+        const postedFormData = calledBody as FormData;
+        expect(postedFormData.get('id')).toBe('42');
+        expect(postedFormData.get('firstName')).toBe('Amina');
+    });
+
     it('does not call the API when an earlier step is invalid', () => {
         const post = fakePost(null);
         const fixture = createComponent(
@@ -211,7 +234,7 @@ describe('DynamicWizardComponent', () => {
     it('finish button reads "Update" (not "Save") when submitConfig\'s actionType is UPDATE', () => {
         const updateEndpoint: ApiEndpoint = { apiPath: 'test/update', actionType: ActionTypes.UPDATE };
         const fixture = createComponent(
-            { config: { steps, submitConfig: { actionType: ActionTypes.UPDATE, updateApiEndpoint: updateEndpoint } } },
+            { config: { steps, submitConfig: { actionType: ActionTypes.UPDATE, updateApiEndpoint: updateEndpoint, id: 42 } } },
             fakePost(null)
         );
         fixture.componentInstance.stepForms()[0]!.get('firstName')!.setValue('Amina');
