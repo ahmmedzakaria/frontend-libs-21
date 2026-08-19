@@ -1,4 +1,4 @@
-import { Observable } from 'rxjs';
+import { ActionTypes, ApiEndpoint } from '@nexacore/platform';
 import { FieldConfig } from '../dynamic-form/dynamic-form.model';
 import { PreviewSectionConfig } from '../dynamic-preview/dynamic-preview.model';
 
@@ -39,11 +39,10 @@ export type DynamicWizardStepConfig = DynamicWizardFieldStepConfig | DynamicWiza
 /** Declarative submission — supply to have `DynamicWizardComponent` build the
  * `FormData` (via `buildSubmitFormData`) and perform the request itself once
  * every field step is valid, instead of a host subscribing to `submitted`
- * and doing both by hand. */
-export interface DynamicWizardSubmitConfig {
-    /** Performs the request from the wizard's built `FormData` — typically a
-     * closure over the host's own service, choosing create vs. update (e.g.
-     * from a record id already in scope). The wizard emits `submitSuccess`
-     * with whatever this resolves to. */
-    submit: (formData: FormData) => Observable<unknown>;
-}
+ * and doing both by hand. A discriminated union on `actionType` so the
+ * matching `*ApiEndpoint` is required and the other two don't need to be
+ * supplied — e.g. a create-only wizard only ever builds the `CREATE` variant. */
+export type DynamicWizardSubmitConfig =
+    | { actionType: ActionTypes.CREATE; createApiEndpoint: ApiEndpoint }
+    | { actionType: ActionTypes.UPDATE; updateApiEndpoint: ApiEndpoint }
+    | { actionType: ActionTypes.DELETE; deleteApiEndpoint: ApiEndpoint };

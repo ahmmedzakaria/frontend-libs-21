@@ -6,6 +6,7 @@ import { DynamicPreviewComponent } from '../dynamic-preview/dynamic-preview.comp
 import { PreviewFieldConfig, PreviewSectionConfig } from '../dynamic-preview/dynamic-preview.model';
 import { WizardComponent } from '../wizard/wizard.component';
 import { WizardStepComponent } from '../wizard/wizard-step.component';
+import { ActionTypes, ApiEndpoint, ApiService } from '@nexacore/platform';
 import {
     DynamicWizardFieldStepConfig,
     DynamicWizardReviewStepConfig,
@@ -81,7 +82,7 @@ export function buildSubmitFormData(steps: DynamicWizardStepConfig[], formValue:
     styleUrl: './dynamic-wizard.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DynamicWizardComponent {
+export class DynamicWizardComponent<T> {
     private readonly destroyRef = inject(DestroyRef);
 
     readonly steps = input.required<DynamicWizardStepConfig[]>();
@@ -105,8 +106,8 @@ export class DynamicWizardComponent {
     /** The merged, flat value across every fields-driven step — only emitted
      * once every such step is valid. */
     readonly submitted = output<Record<string, unknown>>();
-    /** Emits whatever `submitConfig().submit(...)` resolves to, once it
-     * resolves — only fires when `submitConfig` is set. */
+    /** Emits whatever the `POST` to `submitConfig()`'s matching `*ApiEndpoint`
+     * resolves to, once it resolves — only fires when `submitConfig` is set. */
     readonly submitSuccess = output<unknown>();
 
     readonly stepForms = signal<(FormGroup | null)[]>([]);
@@ -135,7 +136,7 @@ export class DynamicWizardComponent {
         });
     });
 
-    constructor() {
+    constructor(private readonly api: ApiService) {
         effect(() => {
             this.stepForms.set(this.steps().map(() => null));
         });
@@ -198,7 +199,12 @@ export class DynamicWizardComponent {
         const config = this.submitConfig();
         if (config) {
             const formData = buildSubmitFormData(this.resolvedSteps(), merged);
-            config.submit(formData).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((response) => this.submitSuccess.emit(response));
+            const apiEndpoint: ApiEndpoint = config.actionType === ActionTypes.CREATE ? config.createApiEndpoint
+                : config.actionType === ActionTypes.UPDATE ? config.updateApiEndpoint
+                : config.deleteApiEndpoint;
+            this.api.post<T>(apiEndpoint, formData)
+                .pipe(takeUntilDestroyed(this.destroyRef))
+                .subscribe((response) => this.submitSuccess.emit(response));
         }
     }
 }
