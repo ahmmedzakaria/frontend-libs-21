@@ -1,4 +1,4 @@
-// SmartDropdownComponent renders no chrome of its own — it's a pure facade
+// DynamicDropdownComponent renders no chrome of its own — it's a pure facade
 // that delegates to one of app-static-dropdown / app-api-simple-dropdown /
 // app-api-scroll-dropdown per `mode()`; see those components' stylesheets
 // for the actual visual styling.

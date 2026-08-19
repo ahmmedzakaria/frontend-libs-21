@@ -4,18 +4,18 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Observable, Subject, catchError, debounceTime, distinctUntilChanged, of, switchMap } from 'rxjs';
 import { IconComponent } from '@nexacore/platform';
 import { DropdownOption } from '../dropdown/dropdown.component';
-import { SmartDropdownLoader, SmartDropdownPage } from '../smart-dropdown/smart-dropdown.model';
+import { DynamicDropdownLoader, DynamicDropdownPage } from '../dynamic-dropdown/dynamic-dropdown.model';
 
 let nextUid = 0;
 
 /**
- * `SmartDropdownMode: 'api-scroll'` implementation — debounced fetch per
+ * `DynamicDropdownMode: 'api-scroll'` implementation — debounced fetch per
  * query (reset to page 0), plus infinite-scroll pagination as the user
  * scrolls the panel near its bottom. One of the three concrete dropdown
- * components `SmartDropdownComponent` delegates to based on its `mode()`;
+ * components `DynamicDropdownComponent` delegates to based on its `mode()`;
  * usable directly when a caller already knows they only need this mode. Not
  * a ControlValueAccessor itself — plain `value`/`valueChange` binding, since
- * `SmartDropdownComponent` is the sole form-integration point for all three
+ * `DynamicDropdownComponent` is the sole form-integration point for all three
  * modes.
  */
 @Component({
@@ -29,7 +29,7 @@ let nextUid = 0;
 export class ApiScrollDropdownComponent<T = string> {
     readonly value = input<T | null>(null);
     readonly disabled = input(false);
-    readonly loadOptions = input<SmartDropdownLoader<T> | null>(null);
+    readonly loadOptions = input<DynamicDropdownLoader<T> | null>(null);
     readonly label = input('');
     readonly placeholder = input('Select...');
     readonly searchable = input(true);
@@ -137,7 +137,7 @@ export class ApiScrollDropdownComponent<T = string> {
         this.triggerWidth.set(this.triggerButton()?.nativeElement.getBoundingClientRect().width ?? 0);
         // Deferred one microtask so the `cdkConnectedOverlayWidth` binding
         // reaches the CDK directive's input on its own change-detection pass
-        // before the overlay actually attaches — see SmartDropdownComponent's
+        // before the overlay actually attaches — see DynamicDropdownComponent's
         // original implementation for the full rationale.
         queueMicrotask(() => {
             this.open.set(true);
@@ -217,7 +217,7 @@ export class ApiScrollDropdownComponent<T = string> {
         }
     }
 
-    private fetchPage(query: string, page: number): Observable<SmartDropdownPage<T>> {
+    private fetchPage(query: string, page: number): Observable<DynamicDropdownPage<T>> {
         const loader = this.loadOptions();
         if (!loader) {
             return of({ items: [], hasMore: false });

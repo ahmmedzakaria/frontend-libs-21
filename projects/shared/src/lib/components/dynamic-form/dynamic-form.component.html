@@ -45,8 +45,8 @@
                 [errorMessage]="errorFor(field.key)"
               />
             }
-            @case ('smart-dropdown') {
-              <app-smart-dropdown
+            @case ('dynamic-dropdown') {
+              <app-dynamic-dropdown
                 [formControlName]="field.key"
                 [dropdownConfig]="field.dropdownConfig ?? null"
                 [initValue]="field.initValue ?? null"

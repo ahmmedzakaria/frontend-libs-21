@@ -7,16 +7,16 @@ import { ApiSimpleDropdownComponent } from '../api-simple-dropdown/api-simple-dr
 import { ApiScrollDropdownComponent } from '../api-scroll-dropdown/api-scroll-dropdown.component';
 import { DropdownApiConfig } from '../../dropdown-config/dropdown-api-config.model';
 import { DropdownConfigService } from '../../dropdown-config/dropdown-config.service';
-import { SmartDropdownLoader, SmartDropdownMode } from './smart-dropdown.model';
+import { DynamicDropdownLoader, DynamicDropdownMode } from './dynamic-dropdown.model';
 
 /**
- * Facade over the three `SmartDropdownMode`-specific dropdown components
+ * Facade over the three `DynamicDropdownMode`-specific dropdown components
  * (`app-static-dropdown` / `app-api-simple-dropdown` / `app-api-scroll-dropdown`)
  * — this is the only piece of the four that implements `ControlValueAccessor`
  * and `Validator`; it owns forms integration for all three modes and simply
  * renders whichever concrete component matches `mode()`, forwarding value
  * changes and touched state back through itself. Kept as the single stable
- * public API (`app-smart-dropdown`, `[formControlName]`) so existing callers
+ * public API (`app-dynamic-dropdown`, `[formControlName]`) so existing callers
  * (`DynamicFormComponent`, direct template usage) don't need to know which
  * mode they're getting.
  *
@@ -39,18 +39,18 @@ import { SmartDropdownLoader, SmartDropdownMode } from './smart-dropdown.model';
  * being fresh object references on every parent recompute.
  */
 @Component({
-    selector: 'app-smart-dropdown',
+    selector: 'app-dynamic-dropdown',
     standalone: true,
     imports: [StaticDropdownComponent, ApiSimpleDropdownComponent, ApiScrollDropdownComponent],
     providers: [
-        { provide: NG_VALUE_ACCESSOR, useExisting: SmartDropdownComponent, multi: true },
-        { provide: NG_VALIDATORS, useExisting: SmartDropdownComponent, multi: true }
+        { provide: NG_VALUE_ACCESSOR, useExisting: DynamicDropdownComponent, multi: true },
+        { provide: NG_VALIDATORS, useExisting: DynamicDropdownComponent, multi: true }
     ],
-    templateUrl: './smart-dropdown.component.html',
-    styleUrl: './smart-dropdown.component.scss',
+    templateUrl: './dynamic-dropdown.component.html',
+    styleUrl: './dynamic-dropdown.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SmartDropdownComponent<T = string> extends BaseValueAccessor<T> implements Validator {
+export class DynamicDropdownComponent<T = string> extends BaseValueAccessor<T> implements Validator {
     private readonly dropdownConfigService = inject(DropdownConfigService);
 
     /** Declarative source of truth — when supplied, `mode`/`options`/
@@ -64,11 +64,11 @@ export class SmartDropdownComponent<T = string> extends BaseValueAccessor<T> imp
      * `dropdownConfig`. */
     readonly initValue = input<unknown>(null);
 
-    readonly mode = input<SmartDropdownMode>('static');
+    readonly mode = input<DynamicDropdownMode>('static');
     /** Options for 'static' mode. */
     readonly options = input<DropdownOption<T>[]>([]);
     /** Fetch function for 'api-simple'/'api-scroll' modes. */
-    readonly loadOptions = input<SmartDropdownLoader<T> | null>(null);
+    readonly loadOptions = input<DynamicDropdownLoader<T> | null>(null);
     readonly label = input('');
     /** `null` (the default) defers to `dropdownConfig`'s own `placeholder`,
      * then a hardcoded fallback — see `resolvedPlaceholder`. An explicit
@@ -88,7 +88,7 @@ export class SmartDropdownComponent<T = string> extends BaseValueAccessor<T> imp
      * another control programmatically. */
     readonly displayWith = input<((value: T) => string) | null>(null);
 
-    protected readonly resolvedMode = computed<SmartDropdownMode>(() => this.dropdownConfig()?.dropdownMode ?? this.mode());
+    protected readonly resolvedMode = computed<DynamicDropdownMode>(() => this.dropdownConfig()?.dropdownMode ?? this.mode());
 
     protected readonly resolvedOptions = computed<DropdownOption<T>[]>(() => {
         const config = this.dropdownConfig();
@@ -98,10 +98,10 @@ export class SmartDropdownComponent<T = string> extends BaseValueAccessor<T> imp
         return this.options();
     });
 
-    protected readonly resolvedLoadOptions = computed<SmartDropdownLoader<T> | null>(() => {
+    protected readonly resolvedLoadOptions = computed<DynamicDropdownLoader<T> | null>(() => {
         const config = this.dropdownConfig();
         if (config && config.dropdownMode !== 'static') {
-            return this.dropdownConfigService.resolveLoader(config) as SmartDropdownLoader<T>;
+            return this.dropdownConfigService.resolveLoader(config) as DynamicDropdownLoader<T>;
         }
         return this.loadOptions();
     });

@@ -180,7 +180,7 @@ $breakpoint-mobile: 48rem;
   --layout-error-soft: var(--red-soft);
   --layout-error-border: color-mix(in srgb, var(--red) 45%, var(--layout-theme-surface));
 
-  // CDK Overlay panels — Dropdown, SmartDropdown, DatePicker's compact select-style panels
+  // CDK Overlay panels — Dropdown, DynamicDropdown, DatePicker's compact select-style panels
   --layout-panel-max-height-sm: 280px;
   --layout-rotate-open: 180deg;
   --layout-panel-width-md: 260px;

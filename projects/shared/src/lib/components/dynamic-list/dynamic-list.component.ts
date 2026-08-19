@@ -43,7 +43,7 @@ function needsGeneratedTemplate<T>(column: ListColumnConfig<T>): column is Templ
 
 /**
  * Generalizes the `person-list.component.ts` pattern: given `columns` (badge/pill/image/actions/
- * custom cell config) and a `loadItems` loader — mirroring `SmartDropdownComponent`'s
+ * custom cell config) and a `loadItems` loader — mirroring `DynamicDropdownComponent`'s
  * `loadOptions` convention — this owns the fetch/search/paginate lifecycle that a hand-written
  * list page would otherwise duplicate, composing FilterBar + DataTable + optional ExportButton.
  */

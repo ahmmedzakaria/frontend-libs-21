@@ -98,7 +98,7 @@ This guide applies to shared Angular source libraries under
   properties (consumed as plain CSS custom properties at runtime by whichever
   app loads `layout`'s tokens globally — no build-time SCSS coupling between
   the two packages). No raw hex, px, or `rgba()` literals in component styles.
-- Anchored floating UI (dropdowns, date pickers, smart dropdowns) uses CDK
+- Anchored floating UI (dropdowns, date pickers, dynamic dropdowns) uses CDK
   `Overlay` + `a11y`, not hand-rolled `@HostListener('document:click')`
   listeners. Centered, non-anchored overlays (lightboxes, modals) may use
   plain `position: fixed` with a backdrop instead.

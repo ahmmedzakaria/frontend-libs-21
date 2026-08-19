@@ -12,7 +12,7 @@ import { AttachmentMode, AttachmentPreviewConfig } from './dynamic-attachment.mo
 /**
  * Facade over the two attachment-type controls (`app-file-upload` /
  * `app-profile-photo-upload`) — same abstraction-layer role
- * `SmartDropdownComponent` plays for its three dropdown modes. This is the
+ * `DynamicDropdownComponent` plays for its three dropdown modes. This is the
  * only piece that implements `ControlValueAccessor`/`Validator`; it owns
  * forms integration and simply renders whichever concrete component matches
  * `mode()`, forwarding value changes and touched state back through itself.
@@ -25,7 +25,7 @@ import { AttachmentMode, AttachmentPreviewConfig } from './dynamic-attachment.mo
  * with `[formControl]`, syncing its own `value`/`disabled` state onto it and
  * relaying `TouchedChangeEvent`s back up through `markTouched()`.
  *
- * Configuration-specific abstraction, same as `SmartDropdownComponent`'s
+ * Configuration-specific abstraction, same as `DynamicDropdownComponent`'s
  * `dropdownConfig`: pass `attachmentApiConfig` + `initValue` (a raw saved id)
  * instead of hand-fetching the existing preview yourself — this component
  * resolves it itself (`resolvePreview()` below, calling `ApiService`
@@ -77,7 +77,7 @@ export class DynamicAttachmentComponent extends BaseValueAccessor<File[]> implem
     /** Declarative source for the existing-preview fetch — see the class doc. */
     readonly attachmentApiConfig = input<AttachmentApiConfig | null>(null);
     /** Raw saved id to resolve into a preview via `attachmentApiConfig` — see
-     * the class doc. Named to match `SmartDropdownComponent.initValue`. */
+     * the class doc. Named to match `DynamicDropdownComponent.initValue`. */
     readonly initValue = input<unknown>(null);
     readonly required = input(false);
 
@@ -107,7 +107,7 @@ export class DynamicAttachmentComponent extends BaseValueAccessor<File[]> implem
 
     /** Guards `attachmentApiConfig` resolution to at most once per instance —
      * `attachmentApiConfig`/`attachmentId` are commonly fresh object
-     * references on every parent recompute (see SmartDropdownComponent's
+     * references on every parent recompute (see DynamicDropdownComponent's
      * `initialValueResolved` for the same rationale), so gating on "already
      * attempted" avoids re-fetching. */
     private readonly previewFetchAttempted = signal(false);
@@ -196,7 +196,7 @@ export class DynamicAttachmentComponent extends BaseValueAccessor<File[]> implem
      * calls the config's endpoint and resolves the response into the preview
      * this component needs to render the "already uploaded" state. Lives
      * here (not a shared service) since this component is the sole consumer
-     * — mirrors `SmartDropdownComponent.buildLoader()`. Emits `null` when
+     * — mirrors `DynamicDropdownComponent.buildLoader()`. Emits `null` when
      * `id` is empty or the fetch fails (nothing to preview — the field just
      * starts empty).
      */

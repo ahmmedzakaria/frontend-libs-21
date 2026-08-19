@@ -2,8 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, map, of } from 'rxjs';
 import { ApiService } from '@nexacore/platform';
 import { DropdownOption } from '../components/dropdown/dropdown.component';
-import { SmartDropdownLoader, SmartDropdownPage } from '../components/smart-dropdown/smart-dropdown.model';
-import { DropdownFieldConfig, FieldConfig, SmartDropdownFieldConfig } from '../components/dynamic-form/dynamic-form.model';
+import { DynamicDropdownLoader, DynamicDropdownPage } from '../components/dynamic-dropdown/dynamic-dropdown.model';
+import { DropdownFieldConfig, FieldConfig, DynamicDropdownFieldConfig } from '../components/dynamic-form/dynamic-form.model';
 import { ApiDropdownApiConfig, DropdownApiConfig, DropdownOptionMapping, StaticDropdownApiConfig } from './dropdown-api-config.model';
 
 interface DropdownApiPage<T> {
@@ -25,7 +25,7 @@ export class DropdownConfigService {
         key: string,
         label: string,
         config: DropdownApiConfig,
-        overrides: Partial<DropdownFieldConfig | SmartDropdownFieldConfig> = {}
+        overrides: Partial<DropdownFieldConfig | DynamicDropdownFieldConfig> = {}
     ): FieldConfig {
         if (config.dropdownMode === 'static') {
             const base: DropdownFieldConfig = {
@@ -38,17 +38,17 @@ export class DropdownConfigService {
             return { ...base, ...overrides } as DropdownFieldConfig;
         }
 
-        const base: SmartDropdownFieldConfig = {
+        const base: DynamicDropdownFieldConfig = {
             key,
             label,
-            type: 'smart-dropdown',
+            type: 'dynamic-dropdown',
             mode: config.dropdownMode,
             placeholder: config.placeholder,
             loadOptions: this.resolveLoader(config),
             compareWith: this.resolveCompareWith(config.option),
             displayWith: this.resolveDisplayWith(config.option)
         };
-        return { ...base, ...overrides } as SmartDropdownFieldConfig;
+        return { ...base, ...overrides } as DynamicDropdownFieldConfig;
     }
 
     /**
@@ -76,7 +76,7 @@ export class DropdownConfigService {
     }
 
     /** Options for 'static' mode — the label/value pairs a plain `<app-dropdown>`
-     * or `<app-smart-dropdown>` (mode 'static') can render directly. */
+     * or `<app-dynamic-dropdown>` (mode 'static') can render directly. */
     resolveOptions<T>(config: StaticDropdownApiConfig<T>): DropdownOption<unknown>[] {
         return config.listItems.map((item) => ({
             label: this.buildLabel(item as Record<string, unknown>, config.option),
@@ -84,9 +84,9 @@ export class DropdownConfigService {
         }));
     }
 
-    /** Loader for 'api-simple'/'api-scroll' modes — what `<app-smart-dropdown>`
+    /** Loader for 'api-simple'/'api-scroll' modes — what `<app-dynamic-dropdown>`
      * calls per query/page. */
-    resolveLoader(config: ApiDropdownApiConfig): SmartDropdownLoader<unknown> {
+    resolveLoader(config: ApiDropdownApiConfig): DynamicDropdownLoader<unknown> {
         return (query: string, page: number) => {
             // Don't fetch on an empty query (e.g. right after opening the
             // panel) — avoids an unbounded "search everything" call.
@@ -94,11 +94,11 @@ export class DropdownConfigService {
                 return of({ items: [], hasMore: false });
             }
             const body = { page, size: config.pageSize ?? 10, searchText: query, ...config.extraParams };
-            // SmartDropdownComponent's own fetchPage() already wraps loader
+            // DynamicDropdownComponent's own fetchPage() already wraps loader
             // calls in catchError — no need to duplicate that here.
             return this.api.post<DropdownApiPage<Record<string, unknown>>>(config.apiConfig, body).pipe(
                 map(
-                    (res): SmartDropdownPage<unknown> => ({
+                    (res): DynamicDropdownPage<unknown> => ({
                         items: (res?.content ?? []).map((item) => ({
                             label: this.buildLabel(item, config.option),
                             value: this.buildValue(item, config.option)

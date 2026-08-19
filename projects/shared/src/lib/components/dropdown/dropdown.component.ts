@@ -19,7 +19,7 @@ let nextUid = 0;
  * trigger, role="listbox"/"option" in the panel, arrow-key navigation, and
  * aria-activedescendant instead of moving DOM focus into the panel.
  *
- * Static options, no built-in search — see SmartDropdown for the
+ * Static options, no built-in search — see DynamicDropdown for the
  * search/async variant built on the same overlay-positioning approach.
  */
 @Component({

@@ -1,13 +1,13 @@
 import { CardOption } from '../card-selector/card-selector.component';
 import { DropdownOption } from '../dropdown/dropdown.component';
 import { RadioOption } from '../radio-group/radio-group.component';
-import { SmartDropdownLoader, SmartDropdownMode } from '../smart-dropdown/smart-dropdown.model';
+import { DynamicDropdownLoader, DynamicDropdownMode } from '../dynamic-dropdown/dynamic-dropdown.model';
 import { AttachmentMode, AttachmentPreviewConfig } from '../dynamic-attachment/dynamic-attachment.model';
 import { PreviewFieldConfig } from '../dynamic-preview/dynamic-preview.model';
 import { DropdownApiConfig } from '../../dropdown-config/dropdown-api-config.model';
 import { AttachmentApiConfig } from '../../attachment-config/attachment-api-config.model';
 
-// `CardOption`/`DropdownOption`/`RadioOption`/`SmartDropdownMode`/`SmartDropdownLoader`/
+// `CardOption`/`DropdownOption`/`RadioOption`/`DynamicDropdownMode`/`DynamicDropdownLoader`/
 // `AttachmentMode`/`AttachmentPreviewConfig` are not re-exported here — they're already
 // public via their own component files (also exported from this package's public-api.ts),
 // and re-exporting them again from this module would create an ambiguous duplicate export
@@ -111,16 +111,16 @@ export interface DropdownFieldConfig extends BaseFieldConfig {
     dropdownConfig?: DropdownApiConfig;
 }
 
-export interface SmartDropdownFieldConfig extends BaseFieldConfig {
-    type: 'smart-dropdown';
-    mode?: SmartDropdownMode;
+export interface DynamicDropdownFieldConfig extends BaseFieldConfig {
+    type: 'dynamic-dropdown';
+    mode?: DynamicDropdownMode;
     /** Required for `mode: 'static'` (the default). */
     options?: DropdownOption<unknown>[];
     /** Required for `mode: 'api-simple' | 'api-scroll'`. */
-    loadOptions?: SmartDropdownLoader<unknown>;
+    loadOptions?: DynamicDropdownLoader<unknown>;
     placeholder?: string;
     searchable?: boolean;
-    /** Defaults to reference equality (`a === b`) — see SmartDropdownComponent. */
+    /** Defaults to reference equality (`a === b`) — see DynamicDropdownComponent. */
     compareWith?: (a: unknown, b: unknown) => boolean;
     /** Known label for the current value at load time (async modes) — avoids a fetch just to display it. */
     initialOption?: DropdownOption<unknown> | null;
@@ -133,7 +133,7 @@ export interface SmartDropdownFieldConfig extends BaseFieldConfig {
      * `lookup` (e.g. a saved foreign-key column on the record being edited) —
      * the declarative equivalent of the host page calling
      * `DropdownConfigService.resolveInitialValue()` itself before the form
-     * mounts. Resolved once, internally, by SmartDropdownComponent; ignored
+     * mounts. Resolved once, internally, by DynamicDropdownComponent; ignored
      * without a `dropdownConfig`. */
     initValue?: unknown;
 }
@@ -161,7 +161,7 @@ export interface CardSelectorFieldConfig extends BaseFieldConfig {
 /** Either 'file-upload' (rectangular drag/drop, multi-file, upload-progress)
  * or 'profile-photo' (circular single-photo picker) — see
  * `DynamicAttachmentComponent`, the abstraction layer over both, resolved
- * the same way `SmartDropdownFieldConfig`/`SmartDropdownComponent` resolve
+ * the same way `DynamicDropdownFieldConfig`/`DynamicDropdownComponent` resolve
  * their three dropdown modes. Value is always `File[]`. */
 export interface AttachmentFieldConfig extends BaseFieldConfig {
     type: 'attachment';
@@ -179,10 +179,10 @@ export interface AttachmentFieldConfig extends BaseFieldConfig {
     /** Explicit preview — always wins over a resolved `attachmentApiConfig` fetch. */
     attachmentConfig?: AttachmentPreviewConfig;
     /** Declarative source for the existing-preview fetch — the attachment
-     * equivalent of `SmartDropdownFieldConfig.dropdownConfig`. */
+     * equivalent of `DynamicDropdownFieldConfig.dropdownConfig`. */
     attachmentApiConfig?: AttachmentApiConfig;
     /** Raw saved id to resolve into a preview via `attachmentApiConfig` — same
-     * role as `SmartDropdownFieldConfig.initValue`. */
+     * role as `DynamicDropdownFieldConfig.initValue`. */
     initValue?: unknown;
     /** Called whenever the current preview URL changes — a freshly-staged
      * (not yet uploaded) pick always wins over an already-uploaded one,
@@ -206,7 +206,7 @@ export type FieldConfig =
     | CheckboxFieldConfig
     | RadioFieldConfig
     | DropdownFieldConfig
-    | SmartDropdownFieldConfig
+    | DynamicDropdownFieldConfig
     | DateFieldConfig
     | DateRangeFieldConfig
     | CardSelectorFieldConfig

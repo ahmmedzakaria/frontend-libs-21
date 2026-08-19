@@ -1,7 +1,7 @@
 // Shared visual chrome for the mode-specific dropdown components (Static/
 // ApiSimple/ApiScroll) — SCSS mixins, not shared classes, since each
 // component's styles are individually encapsulated by Angular (see
-// _field-shell.scss for the same rationale). SmartDropdownComponent itself
+// _field-shell.scss for the same rationale). DynamicDropdownComponent itself
 // renders none of this — it's a pure facade that delegates to one of the
 // three per `mode()`.
 

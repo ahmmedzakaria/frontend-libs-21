@@ -1,9 +1,9 @@
 import { Observable } from 'rxjs';
 import { DropdownOption } from '../dropdown/dropdown.component';
 
-export type SmartDropdownMode = 'static' | 'api-simple' | 'api-scroll';
+export type DynamicDropdownMode = 'static' | 'api-simple' | 'api-scroll';
 
-export interface SmartDropdownPage<T> {
+export interface DynamicDropdownPage<T> {
     items: DropdownOption<T>[];
     hasMore: boolean;
 }
@@ -16,4 +16,4 @@ export interface SmartDropdownPage<T> {
  * mode; 'api-scroll' calls again with an incrementing page as the user
  * scrolls near the bottom.
  */
-export type SmartDropdownLoader<T> = (query: string, page: number) => Observable<SmartDropdownPage<T>>;
+export type DynamicDropdownLoader<T> = (query: string, page: number) => Observable<DynamicDropdownPage<T>>;

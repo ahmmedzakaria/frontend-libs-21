@@ -43,8 +43,8 @@ export * from './lib/components/profile-photo-upload/profile-photo-upload.compon
 export * from './lib/components/replacement-summary/replacement-summary.component';
 export * from './lib/components/radio-group/radio-group.component';
 export * from './lib/components/search-toolbar/search-toolbar.component';
-export * from './lib/components/smart-dropdown/smart-dropdown.model';
-export * from './lib/components/smart-dropdown/smart-dropdown.component';
+export * from './lib/components/dynamic-dropdown/dynamic-dropdown.model';
+export * from './lib/components/dynamic-dropdown/dynamic-dropdown.component';
 export * from './lib/components/static-dropdown/static-dropdown.component';
 export * from './lib/components/status-badge/status-badge.component';
 export * from './lib/components/stepper/stepper.component';

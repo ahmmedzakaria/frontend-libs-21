@@ -7,7 +7,7 @@ import { DatePickerComponent } from '../date-picker/date-picker.component';
 import { DropdownComponent } from '../dropdown/dropdown.component';
 import { PasswordGroupComponent } from '../password-group/password-group.component';
 import { RadioGroupComponent } from '../radio-group/radio-group.component';
-import { SmartDropdownComponent } from '../smart-dropdown/smart-dropdown.component';
+import { DynamicDropdownComponent } from '../dynamic-dropdown/dynamic-dropdown.component';
 import { TextareaComponent } from '../textarea/textarea.component';
 import { TextboxComponent } from '../textbox/textbox.component';
 import { ValidationMessageService } from '../../services/validation-message.service';
@@ -28,7 +28,7 @@ function defaultValueFor(field: FieldConfig): unknown {
             return { start: null, end: null };
         case 'radio':
         case 'dropdown':
-        case 'smart-dropdown':
+        case 'dynamic-dropdown':
         case 'card-selector':
             return null;
         default:
@@ -80,7 +80,7 @@ function validatorsFor(field: FieldConfig): ValidatorFn[] {
         CheckboxComponent,
         RadioGroupComponent,
         DropdownComponent,
-        SmartDropdownComponent,
+        DynamicDropdownComponent,
         DatePickerComponent,
         CardSelectorComponent,
         DynamicAttachmentComponent,
@@ -95,7 +95,7 @@ export class DynamicFormComponent {
     private readonly messages = inject(ValidationMessageService);
     private readonly dropdownConfigService = inject(DropdownConfigService);
 
-    /** Bound to `app-smart-dropdown`'s `compareWith` when a field doesn't supply
+    /** Bound to `app-dynamic-dropdown`'s `compareWith` when a field doesn't supply
      * its own — binding an `input()` to an explicit `undefined` overrides the
      * component's own declared default instead of falling back to it, so this
      * has to be a real fallback value, not `field.compareWith ?? undefined`. */
@@ -109,10 +109,10 @@ export class DynamicFormComponent {
      * field resolved into its full options/placeholder via
      * `DropdownConfigService.field()` — lets call sites declare
      * `{ key, type: 'dropdown', label, dropdownConfig }` directly instead of
-     * calling the service themselves. A 'smart-dropdown'-typed field's
+     * calling the service themselves. A 'dynamic-dropdown'-typed field's
      * `dropdownConfig` is left untouched here and passed straight through to
-     * `<app-smart-dropdown>`, which now resolves it itself (see
-     * SmartDropdownComponent) — `<app-dropdown>` has no such input, so it
+     * `<app-dynamic-dropdown>`, which now resolves it itself (see
+     * DynamicDropdownComponent) — `<app-dropdown>` has no such input, so it
      * still needs pre-resolving. Used for both rendering and building the
      * FormGroup below. */
     protected readonly resolvedFields = computed<FieldConfig[]>(() => this.fields().map((field) => this.resolveField(field)));
@@ -171,7 +171,7 @@ export class DynamicFormComponent {
     }
 
     /** For control types with no self-rendered error text (Dropdown,
-     * SmartDropdown, DatePicker) — everything else self-validates and
+     * DynamicDropdown, DatePicker) — everything else self-validates and
      * self-displays via its own `NG_VALIDATORS` + touched state. */
     errorFor(key: string): string | null {
         this.formVersion();
