@@ -1,27 +1,32 @@
-<app-wizard
-  [nextLabel]="nextLabel()"
-  [backLabel]="backLabel()"
-  [finishLabel]="finishLabel()"
-  (stepIndexChange)="stepIndexChange.emit($event)"
-  (finished)="onFinished()"
->
-  @for (step of resolvedSteps(); track step.key; let i = $index) {
-    <app-wizard-step [label]="step.label" [disabled]="!!step.disabled" [form]="stepForms()[i]">
-      @if (isReviewStep(step)) {
-        <app-dynamic-preview
-          [sections]="step.reviewSections ?? []"
-          [data]="mergedValuesUpTo(i)"
-          [heading]="step.reviewHeading ?? ''"
-          [subheading]="step.reviewSubheading ?? ''"
-        />
-      } @else {
-        <app-dynamic-form
-          [fields]="step.fields"
-          [initialValue]="step.initialValue ?? {}"
-          [columns]="step.columns ?? 1"
-          (formReady)="setStepForm(i, $event)"
-        />
-      }
-    </app-wizard-step>
+<div [class.wizard-card]="title()">
+  @if (title(); as t) {
+    <h4 class="wizard-title">{{ t }}</h4>
   }
-</app-wizard>
+  <app-wizard
+    [nextLabel]="nextLabel()"
+    [backLabel]="backLabel()"
+    [finishLabel]="finishLabel()"
+    (stepIndexChange)="stepIndexChange.emit($event)"
+    (finished)="onFinished()"
+  >
+    @for (step of resolvedSteps(); track step.key; let i = $index) {
+      <app-wizard-step [label]="step.label" [disabled]="!!step.disabled" [form]="stepForms()[i]">
+        @if (isReviewStep(step)) {
+          <app-dynamic-preview
+            [sections]="step.reviewSections ?? []"
+            [data]="mergedValuesUpTo(i)"
+            [heading]="step.reviewHeading ?? ''"
+            [subheading]="step.reviewSubheading ?? ''"
+          />
+        } @else {
+          <app-dynamic-form
+            [fields]="step.fields"
+            [initialValue]="step.initialValue ?? {}"
+            [columns]="step.columns ?? 1"
+            (formReady)="setStepForm(i, $event)"
+          />
+        }
+      </app-wizard-step>
+    }
+  </app-wizard>
+</div>

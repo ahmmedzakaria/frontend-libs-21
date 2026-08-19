@@ -1,3 +1,25 @@
 :host {
   display: block;
 }
+
+// Only applied when `DynamicWizardConfig.title` is set — see the template's
+// `[class.wizard-card]="title()"`. Written directly against the layout
+// package's runtime CSS custom properties (not a SCSS `@use`d mixin) since
+// this package can't reach into a consuming app's own SCSS partials — a
+// host page's own equivalent (e.g. kyc-frontend-21's `_page-shell.scss`
+// `card` mixin) expands to the same variables.
+.wizard-card {
+  background: var(--card);
+  border: var(--layout-border-width) solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: var(--layout-space-4);
+  margin-bottom: var(--layout-space-4);
+}
+
+.wizard-title {
+  font-size: var(--layout-font-size-lg);
+  font-weight: var(--layout-font-weight-semibold);
+  color: var(--text);
+  margin: 0 0 var(--layout-space-3);
+}

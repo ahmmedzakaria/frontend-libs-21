@@ -99,6 +99,9 @@ export class DynamicWizardComponent<T> {
 
     private readonly steps = computed(() => this.data().config.steps);
     private readonly submitConfig = computed(() => this.data().config.submitConfig ?? null);
+    /** See `DynamicWizardConfig.title`'s doc — read directly by the template
+     * to decide whether to render the card shell + heading at all. */
+    protected readonly title = computed(() => this.data().config.title ?? null);
     /** `data().entity`, cast to the flat-record shape `resolvedSteps` needs —
      * see `DynamicWizardData.entity`'s doc for why this stays a cast here
      * rather than a generic component type parameter. */

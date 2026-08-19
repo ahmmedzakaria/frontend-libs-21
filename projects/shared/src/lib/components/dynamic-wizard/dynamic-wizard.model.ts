@@ -50,6 +50,12 @@ export type DynamicWizardSubmitConfig =
 /** The wizard's own shape, independent of any particular entity — everything
  * a host would otherwise pass as separate `steps`/`submitConfig` inputs. */
 export interface DynamicWizardConfig {
+    /** Optional heading rendered above the wizard, inside a card shell — e.g.
+     * "Edit Person" vs. "Create Person" depending on which mode the host is
+     * in. Omit to render the wizard bare, exactly as before (no card, no
+     * heading) — a host that already provides its own page heading/card
+     * (e.g. `component-demo`, `client-application-editor`) is unaffected. */
+    title?: string;
     steps: DynamicWizardStepConfig[];
     /** Supply to have `DynamicWizardComponent` build the `FormData` and
      * perform the request itself once every field step is valid — see
