@@ -71,6 +71,8 @@ export class DynamicListComponent<T> {
     private readonly destroyRef = inject(DestroyRef);
     readonly columns = input.required<ListColumnConfig<T>[]>();
     readonly loadItems = input.required<DynamicListLoader<T>>();
+    /** Changing this value reloads page 1. Use it for external filters captured by `loadItems`. */
+    readonly reloadKey = input<unknown>(undefined);
     readonly pageSize = input(10);
     /** Choices offered in the pagination's page-size selector; empty renders no selector. */
     readonly pageSizeOptions = input<number[]>([10, 25, 50, 100]);
@@ -115,12 +117,13 @@ export class DynamicListComponent<T> {
     });
 
     constructor() {
-        // Required inputs aren't readable synchronously in the constructor body — an effect's
-        // first run is deferred until after Angular binds them. Reading them via `untracked`
-        // keeps this a true one-shot fetch: no signal read here becomes a dependency, so the
-        // effect never reruns on a later `loadItems`/`pageSize` change (mirrors `PersonListComponent`'s
-        // own constructor calling `loadData(1)` exactly once).
-        effect(() => untracked(() => this.fetch(1)));
+        // Required inputs aren't readable synchronously in the constructor body. The effect's
+        // first run occurs after binding, then reruns only when a consumer changes reloadKey.
+        // Loader internals and pagination signals remain untracked to avoid accidental requests.
+        effect(() => {
+            this.reloadKey();
+            untracked(() => this.fetch(1));
+        });
     }
 
     /** Public (not protected) so spec files can drive it directly — same rationale as `DynamicWizardComponent.stepForms`. */

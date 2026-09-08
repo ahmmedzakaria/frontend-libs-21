@@ -85,6 +85,18 @@ describe('DynamicListComponent', () => {
         expect(calls[2]).toEqual({ query: 'Amina', searchType: 'name', page: 3, pageSize: 10 });
     });
 
+    it('reloads page 1 when an external reload key changes', () => {
+        const { loader, calls } = makeLoader();
+        const fixture = createComponent(textColumns, loader);
+
+        fixture.componentInstance.onPageChange(3);
+        fixture.componentRef.setInput('reloadKey', 'client-b');
+        fixture.detectChanges();
+
+        expect(calls.at(-1)).toEqual({ query: '', searchType: null, page: 1, pageSize: 10 });
+        expect(fixture.componentInstance.page()).toBe(1);
+    });
+
     it('renders a badge column via a generated cell template', () => {
         const { loader } = makeLoader();
         const columns: ListColumnConfig<Row>[] = [
