@@ -110,7 +110,7 @@ export class HeaderComponent {
 
     const feature = this.tree.getNode(item.path);
     if (feature?.route) {
-      this.router.navigateByUrl('/' + feature.route);
+      this.router.navigateByUrl(feature.route.startsWith('/') ? feature.route : `/${feature.route}`);
     }
   }
 
