@@ -12,6 +12,7 @@ export * from './lib/components/color-palette/color-palette.component';
 export * from './lib/components/confirm-dialog/confirm-dialog.component';
 export * from './lib/components/data-table/data-table.component';
 export * from './lib/components/date-picker/date-picker.component';
+export * from './lib/components/development-in-progress/development-in-progress.component';
 export * from './lib/components/dropdown/dropdown.component';
 export * from './lib/dropdown-config/dropdown-api-config.model';
 export * from './lib/dropdown-config/dropdown-config.service';

@@ -1,0 +1,45 @@
+<main class="development-page">
+    <section class="development-card" aria-labelledby="development-title">
+        <div class="illustration" aria-hidden="true">
+            <svg viewBox="0 0 520 320" role="img">
+                <defs>
+                    <linearGradient id="panel-fill" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0" stop-color="currentColor" stop-opacity=".18" />
+                        <stop offset="1" stop-color="currentColor" stop-opacity=".04" />
+                    </linearGradient>
+                </defs>
+                <path class="ground" d="M58 274h404" />
+                <rect class="screen" x="110" y="46" width="300" height="190" rx="18" />
+                <path class="screen-line" d="M110 82h300" />
+                <circle class="window-dot" cx="137" cy="64" r="5" />
+                <circle class="window-dot muted" cx="155" cy="64" r="5" />
+                <circle class="window-dot muted" cx="173" cy="64" r="5" />
+                <path class="code-line" d="M146 113h96M146 139h174M146 165h126" />
+                <path class="code-line short" d="M146 191h70" />
+                <g class="gear large">
+                    <circle cx="363" cy="193" r="43" />
+                    <circle class="gear-hole" cx="363" cy="193" r="17" />
+                    <path d="M363 139v12M363 235v12M309 193h12M405 193h12M325 155l9 9M392 222l9 9M325 231l9-9M392 164l9-9" />
+                </g>
+                <g class="gear small">
+                    <circle cx="407" cy="129" r="25" />
+                    <circle class="gear-hole" cx="407" cy="129" r="9" />
+                    <path d="M407 96v8M407 154v8M374 129h8M432 129h8M384 106l6 6M424 146l6 6M384 152l6-6M424 112l6-6" />
+                </g>
+                <path class="stand" d="M229 236v38M291 236v38M198 274h124" />
+                <path class="spark" d="M75 91h28M89 77v28M435 66h21M445 55v22" />
+            </svg>
+        </div>
+
+        <p class="eyebrow">Development in progress</p>
+        <h1 id="development-title">The page will be available soon</h1>
+        <p class="message">
+            The menu is available, but its destination has not been implemented in this application yet.
+            Please check again after the next release.
+        </p>
+        <p class="requested-path">Requested page: <code>{{ requestedPath }}</code></p>
+        <div class="actions">
+            <a class="primary-action" routerLink="/dashboard">Go to dashboard</a>
+        </div>
+    </section>
+</main>
