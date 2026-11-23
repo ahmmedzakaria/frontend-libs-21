@@ -57,6 +57,32 @@
           }
         }
       }
+    },
+    "catalog": {
+      "projectType": "library",
+      "root": "projects/catalog",
+      "sourceRoot": "projects/catalog/src",
+      "prefix": "catalog",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/catalog/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/catalog/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "tsConfig": "projects/catalog/tsconfig.spec.json"
+          }
+        }
+      }
     }
   }
 }

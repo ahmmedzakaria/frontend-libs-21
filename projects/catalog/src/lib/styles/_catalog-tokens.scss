@@ -1,0 +1,41 @@
+$catalog-breakpoint-small: 36rem;
+$catalog-breakpoint-medium: 48rem;
+$catalog-breakpoint-large: 75rem;
+
+:root {
+  --catalog-color-brand: var(--layout-theme-primary, #1f6f5c);
+  --catalog-color-accent: var(--layout-theme-focus, #2f7dd1);
+  --catalog-color-background: var(--layout-theme-bg, #f3f5f7);
+  --catalog-color-surface: var(--layout-theme-surface, #ffffff);
+  --catalog-color-text: var(--layout-theme-text, #1a222c);
+  --catalog-color-muted: color-mix(in srgb, var(--catalog-color-text) 62%, var(--catalog-color-background));
+  --catalog-color-border: color-mix(in srgb, var(--catalog-color-text) 14%, var(--catalog-color-surface));
+  --catalog-font-body: var(--layout-font-family, 'Segoe UI', Arial, sans-serif);
+  --catalog-font-heading: var(--layout-heading-font-family, var(--catalog-font-body));
+  --catalog-content-max-width: 75rem;
+  --catalog-reading-max-width: 45rem;
+  --catalog-grid-min-width: 16rem;
+  --catalog-header-height: 4.5rem;
+  --catalog-space-1: 0.25rem;
+  --catalog-space-2: 0.5rem;
+  --catalog-space-3: 0.75rem;
+  --catalog-space-4: 1rem;
+  --catalog-space-6: 1.5rem;
+  --catalog-space-8: 2rem;
+  --catalog-space-12: 3rem;
+  --catalog-space-16: 4rem;
+  --catalog-radius-small: 0.375rem;
+  --catalog-radius-medium: 0.75rem;
+  --catalog-radius-large: 1.25rem;
+  --catalog-shadow-card: 0 0.5rem 1.5rem color-mix(in srgb, var(--catalog-color-text) 12%, transparent);
+  --catalog-focus-ring: 0 0 0 0.1875rem color-mix(in srgb, var(--catalog-color-accent) 38%, transparent);
+  --catalog-motion-fast: 150ms;
+  --catalog-motion-standard: 240ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --catalog-motion-fast: 1ms;
+    --catalog-motion-standard: 1ms;
+  }
+}
